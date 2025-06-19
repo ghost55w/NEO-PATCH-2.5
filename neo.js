@@ -21,7 +21,6 @@ const {
   dl_save_media_ms,
   recup_msg
 } = require('./Ovl_events');
-const { startSecondarySessions } = require("./lib/connect");
 
 async function startPrincipalSession() {
   await delay(45000);
@@ -76,7 +75,7 @@ async function startPrincipalSession() {
     ovl.ev.on("group-participants.update", async (data) => group_participants_update(data, ovl));
 
     ovl.ev.on("connection.update", (update) => {
-      connection_update(update, ovl, startPrincipalSession, startSecondarySessions);
+      connection_update(update, ovl, startPrincipalSession);
     });
 
     ovl.ev.on("creds.update", saveCreds);
