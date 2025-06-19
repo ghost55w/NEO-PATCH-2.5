@@ -4,6 +4,7 @@ const { getMessage, addMessage } = require('../lib/store');
 const eval_exec = require('../lib/eval_exec');
 const { jidDecode, getContentType } = require("@whiskeysockets/baileys");
 const evt = require("../lib/ovlcmd");
+const getLid = require("./cache_lid");
 const config = require("../set");
 const prefixe = config.PREFIXE || "";
 
