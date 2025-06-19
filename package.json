@@ -1,5 +1,5 @@
 {
-  "name": "NEO-BOT",
+  "name": "NEO_BOT",
   "version": "2.0.0",
   "description": "Bot Whatsapp multi-appareil développé par Ainz",
   "main": "neo.js",
