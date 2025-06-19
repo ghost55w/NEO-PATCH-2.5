@@ -1,5 +1,5 @@
 {
-  "name": "neo-bot",
+  "name": "NEO-BOT",
   "version": "2.0.0",
   "description": "Bot Whatsapp multi-appareil développé par Ainz",
   "main": "neo.js",
@@ -8,7 +8,7 @@
     "stop": "pm2 stop all",
     "neo": "pm2 start neo.js --attach --name neo"
   },
-  "keywords": ["ainz", "neo-bot", "whatsapp", "baileys", "neoverse"],
+  "keywords": ["Ainz", "NEO-BOT", "Whatsapp", "Baileys", "Neoverse"],
   "author": "Ainz",
   "license": "MIT",
   "dependencies": {
