@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
 const FileType = require('file-type');
-const { getLid } = require('./Message_upsert_events');
+const getLid = require("./cache_lid");
 
 async function dl_save_media_ms(ovl, message, filename = '', attachExtension = true, directory = './downloads') {
     try {
