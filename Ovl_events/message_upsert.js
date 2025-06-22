@@ -4,7 +4,6 @@ const { getMessage, addMessage } = require('../lib/store');
 const eval_exec = require('../lib/eval_exec');
 const { jidDecode, getContentType } = require("@whiskeysockets/baileys");
 const evt = require("../lib/ovlcmd");
-const getLid = require("./cache_lid");
 const config = require("../set");
 const prefixe = config.PREFIXE || "";
 
@@ -23,18 +22,7 @@ try {
         }
         return jid;
     };
-
-    async function JidToLid(j) {
-        try {
-            if (!j) return null;
-            const lid = await getLid(j, ovl);
-            return lid || j;
-        } catch (e) {
-            console.error("Erreur JID -> LID :", e.message);
-            return j;
-        }
-    }
-
+    
     const mtype = getContentType(ms.message);
     const texte = {
         conversation: ms.message.conversation,
@@ -48,25 +36,23 @@ try {
     }[mtype] || "";
 
     const ms_org = ms.key.remoteJid;
-    const jid_bot = decodeJid(ovl.user.id);
-    const id_Bot = await JidToLid(jid_bot);
+    const id_Bot = decodeJid(ovl.user.id);
     const id_Bot_N = id_Bot.split('@')[0];
 
     const verif_Groupe = ms_org.endsWith("@g.us");
     const infos_Groupe = verif_Groupe ? await ovl.groupMetadata(ms_org) : {};
     const nom_Groupe = infos_Groupe.subject || "";
     const mbre_membre = verif_Groupe ? infos_Groupe.participants : [];
-    const groupe_Admin = await Promise.all(mbre_membre.filter((p) => p.admin).map(async (p) => await JidToLid(p.id)));
+    const groupe_Admin = mbre_membre.filter((p) =>p.admin).map((m) => p.jid);
     const verif_Ovl_Admin = verif_Groupe && groupe_Admin.includes(id_Bot);
 
     const msg_Repondu = ms.message.extendedTextMessage?.contextInfo?.quotedMessage;
-    const auteur_Msg_Repondu = await JidToLid(decodeJid(ms.message.extendedTextMessage?.contextInfo?.participant));
-    const mentionnes = ms.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
-    const mention_JID = await Promise.all(mentionnes.map(jid => JidToLid(jid)));
-
+    const auteur_Msg_Repondu = decodeJid(ms.message.extendedTextMessage?.contextInfo?.participant);
+    const mention_JID = ms.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
+    
     const auteur_Message = verif_Groupe
-        ? await JidToLid(ms.key.participant)
-        : await JidToLid(ms.key.fromMe ? id_Bot : ms.key.remoteJid);
+        ? ms.key.participant
+        : ms.key.fromMe ? id_Bot : ms.key.remoteJid;
 
     const nom_Auteur_Message = ms.pushName;
     const arg = texte.trim().split(/ +/).slice(1);
@@ -88,12 +74,10 @@ try {
     }
 
     const sudoUsers = await getSudoUsers();
-    const jidsToConvert = [Ainz, Ainzbot, jid_bot.split('@')[0], config.NUMERO_OWNER]
-    .map(n => `${n.replace(/[^0-9]/g, "")}@s.whatsapp.net`);
-    const convertedLIDs = await Promise.all(jidsToConvert.map(j => JidToLid(j)));
-    const premiumUsers = [...convertedLIDs, ...sudoUsers];
+    const premiumUsers = [Ainz, Ainzbot, id_Bot_N, config.NUMERO_OWNER, ...sudoUsers]
+    .map(n => `${n.replace(/[^0-9]/g, "")}@s.whatsapp.net`);
     const prenium_id = premiumUsers.includes(auteur_Message);
-    const dev_num = await Promise.all(devNumbers.map(n => JidToLid(`${n}@s.whatsapp.net`)));
+    const dev_num = devNumbers.map(n => `${n}@s.whatsapp.net`);
     const dev_id = dev_num.includes(auteur_Message);
     const verif_Admin = verif_Groupe && (groupe_Admin.includes(auteur_Message) || prenium_id);
 
@@ -137,7 +121,7 @@ try {
         if (cd) {
             try {
                 if (config.MODE !== 'public' && !prenium_id) return;
-                if ((!dev_id && auteur_Message !== await JidToLid('221772430620@s.whatsapp.net')) && ms_org === "120363314687943170@g.us") return;
+                if ((!dev_id && auteur_Message !== '221772430620@s.whatsapp.net') && ms_org === "120363314687943170@g.us") return;
                 if (!prenium_id && await isBanned('user', auteur_Message)) return;
                 if (!prenium_id && verif_Groupe && await isBanned('group', ms_org)) return;
 
