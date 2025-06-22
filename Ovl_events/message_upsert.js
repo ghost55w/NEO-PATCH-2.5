@@ -81,7 +81,7 @@ try {
         : `${entry.replace(/[^0-9]/g, '')}@s.whatsapp.net`;
 }
 
-const premium_Users_id = [Ainz, Ainzbot, id_Bot_N, config.NUMERO_OWNER, ...sudoUsers].map(toJID);
+const premiumUsers = [Ainz, Ainzbot, id_Bot_N, config.NUMERO_OWNER, ...sudoUsers].map(toJID);
 
     const prenium_id = premiumUsers.includes(auteur_Message);
     const dev_num = devNumbers.map(n => `${n}@s.whatsapp.net`);
