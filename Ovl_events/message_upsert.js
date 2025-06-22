@@ -52,7 +52,7 @@ try {
     
     const auteur_Message = verif_Groupe
         ? decodeJid(ms.key.participant)
-        : ms.key.fromMe ? id_Bot : ms.key.remoteJid;
+        : ms.key.fromMe ? id_Bot : decodeJid(ms.key.remoteJid);
 
     const nom_Auteur_Message = ms.pushName;
     const arg = texte.trim().split(/ +/).slice(1);
