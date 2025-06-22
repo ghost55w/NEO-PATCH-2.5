@@ -19,7 +19,7 @@ ovlcmd(
       }
       const cible =
         auteur_Msg_Repondu || 
-        (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
+        (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
  
       if (!cible) return repondre("Mentionnez un utilisateur valide à bannir.");
 
@@ -59,7 +59,7 @@ ovlcmd(
       }
       const cible =
         auteur_Msg_Repondu || 
-        (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
+        (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
  
       if (!cible) return repondre("Mentionnez un utilisateur valide à débannir.");
 
@@ -156,7 +156,7 @@ ovlcmd(
     }
     const cible =
       auteur_Msg_Repondu ||
-      (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
+      (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
  
     if (!cible) {
       return repondre("Veuillez mentionner un utilisateur valide pour l'ajouter en premium.");
@@ -236,7 +236,7 @@ ovlcmd(
     }
     const cible =
       auteur_Msg_Repondu ||
-      (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
+      (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
      
     if (!cible) {
       return repondre("Veuillez mentionner un utilisateur");
