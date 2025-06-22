@@ -43,7 +43,7 @@ try {
     const infos_Groupe = verif_Groupe ? await ovl.groupMetadata(ms_org) : {};
     const nom_Groupe = infos_Groupe.subject || "";
     const mbre_membre = verif_Groupe ? infos_Groupe.participants : [];
-    const groupe_Admin = mbre_membre.filter((p) =>p.admin).map((m) => p.jid);
+    const groupe_Admin = mbre_membre.filter((p) =>p.admin).map((p) => p.jid);
     const verif_Ovl_Admin = verif_Groupe && groupe_Admin.includes(id_Bot);
 
     const msg_Repondu = ms.message.extendedTextMessage?.contextInfo?.quotedMessage;
