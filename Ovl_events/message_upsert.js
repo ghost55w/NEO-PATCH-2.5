@@ -51,7 +51,7 @@ try {
     const mention_JID = ms.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
     
     const auteur_Message = verif_Groupe
-        ? ms.key.participant
+        ? decodeJid(ms.key.participant)
         : ms.key.fromMe ? id_Bot : ms.key.remoteJid;
 
     const nom_Auteur_Message = ms.pushName;
