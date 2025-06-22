@@ -1,4 +1,3 @@
-const { GroupSettings } = require("../DataBase/events");
 const { jidDecode } = require("@whiskeysockets/baileys");
 const config = require('../set');
 
