@@ -106,7 +106,6 @@ try {
         auteur_Msg_Repondu,
         ms,
         ms_org,
-        JidToLid,
         texte
     };
 
