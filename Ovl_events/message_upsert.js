@@ -49,7 +49,7 @@ try {
     const msg_Repondu = ms.message.extendedTextMessage?.contextInfo?.quotedMessage;
     const auteur_Msg_Repondu = decodeJid(ms.message.extendedTextMessage?.contextInfo?.participant);
     const mention_JID = ms.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
-    
+    console.log(ms.key.participant);
     const auteur_Message = verif_Groupe
         ? decodeJid(ms.key.participant)
         : ms.key.fromMe ? id_Bot : decodeJid(ms.key.remoteJid);
