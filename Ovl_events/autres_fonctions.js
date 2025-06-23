@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
 const FileType = require('file-type');
+const getJid = require("./cache_jid");
 
 async function dl_save_media_ms(ovl, message, filename = '', attachExtension = true, directory = './downloads') {
     try {
@@ -42,13 +43,12 @@ async function dl_save_media_ms(ovl, message, filename = '', attachExtension = t
 }
 
 async function recup_msg({ ovl, auteur, ms_org, temps = 30000 } = {}) {
-  return new Promise((resolve, reject) => {
-    if (auteur !== undefined && typeof auteur !== "string") 
-      return reject(new Error("L'auteur doit être une chaîne si défini."));
-    if (ms_org !== undefined && typeof ms_org !== "string")
-      return reject(new Error("Le ms_org doit être une chaîne si défini."));
-    if (typeof temps !== "number") 
-      return reject(new Error("Le temps doit être un nombre."));
+  return new Promise(async (resolve, reject) => {
+    if (auteur !== undefined && typeof auteur !== "string") return reject(new Error("L'auteur doit être une chaîne si défini."));
+    if (ms_org !== undefined && typeof ms_org !== "string") return reject(new Error("Le ms_org doit être une chaîne si défini."));
+    if (typeof temps !== "number") return reject(new Error("Le temps doit être un nombre."));
+
+    const auteur_jid = auteur && ms_org ? await getJid(auteur, ms_org, ovl) : auteur;
 
     let timer;
 
@@ -57,33 +57,32 @@ async function recup_msg({ ovl, auteur, ms_org, temps = 30000 } = {}) {
 
       for (const msg of messages) {
         const idSalon = msg.key.remoteJid;
+
         const expJid = msg.key.fromMe
           ? ovl.user.id
           : msg.key.participant
-            ? msg.key.participant
+            ? await getJid(msg.key.participant, idSalon, ovl)
             : idSalon;
 
-        // Conditions selon ce qui est défini
-        if (auteur && ms_org) {
-          if (expJid === auteur && idSalon === ms_org) {
+        if (auteur_jid && ms_org) {
+          if (expJid === auteur_jid && idSalon === ms_org) {
             ovl.ev.off("messages.upsert", listener);
             if (timer) clearTimeout(timer);
             return resolve(msg);
           }
-        } else if (auteur && !ms_org) {
-          if (expJid === auteur) {
+        } else if (auteur_jid && !ms_org) {
+          if (expJid === auteur_jid) {
             ovl.ev.off("messages.upsert", listener);
             if (timer) clearTimeout(timer);
             return resolve(msg);
           }
-        } else if (!auteur && ms_org) {
+        } else if (!auteur_jid && ms_org) {
           if (idSalon === ms_org) {
             ovl.ev.off("messages.upsert", listener);
             if (timer) clearTimeout(timer);
             return resolve(msg);
           }
         } else {
-          // ni auteur ni ms_org défini => écouter tous les messages
           ovl.ev.off("messages.upsert", listener);
           if (timer) clearTimeout(timer);
           return resolve(msg);
