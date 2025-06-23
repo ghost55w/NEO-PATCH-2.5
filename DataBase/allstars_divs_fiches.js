@@ -24,7 +24,11 @@ if (!db) {
 }
 
 const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
-  jid: { type: DataTypes.STRING, defaultValue: null },
+  id: { 
+    type: DataTypes.INTEGER, 
+    autoIncrement: true, 
+    primaryKey: true 
+  },
   pseudo: { type: DataTypes.STRING, defaultValue: 'aucun' },
   classement: { type: DataTypes.STRING, defaultValue: 'aucun' },
   niveu_xp: { type: DataTypes.INTEGER, defaultValue: 1 },
@@ -65,31 +69,35 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   timestamps: false,
 });
 
-// Crée la table si elle n'existe pas
 (async () => {
   await AllStarsDivsFiche.sync();
   console.log("✅ Table 'allstars_divs_fiches' synchronisée avec succès.");
 })();
 
-// Fonction utilitaire pour récupérer les données par jid
 async function getData(jid) {
-  const data = await AllStarsDivsFiche.findOne({ where: { jid } });
-  return data;
+  let fiche = await AllStarsDivsFiche.findOne({ where: { jid } });
+
+  if (!fiche) {
+    fiche = await AllStarsDivsFiche.create({ jid });
+    console.log(`✅ Nouvelle fiche créée pour le jid : ${jid}`);
+  }
+
+  return fiche;
 }
 
-async function setfiche(colonne, valeur, jid) {
-  const data = {};
-  data[colonne] = valeur;
+async function setfiche(colonne, valeur, id) {
+  const updateData = {};
+  updateData[colonne] = valeur;
 
-  const [updatedCount] = await AllStarsDivsFiche.update(data, {
-    where: { jid },
+  const [updatedCount] = await AllStarsDivsFiche.update(updateData, {
+    where: { id },
   });
 
   if (updatedCount === 0) {
-    throw new Error(`❌ Aucun joueur trouvé avec le jid : ${jid}`);
+    throw new Error(`❌ Aucun joueur trouvé avec l'id : ${id}`);
   }
 
-  console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur ${jid}`);
+  console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur id ${id}`);
 }
 
 module.exports = { setfiche, getData };
