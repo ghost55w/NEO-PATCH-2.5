@@ -135,10 +135,67 @@ async function updatePlayerData(updates, jid) {
   }
 }
 
-// Ajout des joueurs
-add_fiche('westnash👤', '2', 'https://files.catbox.moe/w4sso3.jpg');
-add_fiche('westindra👤', '3', 'https://files.catbox.moe/dgkvph.jpg');
-add_fiche('westaether👤', '4', 'https://files.catbox.moe/yjvd63.jpg');
-add_fiche('westsept👤', '7', 'https://files.catbox.moe/uev2zx.jpg');
-add_fiche('westinferno👤', '9', 'https://files.catbox.moe/dv23bc.jpg');
-add_fiche('westhajime👤', '10', 'https://files.catbox.moe/4pxl7h.jpg');
+
+//add_fiche('westvanitas👤', '1', 'https://files.catbox.moe/dueik1.jpg', 'WEST🦁🔵');
+add_fiche('westnash👤', '2', 'https://files.catbox.moe/w4sso3.jpg','WEST🦁🔵');
+add_fiche('westindra👤', '3', 'https://files.catbox.moe/dgkvph.jpg', 'WEST🦁🔵');
+add_fiche('westaether👤', '4', 'https://files.catbox.moe/yjvd63.jpg', 'WEST🦁🔵');
+//add_fiche('westsolomoe👤', '6', 'https://files.catbox.moe/xvbz5o.jpg', 'WEST🦁🔵');
+add_fiche('westsept👤', '7', 'https://files.catbox.moe/uev2zx.jpg', 'WEST🦁🔵');
+//add_fiche('westtempest👤', '8', 'https://files.catbox.moe/u1v994.jpg', 'WEST🦁🔵');
+add_fiche('westinferno👤', '9', 'https://files.catbox.moe/dv23bc.jpg', 'WEST🦁🔵');
+add_fiche('westhajime👤', '10', 'https://files.catbox.moe/4pxl7h.jpg', 'WEST🦁🔵');
+//add_fiche('westregulus👤', '11', 'https://telegra.ph/file/ffb64bf678bb1107cca18.jpg', 'WEST🦁🔵');
+
+
+
+
+
+
+
+
+
+add_fiche('northdamian👤', '1', 'https://files.catbox.moe/6ywtez.jpg', 'NORTH🐺🔴');
+add_fiche('northlily👤', '2', 'https://files.catbox.moe/lnd2qg.jpg', 'NORTH🐺🔴');
+//add_fiche('northadorieru👤', '3', 'https://telegra.ph/file/33d75752a2f4d645f836a.jpg', 'NORTH🐺🔴');
+//add_fiche('norththanatos👤', '4', 'https://files.catbox.moe/i0zsrp.jpg', 'NORTH🐺🔴');
+add_fiche('northkazuta👤', '5', 'https://files.catbox.moe/9fv70i.jpg', 'NORTH🐺🔴');
+add_fiche('northomnimoh👤', '6', 'https://files.catbox.moe/lvs0ek.jpg', 'NORTH🐺🔴');
+//add_fiche('northkanzen👤', '7', 'https://telegra.ph/file/e521acd5939414d8d12c5.jpg', 'NORTH🐺🔴');
+add_fiche('northainz👤', '8', 'https://files.catbox.moe/69zjvs.jpg', 'NORTH🐺🔴');
+//add_fiche('northrukia👤', '10', 'https://telegra.ph/file/1979a11043529f6ce2bc5.jpg', 'NORTH🐺🔴');
+add_fiche('northaizen👤', '11', 'https://files.catbox.moe/5j00wn.jpg', 'NORTH🐺🔴');
+add_fiche('northakashi👤', '12', 'https://files.catbox.moe/7l84zf.jpg', 'NORTH🐺🔴');
+add_fiche('northeoza👤', '13', 'https://files.catbox.moe/dmzuki.jpg', 'NORTH🐺🔴');
+add_fiche('northregulus👤', '14', 'https://files.catbox.moe/le0ws1.jpg', 'NORTH🐺🔴');
+
+
+
+
+
+//add_fiche('centralabdiel👤', '1', 'https://i.ibb.co/d4vspyP/image.jpg', 'CENTRAL🐯🟠');
+add_fiche('centraldabi👤', '2', 'https://files.catbox.moe/yb8xd8.jpg', 'CENTRAL🐯🟠');
+add_fiche('centralyuan👤', '3', 'https://files.catbox.moe/jwpahj.jpg', 'CENTRAL🐯🟠');
+add_fiche('centralirito👤', '4', 'https://files.catbox.moe/mptbqh.jpg', 'CENTRAL🐯🟠');
+add_fiche('centralhakuji👤', '5', 'https://files.catbox.moe/mfs5sg.jpg', 'CENTRAL🐯🟠');
+add_fiche('centralana👤', '6', 'https://files.catbox.moe/08se2s.jpg', 'CENTRAL🐯🟠');
+//add_fiche('centralajax👤', '7', 'https://files.catbox.moe/avx1rl.jpg', 'CENTRAL🐯🟠');
+//add_fiche('centralmakima👤', '8', 'https://telegra.ph/file/fdd73d041d1cd05d82aa2.jpg', 'CENTRAL🐯🟠');
+add_fiche('centralarthur👤', '9', 'https://files.catbox.moe/houno9.jpg', 'CENTRAL🐯🟠');
+add_fiche('centralrudeus👤', '10', 'https://files.catbox.moe/ycq62s.jpg', 'CENTRAL🐯🟠');
+
+
+
+add_fiche('eastwhite👤', '1', 'https://files.catbox.moe/4qygb4.jpg', 'EAST🦅🟢');
+//add_fiche('eastkemael👤', '2', 'https://telegra.ph/file/638f67854ccfaa1ee1a8a.jpg', 'EAST🦅🟢');
+//add_fiche('eastaltheos👤', '3', 'https://telegra.ph/file/5ecddffc7c18e84861bf2.jpg', 'EAST🦅🟢');
+add_fiche('eastgoldy👤', '4', 'https://files.catbox.moe/n8eopv.jpg', 'EAST🦅🟢');
+//add_fiche('eastsofiane👤', '5', 'https://files.catbox.moe/prz9mc.jpg', 'EAST🦅🟢');
+//add_fiche('eastatsushi👤', '6', 'https://files.catbox.moe/uzu7vu.jpg', 'EAST🦅🟢');
+add_fiche('eastadam👤', '7', 'https://files.catbox.moe/xmr932.jpg', 'EAST🦅🟢');
+add_fiche('easttoge👤', '8', 'https://files.catbox.moe/6bx3sl.jpg', 'EAST🦅🟢');
+add_fiche('eastak👤', '9', 'https://files.catbox.moe/24pez0.jpg', 'EAST🦅🟢');
+add_fiche('eastjuuzo👤', '10', 'https://files.catbox.moe/c5v7qp.jpg', 'EAST🦅🟢');
+
+
+
