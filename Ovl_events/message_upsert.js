@@ -6,7 +6,8 @@ const { jidDecode, getContentType } = require("@whiskeysockets/baileys");
 const evt = require("../lib/ovlcmd");
 const config = require("../set");
 const prefixe = config.PREFIXE || "";
-
+const getJid = require("./cache_jid");
+    
 async function message_upsert(m, ovl) {
 try {
     if (m.type !== 'notify') return;
@@ -47,11 +48,11 @@ try {
     const verif_Ovl_Admin = verif_Groupe && groupe_Admin.includes(id_Bot);
 
     const msg_Repondu = ms.message.extendedTextMessage?.contextInfo?.quotedMessage;
-    const auteur_Msg_Repondu = decodeJid(ms.message.extendedTextMessage?.contextInfo?.participant);
-    const mention_JID = ms.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
-    console.log(ms.key.participant);
+    const auteur_Msg_Repondu = await getJid(decodeJid(ms.message.extendedTextMessage?.contextInfo?.participant), ms_org, ovl);
+    const mentionnes = ms.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
+    const mention_JID = await Promise.all(mentionnes.map(lid => getJid(lid)));
     const auteur_Message = verif_Groupe
-        ? decodeJid(ms.key.participant)
+        ? await getJid(decodeJid(ms.key.participant), ms_org, ovl);
         : ms.key.fromMe ? id_Bot : decodeJid(ms.key.remoteJid);
 
     const nom_Auteur_Message = ms.pushName;
@@ -81,8 +82,7 @@ try {
         : `${entry.replace(/[^0-9]/g, '')}@s.whatsapp.net`;
 }
 
-const premiumUsers = [Ainz, Ainzbot, id_Bot_N, config.NUMERO_OWNER, ...sudoUsers].map(toJID);
-
+    const premiumUsers = [Ainz, Ainzbot, id_Bot_N, config.NUMERO_OWNER, ...sudoUsers].map(toJID);
     const prenium_id = premiumUsers.includes(auteur_Message);
     const dev_num = devNumbers.map(n => `${n}@s.whatsapp.net`);
     const dev_id = dev_num.includes(auteur_Message);
