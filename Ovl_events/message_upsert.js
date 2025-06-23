@@ -52,7 +52,7 @@ try {
     const mentionnes = ms.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
     const mention_JID = await Promise.all(mentionnes.map(lid => getJid(lid)));
     const auteur_Message = verif_Groupe
-        ? await getJid(decodeJid(ms.key.participant), ms_org, ovl);
+        ? await getJid(decodeJid(ms.key.participant), ms_org, ovl)
         : ms.key.fromMe ? id_Bot : decodeJid(ms.key.remoteJid);
 
     const nom_Auteur_Message = ms.pushName;
