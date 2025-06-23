@@ -77,4 +77,19 @@ async function getData(jid) {
   return data;
 }
 
-module.exports = { AllStarsDivsFiche, getData };
+async function setfiche(colonne, valeur, jid) {
+  const data = {};
+  data[colonne] = valeur;
+
+  const [updatedCount] = await AllStarsDivsFiche.update(data, {
+    where: { jid },
+  });
+
+  if (updatedCount === 0) {
+    throw new Error(`❌ Aucun joueur trouvé avec le jid : ${jid}`);
+  }
+
+  console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur ${jid}`);
+}
+
+module.exports = { setfiche, getData };
