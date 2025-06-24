@@ -3,6 +3,17 @@ const { ovlcmd } = require("../lib/ovlcmd");
 const { Bans } = require('../DataBase/ban');
 const { Sudo } = require('../DataBase/sudo');
 
+function stylize(text) {
+    const normal = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const small =  'ᴀʙᴄᴅᴇғɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ' +
+                   'ᴀʙᴄᴅᴇғɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ' +
+                   '0123456789';
+    return text.split('').map(c => {
+        const i = normal.indexOf(c);
+        return i !== -1 ? small[i] : c;
+    }).join('');
+}
+
 ovlcmd(
   {
     nom_cmd: "ban",
