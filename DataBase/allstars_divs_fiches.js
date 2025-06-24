@@ -75,11 +75,11 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
 })();
 
 async function getData(id) {
-  let fiche = await AllStarsDivsFiche.findOne({ where: { id } });
+  let fiche = await AllStarsDivsFiche.findByPk(id);
 
   if (!fiche) {
     fiche = await AllStarsDivsFiche.create({ id });
-    console.log(`✅ Nouvelle fiche créée pour le jid : ${id}`);
+    console.log(`✅ Nouvelle fiche créée pour ID : ${id}`);
   }
 
   return fiche;
