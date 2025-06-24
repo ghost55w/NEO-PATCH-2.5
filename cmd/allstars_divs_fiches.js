@@ -155,7 +155,7 @@ add_fiche('westhajime👤', '10', 'https://files.catbox.moe/4pxl7h.jpg', 'WEST�
 
 
 
-add_fiche('northdamian👤', '1', 'https://files.catbox.moe/6ywtez.jpg', 'NORTH🐺🔴');
+add_fiche('northdamian👤', '37', 'https://files.catbox.moe/dndmbe.jpg', 'NORTH🐺🔴');
 add_fiche('northlily👤', '2', 'https://files.catbox.moe/lnd2qg.jpg', 'NORTH🐺🔴');
 //add_fiche('northadorieru👤', '3', 'https://telegra.ph/file/33d75752a2f4d645f836a.jpg', 'NORTH🐺🔴');
 //add_fiche('norththanatos👤', '4', 'https://files.catbox.moe/i0zsrp.jpg', 'NORTH🐺🔴');
