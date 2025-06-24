@@ -24,6 +24,10 @@ if (!db) {
 }
 
 const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
+  loca_id: {
+    type: DataTypes.STRING,
+    primaryKey: true,
+  },
   pseudo: { type: DataTypes.STRING, defaultValue: 'aucun' },
   classement: { type: DataTypes.STRING, defaultValue: 'aucun' },
   niveu_xp: { type: DataTypes.INTEGER, defaultValue: 1 },
@@ -58,8 +62,7 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   attaques: { type: DataTypes.INTEGER, defaultValue: 0 },
   total_cards: { type: DataTypes.INTEGER, defaultValue: 0 },
   cards: { type: DataTypes.TEXT, defaultValue: 'aucune' },
-  source: { type: DataTypes.STRING, defaultValue: 'inconnu' },
-  loca_id: { type: DataTypes.STRING, defaultValue: 'null' }
+  source: { type: DataTypes.STRING, defaultValue: 'inconnu' }
   
 }, {
   tableName: 'allstars_divs_fiches',
