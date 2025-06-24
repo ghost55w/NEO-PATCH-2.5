@@ -6,7 +6,7 @@ const { Sudo } = require('../DataBase/sudo');
 ovlcmd(
   {
     nom_cmd: "ban",
-    classe: "Owner",
+    classe: "Outils",
     react: "🚫",
     desc: "Bannir un utilisateur des commandes du bot",
   },
@@ -46,7 +46,7 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: "deban",
-    classe: "Owner",
+    classe: "Outils",
     react: "🚫",
     desc: "Débannir un utilisateur des commandes du bot",
   },
@@ -79,7 +79,7 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: "bangroup",
-    classe: "Owner",
+    classe: "Outils",
     react: "🚫",
     desc: "Bannir un groupe des commandes du bot",
   },
@@ -113,7 +113,7 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: "debangroup",
-    classe: "Owner",
+    classe: "Outils",
     react: "🚫",
     desc: "Débannir un groupe des commandes du bot",
   },
@@ -144,7 +144,7 @@ ovlcmd(
  ovlcmd(
   {
     nom_cmd: "setsudo",
-    classe: "Owner",
+    classe: "Outils",
     react: "🔒",
     desc: "Ajoute un utilisateur dans la liste des utilisateurs premium.",
   },
@@ -189,7 +189,7 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: "sudolist",
-    classe: "Owner",
+    classe: "Outils",
     react: "📋",
     desc: "Affiche la liste des utilisateurs premium.",
   },
@@ -224,7 +224,7 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: "delsudo",
-    classe: "Owner",
+    classe: "Outils",
     react: "❌",
     desc: "Supprime un utilisateur de la liste des utilisateurs premium.",
   },
@@ -266,7 +266,7 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: "jid",
-    classe: "Owner",
+    classe: "Outils",
     react: "🆔",
     desc: "fournit le jid d'une personne ou d'un groupe",
   },  
@@ -292,7 +292,7 @@ ovlcmd(
 ovlcmd(
     {
         nom_cmd: "restart",
-        classe: "Owner",
+        classe: "Outils",
         desc: "Redémarre le bot via PM2"
     },
     async (ms_org, ovl, opt) => {
@@ -313,5 +313,114 @@ ovlcmd(
 );
 
 
+ovlcmd(
+    {
+        nom_cmd: "menu",
+        classe: "Outils",
+        react: "📜",
+        desc: "Affiche toutes les commandes du bot",
+    },
+    async (ms_org, ovl, cmd_options) => {
+        try {
+            const seconds = process.uptime();
+            const j = Math.floor(seconds / 86400);
+            const h = Math.floor((seconds / 3600) % 24);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            let uptime = "";
+            if (j > 0) uptime += `${j}J `;
+            if (h > 0) uptime += `${h}H `;
+            if (m > 0) uptime += `${m}M `;
+            if (s > 0) uptime += `${s}S`;
 
+            const dateObj = new Date();
+            const dateStr = dateObj.toLocaleDateString("fr-FR");
+            const heureStr = dateObj.toLocaleTimeString("fr-FR");
+            const platform = process.platform;
 
+            const commandes = cmd;
+            const cmd_classe = {};
+            commandes.forEach((cmd) => {
+                if (!cmd_classe[cmd.classe]) cmd_classe[cmd.classe] = [];
+                cmd_classe[cmd.classe].push(cmd);
+            });
+
+            const classesSorted = Object.keys(cmd_classe).sort((a, b) => a.localeCompare(b));
+            for (const classe of classesSorted) {
+                cmd_classe[classe].sort((a, b) =>
+                    a.nom_cmd.localeCompare(b.nom_cmd, undefined, { numeric: true })
+                );
+            }
+
+            let menu = `╭──⟪ 🤖 NEO-BOT -OVL ⟫──╮
+├ ߷ Préfixe       : ${config.PREFIXE}
+├ ߷ Owner         : ${config.NOM_OWNER}
+├ ߷ Commandes  : ${commandes.length}
+├ ߷ Uptime        : ${uptime.trim()}
+├ ߷ D-H: ${dateStr} - ${heureStr}
+├ ߷ Plateforme  : ${platform}
+├ ߷ Développeur : AINZ-K⚜️
+╰──────────────────╯\n\n`;
+
+            for (const classe of classesSorted) {
+                if (classe === "Outils") continue;
+                menu += `╭──⟪ ${classe.toUpperCase()} ⟫──╮\n`;
+                cmd_classe[classe].forEach((cmd) => {
+                    menu += `├ ߷ ${cmd.nom_cmd}\n`;
+                });
+                menu += `╰──────────────────╯\n\n`;
+            }
+
+            menu += `> ©2025 NEO-BOT -OVL By *AINZ*`;
+
+                await ovl.sendMessage(ms_org, {
+                    image: { url: "https://files.catbox.moe/zxbny1.jpg" },
+                    caption: stylize(menu)
+                }, { quoted: cmd_options.ms });
+          } catch (error) {
+            console.error("Erreur lors de la génération de allmenu :", error.message || error);
+            await ovl.sendMessage(ms_org, {
+                text: "Une erreur est survenue lors de l'affichage du menu complet."
+            }, { quoted: cmd_options.ms });
+        }
+    }
+);
+
+ovlcmd(
+    {
+        nom_cmd: "ping",
+        classe: "Outils",
+        react: "🏓",
+        desc: "Mesure la latence du bot.",
+    },
+    async (ms_org, ovl, cmd_options ) => {
+        const start = Date.now();
+        await ovl.sendMessage(ms_org, { text: "*NEO-BOT -OVL Ping...*" }, { quoted: cmd_options.ms });
+        const end = Date.now();
+        const latency = end - start;
+        await ovl.sendMessage(ms_org, { text: `*🏓 Pong ! Latence : ${latency}ms*` }, { quoted: cmd_options.ms });
+    }
+);
+
+ovlcmd(
+    {
+        nom_cmd: "uptime",
+        classe: "Outils",
+        react: "⏱️",
+        desc: "Affiche le temps de fonctionnement du bot.",
+        alias: ["upt"],
+    },
+    async (ms_org, ovl, cmd_options) => {
+        const seconds = process.uptime();
+        const j = Math.floor(seconds / 86400);
+        const h = Math.floor((seconds / 3600) % 24);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        let uptime = '';
+        if (j > 0) uptime += `${j}J `;
+        if (h > 0) uptime += `${h}H `;
+        if (m > 0) uptime += `${m}M `;
+        if (s > 0) uptime += `${s}S`;
+        await ovl.sendMessage(ms_org, { text: `⏳ Temps de fonctionnement : ${uptime}` }, { quoted: cmd_options.ms });
+    }
+);
