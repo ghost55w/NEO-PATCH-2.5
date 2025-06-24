@@ -146,25 +146,26 @@ add_fiche('westaether👤', '9', 'https://files.catbox.moe/cvm2cp.jpg', 'WEST�
 add_fiche('westhajime👤', '10', 'https://files.catbox.moe/kov9hu.jpg', 'WEST🦁🔵');
 
 
-//add_fiche('northregulus👤', '11', 'https://files.catbox.moe/le0ws1.jpg', 'NORTH🐺🔴');
-add_fiche('northeoza👤', '12', 'https://files.catbox.moe/dmzuki.jpg', 'NORTH🐺🔴');
-add_fiche('northomnimoh👤', '13', 'https://files.catbox.moe/lvs0ek.jpg', 'NORTH🐺🔴');
-//add_fiche('norththanatos👤', '14', 'https://files.catbox.moe/i0zsrp.jpg', 'NORTH🐺🔴');
-add_fiche('northlily👤', '15', 'https://files.catbox.moe/lnd2qg.jpg', 'NORTH🐺🔴');
-add_fiche('northaizen👤', '16', 'https://files.catbox.moe/5j00wn.jpg', 'NORTH🐺🔴');
-add_fiche('northkazuta👤', '17', 'https://files.catbox.moe/9fv70i.jpg', 'NORTH🐺🔴');
-add_fiche('northakashi👤', '18', 'https://files.catbox.moe/7l84zf.jpg', 'NORTH🐺🔴');
+add_fiche('northkiller👤', '2', 'https://files.catbox.moe/zn55pc.jpg', 'NORTH🐺🔴');
+//add_fiche('northregulus👤', '11', 'https://files.catbox.moe/log52q.jpg', 'NORTH🐺🔴');
+add_fiche('northeoza👤', '12', 'https://files.catbox.moe/zcmhoo.jpg', 'NORTH🐺🔴');
+add_fiche('northomnimoh👤', '13', 'https://files.catbox.moe/spk4fw.jpg', 'NORTH🐺🔴');
+//add_fiche('norththanatos👤', '14', 'https://files.catbox.moe/c3gpr4.jpg', 'NORTH🐺🔴');
+add_fiche('northlily👤', '15', 'https://files.catbox.moe/k7s0nu.jpg', 'NORTH🐺🔴');
+add_fiche('northaizen👤', '16', 'https://files.catbox.moe/feylzj.jpg', 'NORTH🐺🔴');
+add_fiche('northkazuta👤', '17', 'https://files.catbox.moe/f0fgga.jpg', 'NORTH🐺🔴');
+add_fiche('northakashi👤', '18', 'https://files.catbox.moe/2oftco.jpg', 'NORTH🐺🔴');
 add_fiche('northainz👤', '19', 'https://files.catbox.moe/69zjvs.jpg', 'NORTH🐺🔴');
 add_fiche('northdamian👤', '37', 'https://files.catbox.moe/dndmbe.jpg', 'NORTH🐺🔴');
 
 
-//add_fiche('centralhazlay👤', '20', 'https://files.catbox.moe/avx1rl.jpg', 'CENTRAL🐯🟠');
-add_fiche('centraldabi👤', '21', 'https://files.catbox.moe/yb8xd8.jpg', 'CENTRAL🐯🟠');
-add_fiche('centralyuan👤', '22', 'https://files.catbox.moe/jwpahj.jpg', 'CENTRAL🐯🟠');
-add_fiche('centralrudeus👤', '23', 'https://files.catbox.moe/ycq62s.jpg', 'CENTRAL🐯🟠');
-add_fiche('centralhakuji👤', '24', 'https://files.catbox.moe/mfs5sg.jpg', 'CENTRAL🐯🟠');
-add_fiche('centralirito👤', '25', 'https://files.catbox.moe/mptbqh.jpg', 'CENTRAL🐯🟠');
-add_fiche('centralarthur👤', '26', 'https://files.catbox.moe/houno9.jpg', 'CENTRAL🐯🟠');
+//add_fiche('centralhazlay👤', '20', 'https://files.catbox.moe/nsnj8e.jpg', 'CENTRAL🐯🟠');
+add_fiche('centraldabi👤', '21', 'https://files.catbox.moe/rsykzr.jpg', 'CENTRAL🐯🟠');
+add_fiche('centralyuan👤', '22', 'https://files.catbox.moe/8w855m.jpg', 'CENTRAL🐯🟠');
+add_fiche('centralrudeus👤', '23', 'https://files.catbox.moe/4qaqn1.jpg', 'CENTRAL🐯🟠');
+add_fiche('centralhakuji👤', '24', 'https://files.catbox.moe/lmcqrp.jpg', 'CENTRAL🐯🟠');
+add_fiche('centralirito👤', '25', 'https://files.catbox.moe/zr2536.jpg', 'CENTRAL🐯🟠');
+add_fiche('centralarthur👤', '26', 'https://files.catbox.moe/jci0bz.jpg', 'CENTRAL🐯🟠');
 
 
 
