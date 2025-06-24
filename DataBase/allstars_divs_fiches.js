@@ -63,7 +63,9 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   attaques: { type: DataTypes.INTEGER, defaultValue: 0 },
   total_cards: { type: DataTypes.INTEGER, defaultValue: 0 },
   cards: { type: DataTypes.TEXT, defaultValue: 'aucune' },
-  source: { type: DataTypes.STRING, defaultValue: 'inconnu' }
+  source: { type: DataTypes.STRING, defaultValue: 'inconnu' },
+  loca_id: { type: DataTypes.STRING, defaultValue: 'null' }
+  
 }, {
   tableName: 'allstars_divs_fiches',
   timestamps: false,
