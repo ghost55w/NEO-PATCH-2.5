@@ -67,10 +67,19 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 *⌬𝗡SL🏆*
 > NEO SUPER LEAGUE ESPORTS ROLEPLAY™`;
 
-        return ovl.sendMessage(ms_org, { image: { url: image_oc }, caption: fiche }, { quoted: ms });
+        await ovl.sendMessage(ms_org, {
+          video: { url: 'https://files.catbox.moe/hmr1ik.mp4' },
+          gifPlayback: true,
+          caption: ""
+        }, { quoted: ms });
+ 
+        return ovl.sendMessage(ms_org, {
+          image: { url: image_oc },
+          caption: fiche
+        }, { quoted: ms });
       }
-
-      if (!superUser) return await repondre("⛔ Accès refusé ! Seuls les membres de la NS peuvent faire ça 😎");
+      
+      if (!superUser) return await repondre("⛔ Accès refusé ! Seuls les membres de la NS peuvent faire ça.");
 
       const updates = await processUpdates(arg, jid);
       await updatePlayerData(updates, jid);
