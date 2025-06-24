@@ -136,19 +136,14 @@ async function updatePlayerData(updates, jid) {
 }
 
 
-//add_fiche('westvanitas👤', '6', 'https://files.catbox.moe/dueik1.jpg', 'WEST🦁🔵');
-add_fiche('westnash👤', '5', 'https://files.catbox.moe/w4sso3.jpg','WEST🦁🔵');
-add_fiche('westindra👤', '8', 'https://files.catbox.moe/dgkvph.jpg', 'WEST🦁🔵');
-add_fiche('westaether👤', '9', 'https://files.catbox.moe/yjvd63.jpg', 'WEST🦁🔵');
-//add_fiche('westsolomoe👤', '7', 'https://files.catbox.moe/xvbz5o.jpg', 'WEST🦁🔵');
-//add_fiche('westsept👤', '1', 'https://files.catbox.moe/uev2zx.jpg', 'WEST🦁🔵');
-//add_fiche('westtempest👤', '4', 'https://files.catbox.moe/u1v994.jpg', 'WEST🦁🔵');
-add_fiche('westinferno👤', '3', 'https://files.catbox.moe/dv23bc.jpg', 'WEST🦁🔵');
-add_fiche('westhajime👤', '10', 'https://files.catbox.moe/4pxl7h.jpg', 'WEST🦁🔵');
-
-
-
-
+//add_fiche('westsept👤', '1', 'https://files.catbox.moe/7l5qrc.jpg', 'WEST🦁🔵');
+add_fiche('westinferno👤', '3', 'https://files.catbox.moe/ovsazs.jpg', 'WEST🦁🔵');
+add_fiche('westnash👤', '5', 'https://files.catbox.moe/8yq7hw.jpg', 'WEST🦁🔵');
+//add_fiche('westvanitas👤', '6', 'https://files.catbox.moe/w7icme.jpg', 'WEST🦁🔵');
+//add_fiche('westsolomoe👤', '7', 'https://files.catbox.moe/heuwc0.jpg', 'WEST🦁🔵');
+add_fiche('westindra👤', '8', 'https://files.catbox.moe/1wux4s.jpg', 'WEST🦁🔵');
+add_fiche('westaether👤', '9', 'https://files.catbox.moe/cvm2cp.jpg', 'WEST🦁🔵');
+add_fiche('westhajime👤', '10', 'https://files.catbox.moe/kov9hu.jpg', 'WEST🦁🔵');
 
 
 //add_fiche('northregulus👤', '11', 'https://files.catbox.moe/le0ws1.jpg', 'NORTH🐺🔴');
@@ -161,8 +156,6 @@ add_fiche('northkazuta👤', '17', 'https://files.catbox.moe/9fv70i.jpg', 'NORTH
 add_fiche('northakashi👤', '18', 'https://files.catbox.moe/7l84zf.jpg', 'NORTH🐺🔴');
 add_fiche('northainz👤', '19', 'https://files.catbox.moe/69zjvs.jpg', 'NORTH🐺🔴');
 add_fiche('northdamian👤', '37', 'https://files.catbox.moe/dndmbe.jpg', 'NORTH🐺🔴');
-
-
 
 
 //add_fiche('centralhazlay👤', '20', 'https://files.catbox.moe/avx1rl.jpg', 'CENTRAL🐯🟠');
