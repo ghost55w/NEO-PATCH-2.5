@@ -155,7 +155,7 @@ add_fiche('westhajime👤', '10', 'https://files.catbox.moe/4pxl7h.jpg', 'WEST�
 
 
 
-add_fiche('northdamian👤', '1', 'https://files.catbox.moe/6ywtez.jpg', 'NORTH🐺🔴');
+add_fiche('northdamian👤', '17', 'https://files.catbox.moe/6ywtez.jpg', 'NORTH🐺🔴');
 add_fiche('northlily👤', '2', 'https://files.catbox.moe/lnd2qg.jpg', 'NORTH🐺🔴');
 //add_fiche('northadorieru👤', '3', 'https://telegra.ph/file/33d75752a2f4d645f836a.jpg', 'NORTH🐺🔴');
 //add_fiche('norththanatos👤', '4', 'https://files.catbox.moe/i0zsrp.jpg', 'NORTH🐺🔴');
@@ -173,7 +173,6 @@ add_fiche('northregulus👤', '14', 'https://files.catbox.moe/le0ws1.jpg', 'NORT
 
 
 
-//add_fiche('centralabdiel👤', '1', 'https://i.ibb.co/d4vspyP/image.jpg', 'CENTRAL🐯🟠');
 add_fiche('centraldabi👤', '2', 'https://files.catbox.moe/yb8xd8.jpg', 'CENTRAL🐯🟠');
 add_fiche('centralyuan👤', '3', 'https://files.catbox.moe/jwpahj.jpg', 'CENTRAL🐯🟠');
 add_fiche('centralirito👤', '4', 'https://files.catbox.moe/mptbqh.jpg', 'CENTRAL🐯🟠');
