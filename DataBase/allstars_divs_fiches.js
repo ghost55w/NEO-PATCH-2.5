@@ -24,11 +24,6 @@ if (!db) {
 }
 
 const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
-  id: { 
-    type: DataTypes.INTEGER, 
-    autoIncrement: true, 
-    primaryKey: true 
-  },
   pseudo: { type: DataTypes.STRING, defaultValue: 'aucun' },
   classement: { type: DataTypes.STRING, defaultValue: 'aucun' },
   niveu_xp: { type: DataTypes.INTEGER, defaultValue: 1 },
