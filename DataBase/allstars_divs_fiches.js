@@ -24,9 +24,10 @@ if (!db) {
 }
 
 const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
-  loca_id: {
-    type: DataTypes.STRING,
-    primaryKey: true,
+  id: {
+  type: DataTypes.INTEGER,
+  autoIncrement: true,
+  primaryKey: true
   },
   pseudo: { type: DataTypes.STRING, defaultValue: 'aucun' },
   classement: { type: DataTypes.STRING, defaultValue: 'aucun' },
@@ -62,7 +63,8 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   attaques: { type: DataTypes.INTEGER, defaultValue: 0 },
   total_cards: { type: DataTypes.INTEGER, defaultValue: 0 },
   cards: { type: DataTypes.TEXT, defaultValue: 'aucune' },
-  source: { type: DataTypes.STRING, defaultValue: 'inconnu' }
+  source: { type: DataTypes.STRING, defaultValue: 'inconnu' },
+  jid: { type: DataTypes.STRING, defaultValue: 'null' }
   
 }, {
   tableName: 'allstars_divs_fiches',
@@ -74,30 +76,30 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   console.log("✅ Table 'allstars_divs_fiches' synchronisée avec succès.");
 })();
 
-async function getData(loca_id) {
-  let fiche = await AllStarsDivsFiche.findOne({ where: { loca_id } });
+async function getData(id) {
+  let fiche = await AllStarsDivsFiche.findOne({ where: { id } });
 
   if (!fiche) {
-    fiche = await AllStarsDivsFiche.create({ loca_id });
-    console.log(`✅ Nouvelle fiche créée pour ID : ${loca_id}`);
+    fiche = await AllStarsDivsFiche.create({ id });
+    console.log(`✅ Nouvelle fiche créée pour ID : ${id}`);
   }
 
   return fiche;
 }
 
-async function setfiche(colonne, valeur, loca_id) {
+async function setfiche(colonne, valeur, id) {
   const updateData = {};
   updateData[colonne] = valeur;
 
   const [updatedCount] = await AllStarsDivsFiche.update(updateData, {
-    where: { loca_id },
+    where: { id },
   });
 
   if (updatedCount === 0) {
-    throw new Error(`❌ Aucun joueur trouvé avec l'id : ${loca_id}`);
+    throw new Error(`❌ Aucun joueur trouvé avec l'id : ${id}`);
   }
 
-  console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur id ${loca_id}`);
+  console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur id ${id}`);
 }
 
 module.exports = { setfiche, getData };
