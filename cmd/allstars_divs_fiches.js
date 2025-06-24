@@ -155,7 +155,7 @@ add_fiche('westaether👤', '9', 'https://files.catbox.moe/cvm2cp.jpg', 'WEST�
 add_fiche('westhajime👤', '10', 'https://files.catbox.moe/kov9hu.jpg', 'WEST🦁🔵');
 
 
-add_fiche('northkiller👤', '2', 'https://files.catbox.moe/zn55pc.jpg', 'NORTH🐺🔴');
+add_fiche('northkiller👤', '38', 'https://files.catbox.moe/zn55pc.jpg', 'NORTH🐺🔴');
 add_fiche('northregulus👤', '11', 'https://files.catbox.moe/log52q.jpg', 'NORTH🐺🔴');
 add_fiche('northeoza👤', '12', 'https://files.catbox.moe/zcmhoo.jpg', 'NORTH🐺🔴');
 add_fiche('northomnimoh👤', '13', 'https://files.catbox.moe/spk4fw.jpg', 'NORTH🐺🔴');
