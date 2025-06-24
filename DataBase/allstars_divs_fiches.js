@@ -64,8 +64,7 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   total_cards: { type: DataTypes.INTEGER, defaultValue: 0 },
   cards: { type: DataTypes.TEXT, defaultValue: 'aucune' },
   source: { type: DataTypes.STRING, defaultValue: 'inconnu' },
-  jid: { type: DataTypes.STRING, defaultValue: 'null' },
-  loca_id: { type: DataTypes.STRING, defaultValue: 'null' }
+  jid: { type: DataTypes.STRING, defaultValue: 'null' }
   
 }, {
   tableName: 'allstars_divs_fiches',
@@ -77,32 +76,32 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   console.log("✅ Table 'allstars_divs_fiches' synchronisée avec succès.");
 })();
 
-async function getData(loca_id) {
-  const [fiche, created] = await AllStarsDivsFiche.findOrCreate({
-    where: { loca_id },
-    defaults: { loca_id }
-  });
+async function getData(id) {
+  const [fiche, created] = await AllStarsDivsFiche.findOrCreate({
+    where: { id },
+    defaults: {}
+  });
 
-  if (created) {
-    console.log(`✅ Nouvelle fiche créée pour loca_id : ${loca_id}`);
-  }
+  if (created) {
+    console.log(`✅ Nouvelle fiche créée pour id : ${id}`);
+  }
 
-  return fiche;
+  return fiche;
 }
 
-async function setfiche(colonne, valeur, loca_id) {
-  const updateData = {};
-  updateData[colonne] = valeur;
+async function setfiche(colonne, valeur, id) {
+  const updateData = {};
+  updateData[colonne] = valeur;
 
-  const [updatedCount] = await AllStarsDivsFiche.update(updateData, {
-    where: { loca_id },
-  });
+  const [updatedCount] = await AllStarsDivsFiche.update(updateData, {
+    where: { id },
+  });
 
-  if (updatedCount === 0) {
-    throw new Error(`❌ Aucun joueur trouvé avec le loca_id : ${loca_id}`);
-  }
+  if (updatedCount === 0) {
+    throw new Error(`❌ Aucun joueur trouvé avec l'id : ${id}`);
+  }
 
-  console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur loca_id ${loca_id}`);
+  console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur id ${id}`);
 }
 
 module.exports = { setfiche, getData };
