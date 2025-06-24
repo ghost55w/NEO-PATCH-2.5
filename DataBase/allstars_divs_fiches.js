@@ -76,30 +76,32 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   console.log("✅ Table 'allstars_divs_fiches' synchronisée avec succès.");
 })();
 
-async function getData(id) {
-  let fiche = await AllStarsDivsFiche.findOne({ where: { id } });
+async function getData(loca_id) {
+  const [fiche, created] = await AllStarsDivsFiche.findOrCreate({
+    where: { loca_id },
+    defaults: { loca_id }
+  });
 
-  if (!fiche) {
-    fiche = await AllStarsDivsFiche.create({ id });
-    console.log(`✅ Nouvelle fiche créée pour ID : ${id}`);
+  if (created) {
+    console.log(`✅ Nouvelle fiche créée pour loca_id : ${loca_id}`);
   }
 
   return fiche;
 }
 
-async function setfiche(colonne, valeur, id) {
+async function setfiche(colonne, valeur, loca_id) {
   const updateData = {};
   updateData[colonne] = valeur;
 
   const [updatedCount] = await AllStarsDivsFiche.update(updateData, {
-    where: { id },
+    where: { loca_id },
   });
 
   if (updatedCount === 0) {
-    throw new Error(`❌ Aucun joueur trouvé avec l'id : ${id}`);
+    throw new Error(`❌ Aucun joueur trouvé avec le loca_id : ${loca_id}`);
   }
 
-  console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur id ${id}`);
+  console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur loca_id ${loca_id}`);
 }
 
 module.exports = { setfiche, getData };
