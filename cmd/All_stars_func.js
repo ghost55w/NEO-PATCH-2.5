@@ -108,7 +108,7 @@ function getRandomElement(arr) {
 async function latence({ ovl, texte, ms_org }) {
   const neoTexte = texte.toLowerCase();
   const userMatch = texte.match(/@(\d+)/);
-  const user = userMatch?.[1] ? `${userMatch[1]}@lid` : null;
+  const user = userMatch?.[1] ? `${userMatch[1]}@s.whatsapp.net` : null;
 
   if (neoTexte === "stop" || neoTexte.startsWith(".   ░▒░") || neoTexte.startsWith(". 🔷blue lock")) {
     await stopCountdown(ovl, ms_org);
@@ -176,4 +176,32 @@ async function latence({ ovl, texte, ms_org }) {
   }, 1000);
 }
 
-module.exports = { goal, latence };
+async function negs_vic(ovl, texte, ms_org) {
+    const lowerText = texte.toLowerCase();
+    const userMatch = texte.match(/@(\d+)/);
+    const user = userMatch?.[1] ? `${userMatch[1]}@s.whatsapp.net` : null;
+
+    if (
+        user &&
+        lowerText.includes("victoire") &&
+        lowerText.includes("negs diff")
+    ) {
+        const victoryVids = [
+            "https://files.catbox.moe/ydrzja.mp4",
+            "https://files.catbox.moe/laargl.mp4"
+        ];
+        const randomVid = victoryVids[Math.floor(Math.random() * victoryVids.length)];
+
+        await ovl.sendMessage(ms_org, {
+            video: { url: randomVid },
+            gifPlayback: true,
+            caption: ``,
+        });
+
+        return true;
+    }
+
+    return false;
+}
+
+module.exports = { goal, latence, negs_vic };
