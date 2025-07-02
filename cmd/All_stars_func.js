@@ -99,4 +99,74 @@ if (resultat === "but") {
 }
 }
 
-module.exports = { goal };
+const activeCountdowns = {};
+
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
+
+async function stopCountdown(ovl, ms_org) {
+    if (activeCountdowns[ms_org]) {
+        clearInterval(activeCountdowns[ms_org]);
+        delete activeCountdowns[ms_org];
+        await ovl.sendMessage(ms_org, { text: "⏹️ Décompte arrêté manuellement." });
+    } else {
+        await ovl.sendMessage(ms_org, { text: "⚠️ Aucun décompte actif à arrêter." });
+    }
+}
+
+async function latence({ ovl, ms_org, texte }) {
+    const neoTexte = texte.toLowerCase();
+    const nextWords = ['next', 'nx', 'nxt'];
+
+    if (neoTexte === "stop" || neoTexte.endsWith(`. 🔷blue lock neo🥅▱▱▱\n> ©2025 neo next game *launch*`)) {
+        await stopCountdown(ovl, ms_org);
+        return;
+    }
+
+    if (!(neoTexte.startsWith('@') && nextWords.some(word => neoTexte.endsWith(word)))) {
+        return;
+    }
+
+    if (activeCountdowns[ms_org]) {
+        await ovl.sendMessage(ms_org, { text: "⚠️ Un décompte est déjà actif ici." });
+        return;
+    }
+
+    let countdownTime = 6 * 60;
+
+    const userMatch = texte.match(/@(\d+)/);
+    const user = userMatch?.[1] ? `${userMatch[1]}@lid` : null;
+
+    const lienGif = 'https://files.catbox.moe/hqh4iz.mp4';
+
+    await ovl.sendMessage(ms_org, {
+        video: { url: lienGif },
+        gifPlayback: true,
+        caption: ""
+    });
+
+    activeCountdowns[ms_org] = setInterval(async () => {
+        try {
+            countdownTime--;
+
+            if (countdownTime === 120 && user) {
+                await ovl.sendMessage(ms_org, { text: `⚠️ @${userMatch[1]} il ne reste plus que 2 minutes.`, mentions: [user] });
+            }
+
+            if (countdownTime <= 0) {
+                clearInterval(activeCountdowns[ms_org]);
+                delete activeCountdowns[ms_org];
+                await ovl.sendMessage(ms_org, { text: "⚠️ Latence Out" });
+            }
+        } catch (err) {
+            console.error("❌ Erreur pendant le décompte :", err.message || err);
+            clearInterval(activeCountdowns[ms_org]);
+            delete activeCountdowns[ms_org];
+        }
+    }, 1000);
+}
+
+module.exports = { goal, latence };
