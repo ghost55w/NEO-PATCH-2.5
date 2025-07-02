@@ -7,6 +7,7 @@ const evt = require("../lib/ovlcmd");
 const config = require("../set");
 const prefixe = config.PREFIXE || "";
 const getJid = require("./cache_jid");
+const { goal, latence } = require("../cmd/All_stars_func");
     
 async function message_upsert(m, ovl) {
 try {
