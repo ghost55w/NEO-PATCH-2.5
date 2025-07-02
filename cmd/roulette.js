@@ -1,8 +1,9 @@
-const { ovlcmd } = require('../framework/ovlcmd');
+const { ovlcmd } = require('../lib/ovlcmd');
 const fs = require('fs');
-const users = require('../Id_ext/northdiv');
 const s = require("../set");
 const dbUrl = s.DB;
+const { MyNeoFunctions } = require("../myNeo_team_lineup");
+const { getData, setfiche } = require("../allstars_divs_fiches");
 
 const generateRandomNumbers = (min, max, count) => {
   const numbers = new Set();
@@ -33,40 +34,35 @@ ovlcmd({
     ];
     if (!authorizedChats.includes(origineMessage)) return repondre("Commande non autorisée pour ce chat.");
 
-    const user = users.find(item => item.id === auteurMessage);
-    if (!user) return repondre("Votre identifiant n'existe pas");
+    const userData = await MyNeoFunctions.getUserData(auteurMessage);
+    if (!userData) return repondre("❌ Joueur introuvable dans MyNeo.");
 
-    const { Pool } = require('pg');
-    const client = await new Pool({
-      connectionString: dbUrl,
-      ssl: { rejectUnauthorized: false }
-    }).connect();
+    const fiche = await getData(auteurMessage);
 
-    const [np, nc, golds, coupons] = await Promise.all([
-      client.query(user.get_np),
-      client.query(user.get_neocoins),
-      client.query(user.get_golds),
-      client.query(user.get_coupons)
-    ]);
+    let valeur_nc = parseInt(userData.nc) || 0;
+    let valeur_np = parseInt(userData.np) || 0;
+    let valeur_coupons = parseInt(userData.coupons) || 0;
+    let valeur_golds = parseInt(fiche.golds) || 0;
 
-    let valeur_nc = parseInt(nc.rows[0][user.cln_neocoins]);
-    let valeur_golds = parseInt(golds.rows[0][user.cln_golds]);
-    let valeur_coupons = parseInt(coupons.rows[0][user.cln_coupons]);
-    let numbers = generateRandomNumbers(0, 50, 50);
-    let winningNumbers = generateRandomNumbers(0, 50, 3);
-    let rewards = generateRewards();
+    const numbers = generateRandomNumbers(0, 50, 50);
+    const winningNumbers = generateRandomNumbers(0, 50, 3);
+    const rewards = generateRewards();
 
-    let msga = `*🎰𝗧𝗘𝗡𝗧𝗘𝗭 𝗩𝗢𝗧𝗥𝗘 𝗖𝗛𝗔𝗡𝗖𝗘🥳 !!*🎉🎉\n...\n*🎊Voulez-vous tenter votre chance ?* (1min)\n✅: \\`Oui\\`\n❌: \\`Non\\``;
+    let msga = `*🎰𝗧𝗘𝗡𝗧𝗘𝗭 𝗩𝗢𝗧𝗥𝗘 𝗖𝗛𝗔𝗡𝗖𝗘🥳 !!*🎉🎉\n...\n*🎊Voulez-vous tenter votre chance ?* (1min)\n✅: \`Oui\`\n❌: \`Non\``;
 
-    await ovl.sendMessage(origineMessage, { video: { url: 'https://files.catbox.moe/amtfgl.mp4' }, caption: msga, gifPlayback: true }, { quoted: ms_org });
+    await ovl.sendMessage(origineMessage, {
+      video: { url: 'https://files.catbox.moe/amtfgl.mp4' },
+      caption: msga,
+      gifPlayback: true
+    }, { quoted: ms_org });
 
     const getConfirmation = async (attempt = 1) => {
       if (attempt > 3) throw new Error('TooManyAttempts');
       const rep = await ovl.awaitForMessage({ sender: auteurMessage, chatJid: origineMessage, timeout: 60000 });
       const response = rep?.message?.extendedTextMessage?.text || rep?.message?.conversation;
-      if (response.toLowerCase() === 'oui') return true;
-      if (response.toLowerCase() === 'non') throw new Error('GameCancelledByUser');
-      await repondre('Veuillez répondre par Oui ou Non.');
+      if (response?.toLowerCase() === 'oui') return true;
+      if (response?.toLowerCase() === 'non') throw new Error('GameCancelledByUser');
+      await repondre('❓ Veuillez répondre par Oui ou Non.');
       return await getConfirmation(attempt + 1);
     };
 
@@ -74,11 +70,15 @@ ovlcmd({
 
     const getChosenNumber = async (isSecond = false, attempt = 1) => {
       if (attempt > 3) throw new Error('TooManyAttempts');
-      await ovl.sendMessage(origineMessage, { video: { url: 'https://files.catbox.moe/amtfgl.mp4' }, caption: isSecond ? 'Deuxième chance !' : 'Choisissez un numéro.', gifPlayback: true }, { quoted: ms_org });
+      await ovl.sendMessage(origineMessage, {
+        video: { url: 'https://files.catbox.moe/amtfgl.mp4' },
+        caption: isSecond ? '🎯 Deuxième chance !' : '🎯 Choisissez un numéro entre 0 et 50.',
+        gifPlayback: true
+      }, { quoted: ms_org });
       const rep = await ovl.awaitForMessage({ sender: auteurMessage, chatJid: origineMessage, timeout: 60000 });
       const number = parseInt(rep?.message?.extendedTextMessage?.text || rep?.message?.conversation);
       if (isNaN(number) || number < 0 || number > 50) {
-        await repondre('Numéro invalide.');
+        await repondre('❌ Numéro invalide.');
         return await getChosenNumber(isSecond, attempt + 1);
       }
       return number;
@@ -88,14 +88,31 @@ ovlcmd({
       if (winningNumbers.includes(num)) {
         let reward = rewards[winningNumbers.indexOf(num)];
         switch (reward) {
-          case '5🔷': await client.query(user.upd_neocoins, [valeur_nc + 5]); break;
-          case '10.000 G🧭': await client.query(user.upd_golds, [valeur_golds + 10000]); break;
-          case '5🎟': await client.query(user.upd_coupons, [valeur_coupons + 5]); break;
+          case '5🔷':
+            valeur_nc += 5;
+            await MyNeoFunctions.updateUser(auteurMessage, { nc: valeur_nc });
+            break;
+          case '10.000 G🧭':
+            valeur_golds += 10000;
+            await setfiche("golds", valeur_golds, auteurMessage);
+            break;
+          case '5🎟':
+            valeur_coupons += 5;
+            await MyNeoFunctions.updateUser(auteurMessage, { coupons: valeur_coupons });
+            break;
         }
-        await ovl.sendMessage(origineMessage, { video: { url: 'https://files.catbox.moe/vfv2hk.mp4' }, caption: `🎉 Vous avez gagné ${reward} !`, gifPlayback: true }, { quoted: ms_org });
+        await ovl.sendMessage(origineMessage, {
+          video: { url: 'https://files.catbox.moe/vfv2hk.mp4' },
+          caption: `🎉 Vous avez gagné ${reward} !`,
+          gifPlayback: true
+        }, { quoted: ms_org });
         return true;
       } else if (isSecond) {
-        await ovl.sendMessage(origineMessage, { video: { url: 'https://files.catbox.moe/hmhs29.mp4' }, caption: `❌ Mauvais numéro. Fin du jeu.`, gifPlayback: true }, { quoted: ms_org });
+        await ovl.sendMessage(origineMessage, {
+          video: { url: 'https://files.catbox.moe/hmhs29.mp4' },
+          caption: `❌ Mauvais numéro. Fin du jeu.`,
+          gifPlayback: true
+        }, { quoted: ms_org });
       }
       return false;
     };
@@ -106,7 +123,9 @@ ovlcmd({
       const chosen2 = await getChosenNumber(true);
       await checkNumber(chosen2, true);
     }
+
   } catch (e) {
     console.error('Erreur roulette:', e.message);
+    repondre("❌ Une erreur est survenue.");
   }
 });
