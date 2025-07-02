@@ -117,16 +117,23 @@ async function stopCountdown(ovl, ms_org) {
     }
 }
 
-async function latence({ ovl, ms_org, texte }) {
+async function latence({ ovl, texte, ms_org }) {
     const neoTexte = texte.toLowerCase();
-    const nextWords = ['next', 'nx', 'nxt'];
+    const userMatch = texte.match(/@(\d+)/);
+    const user = userMatch?.[1] ? `${userMatch[1]}@lid` : null;
 
-    if (neoTexte === "stop" || neoTexte.endsWith(`. 🔷blue lock neo🥅▱▱▱\n> ©2025 neo next game *launch*`)) {
+    if (neoTexte === "stop" || neoTexte.startsWith(".   ░▒░") || neoTexte.startsWith(". 🔷blue lock")) {
         await stopCountdown(ovl, ms_org);
         return;
     }
 
-    if (!(neoTexte.startsWith('@') && nextWords.some(word => neoTexte.endsWith(word)))) {
+    let countdownTime = null;
+
+    if (neoTexte.startsWith('@') && /(next|nx|nxt)$/.test(neoTexte)) {
+        countdownTime = 5 * 60;
+    } else if (neoTexte.startsWith('@') && /go$/.test(neoTexte)) {
+        countdownTime = 6 * 60;
+    } else {
         return;
     }
 
@@ -134,11 +141,6 @@ async function latence({ ovl, ms_org, texte }) {
         await ovl.sendMessage(ms_org, { text: "⚠️ Un décompte est déjà actif ici." });
         return;
     }
-
-    let countdownTime = 6 * 60;
-
-    const userMatch = texte.match(/@(\d+)/);
-    const user = userMatch?.[1] ? `${userMatch[1]}@lid` : null;
 
     const lienGif = 'https://files.catbox.moe/hqh4iz.mp4';
 
@@ -162,7 +164,6 @@ async function latence({ ovl, ms_org, texte }) {
                 await ovl.sendMessage(ms_org, { text: "⚠️ Latence Out" });
             }
         } catch (err) {
-            console.error("❌ Erreur pendant le décompte :", err.message || err);
             clearInterval(activeCountdowns[ms_org]);
             delete activeCountdowns[ms_org];
         }
