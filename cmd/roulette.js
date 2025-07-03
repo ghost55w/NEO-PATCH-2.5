@@ -23,8 +23,7 @@ ovlcmd({
   classe: 'NEO_GAMES🎰',
   react: '🎰',
   desc: 'Lance une roulette aléatoire avec récompenses.'
-}, async (ms_org, ovl, { repondre, auteurMessage }) => {
-  const origineMessage = ms_org.chat;
+}, async (ms_org, ovl, { repondre, auteur_Message }) => {
   try {
     const authorizedChats = [
       '120363024647909493@g.us',
@@ -34,10 +33,10 @@ ovlcmd({
     ];
     if (!authorizedChats.includes(origineMessage)) return repondre("Commande non autorisée pour ce chat.");
 
-    const userData = await MyNeoFunctions.getUserData(auteurMessage);
+    const userData = await MyNeoFunctions.getUserData(auteur_Message);
     if (!userData) return repondre("❌ Joueur introuvable dans MyNeo.");
 
-    const fiche = await getData(auteurMessage);
+    const fiche = await getData(auteur_Message);
 
     let valeur_nc = parseInt(userData.nc) || 0;
     let valeur_np = parseInt(userData.np) || 0;
@@ -50,15 +49,15 @@ ovlcmd({
 
     let msga = `*🎰𝗧𝗘𝗡𝗧𝗘𝗭 𝗩𝗢𝗧𝗥𝗘 𝗖𝗛𝗔𝗡𝗖𝗘🥳 !!*🎉🎉\n...\n*🎊Voulez-vous tenter votre chance ?* (1min)\n✅: \`Oui\`\n❌: \`Non\``;
 
-    await ovl.sendMessage(origineMessage, {
+    await ovl.sendMessage(ms_org, {
       video: { url: 'https://files.catbox.moe/amtfgl.mp4' },
       caption: msga,
       gifPlayback: true
-    }, { quoted: ms_org });
+    }, { quoted: ms });
 
     const getConfirmation = async (attempt = 1) => {
       if (attempt > 3) throw new Error('TooManyAttempts');
-      const rep = await ovl.awaitForMessage({ sender: auteurMessage, chatJid: origineMessage, timeout: 60000 });
+      const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
       const response = rep?.message?.extendedTextMessage?.text || rep?.message?.conversation;
       if (response?.toLowerCase() === 'oui') return true;
       if (response?.toLowerCase() === 'non') throw new Error('GameCancelledByUser');
@@ -70,12 +69,12 @@ ovlcmd({
 
     const getChosenNumber = async (isSecond = false, attempt = 1) => {
       if (attempt > 3) throw new Error('TooManyAttempts');
-      await ovl.sendMessage(origineMessage, {
+      await ovl.sendMessage(ms_org, {
         video: { url: 'https://files.catbox.moe/amtfgl.mp4' },
         caption: isSecond ? '🎯 Deuxième chance !' : '🎯 Choisissez un numéro entre 0 et 50.',
         gifPlayback: true
-      }, { quoted: ms_org });
-      const rep = await ovl.awaitForMessage({ sender: auteurMessage, chatJid: origineMessage, timeout: 60000 });
+      }, { quoted: ms });
+      const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
       const number = parseInt(rep?.message?.extendedTextMessage?.text || rep?.message?.conversation);
       if (isNaN(number) || number < 0 || number > 50) {
         await repondre('❌ Numéro invalide.');
@@ -90,7 +89,7 @@ ovlcmd({
         switch (reward) {
           case '5🔷':
             valeur_nc += 5;
-            await MyNeoFunctions.updateUser(auteurMessage, { nc: valeur_nc });
+            await MyNeoFunctions.updateUser(auteur_Message, { nc: valeur_nc });
             break;
           case '10.000 G🧭':
             valeur_golds += 10000;
@@ -98,21 +97,21 @@ ovlcmd({
             break;
           case '5🎟':
             valeur_coupons += 5;
-            await MyNeoFunctions.updateUser(auteurMessage, { coupons: valeur_coupons });
+            await MyNeoFunctions.updateUser(auteur_Message, { coupons: valeur_coupons });
             break;
         }
-        await ovl.sendMessage(origineMessage, {
+        await ovl.sendMessage(ms_org, {
           video: { url: 'https://files.catbox.moe/vfv2hk.mp4' },
           caption: `🎉 Vous avez gagné ${reward} !`,
           gifPlayback: true
-        }, { quoted: ms_org });
+        }, { quoted: ms });
         return true;
       } else if (isSecond) {
-        await ovl.sendMessage(origineMessage, {
+        await ovl.sendMessage(ms_org, {
           video: { url: 'https://files.catbox.moe/hmhs29.mp4' },
           caption: `❌ Mauvais numéro. Fin du jeu.`,
           gifPlayback: true
-        }, { quoted: ms_org });
+        }, { quoted: ms });
       }
       return false;
     };
