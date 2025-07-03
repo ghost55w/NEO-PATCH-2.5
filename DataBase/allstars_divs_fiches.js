@@ -76,17 +76,17 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   console.log("✅ Table 'allstars_divs_fiches' synchronisée avec succès.");
 })();
 
-async function getData(id) {
-  const [fiche, created] = await AllStarsDivsFiche.findOrCreate({
-    where: { id },
-    defaults: {}
-  });
+async function getData(where = {}) {
+  const [fiche, created] = await AllStarsDivsFiche.findOrCreate({
+    where,
+    defaults: {}
+  });
 
-  if (created) {
-    console.log(`✅ Nouvelle fiche créée pour id : ${id}`);
-  }
+  if (created) {
+    console.log(`✅ Nouvelle fiche créée pour :`, where);
+  }
 
-  return fiche;
+  return fiche;
 }
 
 async function setfiche(colonne, valeur, id) {
