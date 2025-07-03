@@ -12,7 +12,7 @@ ovlcmd({
 }, async (ms_org, ovl, cmd) => {
   const { arg, repondre, superUser } = cmd;
   if (!superUser) return repondre("⚠️ Seuls les membres de la NS peuvent enregistrer un joueur.");
-  const mention = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
+  const mention = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
   if (!mention) return repondre("⚠️ Mentionne un utilisateur.");
 
   const type = arg[1]?.toLowerCase();
@@ -65,7 +65,7 @@ ovlcmd({
   const { arg, repondre, superUser } = cmd;
   if (!superUser) return repondre("⚠️ Seuls les membres de la NS peuvent supprimer un joueur.");
 
-  const mention = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
+  const mention = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
   if (!mention) return repondre("⚠️ Mentionne un utilisateur.");
 
   const type = arg[1]?.toLowerCase();
@@ -85,7 +85,7 @@ ovlcmd({
   const { arg, auteurMessage, superUser, repondre } = cmd_options;
   let userId = auteurMessage;
   if (arg.length >= 1) {
-    userId = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
+    userId = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
     if (!userId) return repondre("⚠️ Mentionne un utilisateur.");
   }
 
@@ -176,7 +176,7 @@ ovlcmd({
   const { arg, auteurMessage, superUser, repondre } = cmd_options;
   let userId = auteurMessage;
   if (arg.length >= 1) {
-    userId = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
+    userId = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
     if (!userId) return repondre("⚠️ Mentionne un utilisateur.");
   }
 
@@ -269,7 +269,7 @@ ovlcmd({
   desc: "Afficher ou modifier l'équipe du joueur.",
 }, async (ms_org, ovl, cmd_options) => {
   const { arg, repondre, auteurMessage } = cmd_options;
-  const userId = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) || auteurMessage;
+  const userId = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`) || auteurMessage;
 
   const data = await getLineup(userId);
   if (!data) return repondre("⚠️ Joueur introuvable.");
