@@ -7,8 +7,9 @@ const evt = require("../lib/ovlcmd");
 const config = require("../set");
 const prefixe = config.PREFIXE || "";
 const getJid = require("./cache_jid");
-const { goal, latence } = require("../cmd/All_stars_func");
-    
+const { goal, latence, negs_vic } = require("../cmd/All_stars_func");
+const { stats_lineup } = require("../cmd/myneo_lineup_team");
+   
 async function message_upsert(m, ovl) {
 try {
     if (m.type !== 'notify') return;
@@ -142,6 +143,10 @@ try {
     }
     // Événements
     eval_exec(ovl, { ...cmd_options });
+    goal(ovl, ms_org, repondre, texte);
+    latence({ ovl, texte, ms_org });
+    negs_vic(ovl, texte, ms_org);
+    stats_lineup(texte, repondre)
 } catch (e) {
     console.error("❌ Erreur(message.upsert):", e);
 }
