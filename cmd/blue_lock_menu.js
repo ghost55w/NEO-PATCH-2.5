@@ -5,7 +5,7 @@ const gifIntro = 'https://files.catbox.moe/z64kuq.mp4';
 ovlcmd(
   {
     nom_cmd: 'bluelock⚽',
-    classe: 'Other',
+    classe: 'Bluelock⚽',
     react: '⚽',
     desc: "Présentation de Blue Lock"
   },
@@ -28,7 +28,7 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: 'modechampions⚽',
-    classe: 'Other',
+    classe: 'Bluelock⚽',
     react: '🏆',
     desc: "Affiche le mode Champions"
   },
@@ -49,7 +49,7 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: 'modehero⚽',
-    classe: 'Other',
+    classe: 'Bluelock⚽',
     react: '🦸',
     desc: "Affiche le mode Hero"
   },
@@ -70,7 +70,7 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: 'bluegame⚽',
-    classe: 'Other',
+    classe: 'Bluelock⚽',
     react: '🎮',
     desc: "Affiche les visuels de Blue Game"
   },
@@ -102,7 +102,7 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: 'pave⚽',
-    classe: 'Other',
+    classe: 'Bluelock⚽',
     react: '📩',
     desc: "Affiche le message d'annonce de lancement Blue Lock"
   },
