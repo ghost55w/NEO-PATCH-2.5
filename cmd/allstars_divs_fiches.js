@@ -15,7 +15,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
     const { repondre, ms, arg, superUser } = cmd_options;
 
     try {
-      const data = await getData(jid);
+      const data = await getData({ id: jid });
 
       if (!arg.length) {
         const fiche = `░▒▒░░▒░ *👤N E O P L A Y E R 🎮*
