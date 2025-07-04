@@ -5,7 +5,7 @@ const gifIntro = 'https://files.catbox.moe/7033mc.mp4';
 ovlcmd(
   {
     nom_cmd: "menuneo🔷",
-    classe: "Other",
+    classe: "AllStars🔷",
     react: "📘",
     desc: "Affiche le menu NEO",
   },
@@ -27,7 +27,7 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: "gamepass🎮",
-    classe: "Other",
+    classe: "AllStars🔷",
     react: "🎮",
     desc: "Affiche les passes de jeu",
   },
@@ -49,7 +49,7 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: "guide",
-    classe: "Other",
+    classe: "AllStars🔷",
     react: "📘",
     desc: "Affiche le guide complet",
   },
@@ -78,7 +78,7 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: "allstars🌀",
-    classe: "Other",
+    classe: "AllStars🔷",
     react: "🌟",
     desc: "Affiche l’image Allstars",
   },
@@ -100,7 +100,7 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: "pave",
-    classe: "Other",
+    classe: "AllStars🔷",
     react: "🎮",
     desc: "Affiche le controller pave",
   },
