@@ -58,7 +58,7 @@ function generateFicheDuel(duel) {
 
 ovlcmd({
     nom_cmd: "duel",
-    classe: "Fun",
+    classe: "Duel",
     react: "⚔️",
     desc: "Lance un duel entre deux joueurs."
 }, async (ms_org, ovl, { arg, repondre }) => {
@@ -88,7 +88,7 @@ ovlcmd({
 
 ovlcmd({
     nom_cmd: "duel_stats",
-    classe: "Fun",
+    classe: "Duel",
     react: "📊",
     desc: "Modifie les stats d'un joueur."
 }, async (ms_org, ovl, { arg, repondre }) => {
@@ -115,7 +115,7 @@ ovlcmd({
 
 ovlcmd({
     nom_cmd: "reset_stats",
-    classe: "Fun",
+    classe: "Duel",
     react: "🔄",
     desc: "Réinitialise les stats d’un joueur ou de tous."
 }, async (ms_org, ovl, { arg, repondre }) => {
@@ -142,7 +142,7 @@ ovlcmd({
 
 ovlcmd({
     nom_cmd: "reset_duel",
-    classe: "Fun",
+    classe: "Duel",
     react: "🗑️",
     desc: "Supprime un duel en cours."
 }, async (ms_org, ovl, { arg, repondre, auteur_Message }) => {
