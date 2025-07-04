@@ -1,6 +1,5 @@
 const { Sequelize, DataTypes } = require("sequelize");
 const config = require("../set");
-const { getJidFromLid } = require("./cache_jid");
 
 const db = config.DATABASE;
 const sequelize = db
@@ -184,10 +183,6 @@ const TeamFunctions = {
 };
 
 module.exports = {
-  sequelize,
-  MyNeo,
-  BlueLockStats,
-  Team,
   MyNeoFunctions,
   BlueLockFunctions,
   TeamFunctions,
