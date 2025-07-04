@@ -31,7 +31,7 @@ ovlcmd({
       '22651463203@s.whatsapp.net',
       '22605463559@s.whatsapp.net'
     ];
-    if (!authorizedChats.includes(origineMessage)) return repondre("Commande non autorisée pour ce chat.");
+    if (!authorizedChats.includes(ms_org)) return repondre("Commande non autorisée pour ce chat.");
 
     const userData = await MyNeoFunctions.getUserData(auteur_Message);
     if (!userData) return repondre("❌ Joueur introuvable dans MyNeo.");
