@@ -12,6 +12,7 @@ const {
   useMultiFileAuthState,
   delay
 } = require("@whiskeysockets/baileys");
+const get_session = require('./DataBase/session');
 const { getMessage } = require('./lib/store');
 const config = require("./set");
 const {
@@ -24,30 +25,20 @@ const {
 
 async function startPrincipalSession() {
   await delay(45000);
-  const sess = config.SESSION_ID || "";
-  if (!(sess && sess.startsWith("Ovl-MD_") && sess.endsWith("_SESSION-ID"))) {
-    console.log("❌ SESSION_ID invalide ou manquant.");
-    return;
-  }
+  const nomDossier = "principale" 
+  const sessionDir = path.join(__dirname, "auth", nomDossier);
+  const credsPath = path.join(sessionDir, "creds.json");
 
-  const sessionId = sess.slice(7, -11);
-  const dirPrincipale = path.join(__dirname, "auth", "principale");
-  const filePath = path.join(dirPrincipale, "creds.json");
-
-  if (!fs.existsSync(filePath)) {
-  try {
-    console.log("⏳ Authentification...");
-    const response = await axios.get(`https://pastebin.com/raw/${sessionId}`);
-    const data = typeof response.data === 'string' ? response.data : JSON.stringify(response.data, null, 2);
-
-    fs.mkdirSync(dirPrincipale, { recursive: true });
-    fs.writeFileSync(filePath, data, 'utf8');
-
-    console.log("✅ Authentifié avec succès !");
-  } catch (e) {
-    console.log("❌ Erreur d'authentification :", e.message);
-    return;
-  }
+  if (!fs.existsSync(credsPath)) {
+    try {
+      const creds = await get_session(config.SESSION_ID);
+      if (!creds) return;
+      fs.mkdirSync(sessionDir, { recursive: true });
+      fs.writeFileSync(credsPath, creds, "utf8");
+    } catch (err) {
+      console.log(`❌ Erreur récupération creds pour ${nomDossier} :`, err.message);
+      return;
+    }
   }
  
   try {
