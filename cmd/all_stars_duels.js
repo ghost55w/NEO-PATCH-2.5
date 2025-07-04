@@ -79,7 +79,7 @@ ovlcmd({
         duelsEnCours[duelKey] = { equipe1, equipe2, statsCustom: statsCustom || 'Aucune stat personnalisée', arene: areneT };
 
         const fiche = generateFicheDuel(duelsEnCours[duelKey]);
-        await ovl.sendMessage(ms_org.chat, { image: { url: areneT.image }, caption: fiche }, { quoted: ms_org });
+        await ovl.sendMessage(ms_org, { image: { url: areneT.image }, caption: fiche }, { quoted: ms });
     } catch (e) {
         console.error(e);
         repondre('❌ Une erreur est survenue.');
@@ -110,7 +110,7 @@ ovlcmd({
 
     if (message) repondre(message);
     const fiche = generateFicheDuel(duel);
-    ovl.sendMessage(ms_org.chat, { image: { url: duel.arene.image }, caption: fiche }, { quoted: ms_org });
+    ovl.sendMessage(ms_org, { image: { url: duel.arene.image }, caption: fiche }, { quoted: ms });
 });
 
 ovlcmd({
@@ -137,7 +137,7 @@ ovlcmd({
     }
 
     const fiche = generateFicheDuel(duel);
-    ovl.sendMessage(ms_org.chat, { image: { url: duel.arene.image }, caption: fiche }, { quoted: ms_org });
+    ovl.sendMessage(ms_org, { image: { url: duel.arene.image }, caption: fiche }, { quoted: ms });
 });
 
 ovlcmd({
@@ -145,13 +145,13 @@ ovlcmd({
     classe: "Fun",
     react: "🗑️",
     desc: "Supprime un duel en cours."
-}, async (ms_org, ovl, { arg, repondre, auteur_Msg }) => {
+}, async (ms_org, ovl, { arg, repondre, auteur_Message }) => {
     if (arg.length < 1) return repondre('Format: @NomDuJoueur ou "all"');
 
     const joueurId = arg[0].trim();
-    await ovl.sendMessage(ms_org.chat, { text: '❓ Confirmez la suppression avec "oui" ou "non".' }, { quoted: ms_org });
+    await ovl.sendMessage(ms_org, { text: '❓ Confirmez la suppression avec "oui" ou "non".' }, { quoted: ms });
 
-    const rep = await ovl.awaitForMessage({ sender: auteur_Msg, chatJid: ms_org.chat, timeout: 60000 });
+    const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
     const confirmation = rep?.message?.extendedTextMessage?.text || rep?.message?.conversation;
 
     if (!rep || confirmation.toLowerCase() !== 'oui') return repondre('❌ Suppression annulée.');
