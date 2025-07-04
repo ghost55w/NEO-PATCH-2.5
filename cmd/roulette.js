@@ -1,7 +1,5 @@
 const { ovlcmd } = require('../lib/ovlcmd');
 const fs = require('fs');
-const s = require("../set");
-const dbUrl = s.DB;
 const { MyNeoFunctions } = require("../DataBase/myneo_lineup_team");
 const { getData, setfiche } = require("../DataBase/allstars_divs_fiches");
 
@@ -42,7 +40,7 @@ ovlcmd({
     let valeur_np = parseInt(userData.np) || 0;
     if (valeur_np < 1) return repondre("❌ Tu n’as pas assez de np (au moins 1 requis).");
 
-    let valeur_np = parseInt(userData.np) || 0;
+    let valeur_nc = parseInt(userData.nc) || 0;
     let valeur_coupons = parseInt(userData.coupons) || 0;
     let valeur_golds = parseInt(fiche.golds) || 0;
 
@@ -88,7 +86,7 @@ x10 = 20🔷
     await getConfirmation();
  
     valeur_np -= 1;
-    await MyNeoFunctions.updateUser(auteur_Message, { np: valeur_no });
+    await MyNeoFunctions.updateUser(auteur_Message, { np: valeur_np });
     
     const getChosenNumber = async (isSecond = false, attempt = 1) => {
       if (attempt > 3) throw new Error('TooManyAttempts');
