@@ -61,7 +61,7 @@ ovlcmd({
     classe: "Duel",
     react: "⚔️",
     desc: "Lance un duel entre deux joueurs."
-}, async (ms_org, ovl, { arg, repondre }) => {
+}, async (ms_org, ovl, { arg, repondre, ms }) => {
     if (!arg[0]) return repondre('Format: +duel joueur1 vs joueur2 / stats');
 
     try {
@@ -91,7 +91,7 @@ ovlcmd({
     classe: "Duel",
     react: "📊",
     desc: "Modifie les stats d'un joueur."
-}, async (ms_org, ovl, { arg, repondre }) => {
+}, async (ms_org, ovl, { arg, repondre, ms }) => {
     if (arg.length < 4) return repondre('Format: @NomDuJoueur stat +/- valeur');
 
     const [joueurId, stat, signe, valeurStr] = arg;
@@ -118,7 +118,7 @@ ovlcmd({
     classe: "Duel",
     react: "🔄",
     desc: "Réinitialise les stats d’un joueur ou de tous."
-}, async (ms_org, ovl, { arg, repondre }) => {
+}, async (ms_org, ovl, { arg, repondre, ms }) => {
     if (arg.length < 1) return repondre('Format: @NomDuJoueur ou "all"');
 
     const joueurId = arg[0].trim();
@@ -145,7 +145,7 @@ ovlcmd({
     classe: "Duel",
     react: "🗑️",
     desc: "Supprime un duel en cours."
-}, async (ms_org, ovl, { arg, repondre, auteur_Message }) => {
+}, async (ms_org, ovl, { arg, repondre, auteur_Message, ms }) => {
     if (arg.length < 1) return repondre('Format: @NomDuJoueur ou "all"');
 
     const joueurId = arg[0].trim();
