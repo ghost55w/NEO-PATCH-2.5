@@ -1,4 +1,4 @@
-const { ovlcmd } = require('../framework/ovlcmd');
+const { ovlcmd } = require('../lib/ovlcmd');
 const { MyNeoFunctions, TeamFunctions, BlueLockFunctions } = require("../database/myneo_lineup_team");
 const { saveUser: saveMyNeo, deleteUser: delMyNeo, getUserData: getNeo, updateUser: updateMyNeo } = MyNeoFunctions;
 const { saveUser: saveTeam, deleteUser: delTeam, getUserData: getTeam, updateUser: updateTeam } = TeamFunctions;
