@@ -2,8 +2,8 @@ const { ovlcmd } = require('../lib/ovlcmd');
 const fs = require('fs');
 const s = require("../set");
 const dbUrl = s.DB;
-const { MyNeoFunctions } = require("../myNeo_team_lineup");
-const { getData, setfiche } = require("../allstars_divs_fiches");
+const { MyNeoFunctions } = require("../DataBase/myneo_lineup_team");
+const { getData, setfiche } = require("../DataBase/allstars_divs_fiches");
 
 const generateRandomNumbers = (min, max, count) => {
   const numbers = new Set();
