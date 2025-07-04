@@ -42,7 +42,7 @@ async function startPrincipalSession() {
   }
  
   try {
-    const { state, saveCreds } = await useMultiFileAuthState(dirPrincipale);
+    const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
     const { version } = await fetchLatestBaileysVersion();
 
     const ovl = makeWASocket({
