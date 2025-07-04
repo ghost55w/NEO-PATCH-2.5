@@ -12,7 +12,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
     react: "✅"
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, ms, arg, superUser } = cmd_options;
+    const { repondre, ms, arg, prenium_id } = cmd_options;
 
     try {
       const data = await getData({ id: jid });
@@ -79,7 +79,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
         }, { quoted: ms });
       }
       
-      if (!superUser) return await repondre("⛔ Accès refusé ! Seuls les membres de la NS peuvent faire ça.");
+      if (!prenium_id) return await repondre("⛔ Accès refusé ! Seuls les membres de la NS peuvent faire ça.");
 
       const updates = await processUpdates(arg, jid);
       await updatePlayerData(updates, jid);
