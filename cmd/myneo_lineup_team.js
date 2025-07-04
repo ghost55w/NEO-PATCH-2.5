@@ -10,8 +10,8 @@ ovlcmd({
   react: "💾",
   desc: "Enregistrer un joueur (myneo/team/lineup)",
 }, async (ms_org, ovl, cmd) => {
-  const { arg, repondre, superUser } = cmd;
-  if (!superUser) return repondre("⚠️ Seuls les membres de la NS peuvent enregistrer un joueur.");
+  const { arg, repondre, prenium_id } = cmd;
+  if (!prenium_id) return repondre("⚠️ Seuls les membres de la NS peuvent enregistrer un joueur.");
   const mention = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
   if (!mention) return repondre("⚠️ Mentionne un utilisateur.");
 
@@ -62,8 +62,8 @@ ovlcmd({
   react: "🗑️",
   desc: "Supprimer un joueur (myneo/team/lineup)",
 }, async (ms_org, ovl, cmd) => {
-  const { arg, repondre, superUser } = cmd;
-  if (!superUser) return repondre("⚠️ Seuls les membres de la NS peuvent supprimer un joueur.");
+  const { arg, repondre, prenium_id } = cmd;
+  if (!prenium_id) return repondre("⚠️ Seuls les membres de la NS peuvent supprimer un joueur.");
 
   const mention = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
   if (!mention) return repondre("⚠️ Mentionne un utilisateur.");
@@ -82,8 +82,8 @@ ovlcmd({
   react: "🪪",
   desc: "Afficher ou modifier les données NEO d'un joueur.",
 }, async (ms_org, ovl, cmd_options) => {
-  const { arg, auteurMessage, superUser, repondre } = cmd_options;
-  let userId = auteurMessage;
+  const { arg, auteur_Message, prenium_id, repondre } = cmd_options;
+  let userId = auteur_Message;
   if (arg.length >= 1) {
     userId = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
     if (!userId) return repondre("⚠️ Mentionne un utilisateur.");
@@ -116,7 +116,7 @@ ovlcmd({
       }, { quoted: cmd_options.ms });
     }
 
-    if (!superUser) return repondre("⚠️ Seuls les membres Premium peuvent actualiser un joueur.");
+    if (!prenium_id) return repondre("⚠️ Seuls les membres Premium peuvent actualiser un joueur.");
 
     const modifiables = [
       "users", "tel", "points_jeu", "nc", "np", "coupons", "gift_box",
@@ -173,8 +173,8 @@ ovlcmd({
   react: "⚽",
   desc: "Afficher ou modifier la team d’un joueur.",
 }, async (ms_org, ovl, cmd_options) => {
-  const { arg, auteurMessage, superUser, repondre } = cmd_options;
-  let userId = auteurMessage;
+  const { arg, auteur_Message, prenium_id, repondre } = cmd_options;
+  let userId = auteur_Message;
   if (arg.length >= 1) {
     userId = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
     if (!userId) return repondre("⚠️ Mentionne un utilisateur.");
@@ -210,7 +210,7 @@ ovlcmd({
       }, { quoted: cmd_options.ms });
     }
 
-    if (!superUser) return repondre("⚠️ Seuls les membres de la NS peuvent actualiser une team.");
+    if (!prenium_id) return repondre("⚠️ Seuls les membres de la NS peuvent actualiser une team.");
 
     const modifiables = [
       "users", "team", "points_jeu", "rank",
@@ -268,8 +268,8 @@ ovlcmd({
   react: "📋",
   desc: "Afficher ou modifier l'équipe du joueur.",
 }, async (ms_org, ovl, cmd_options) => {
-  const { arg, repondre, auteurMessage } = cmd_options;
-  const userId = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`) || auteurMessage;
+  const { arg, repondre, auteur_Message } = cmd_options;
+  const userId = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`) || auteur_Message;
 
   const data = await getLineup(userId);
   if (!data) return repondre("⚠️ Joueur introuvable.");
