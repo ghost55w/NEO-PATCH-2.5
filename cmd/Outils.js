@@ -1,5 +1,6 @@
 const { exec } = require("child_process");
 const { ovlcmd, cmd } = require("../lib/ovlcmd");
+const config = require("../set");
 const { Bans } = require('../DataBase/ban');
 const { Sudo } = require('../DataBase/sudo');
 
