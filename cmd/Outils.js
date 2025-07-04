@@ -398,19 +398,27 @@ ovlcmd(
 );
 
 ovlcmd(
-    {
-        nom_cmd: "ping",
-        classe: "Outils",
-        react: "🏓",
-        desc: "Mesure la latence du bot.",
-    },
-    async (ms_org, ovl, cmd_options ) => {
-        const start = Date.now();
-        await ovl.sendMessage(ms_org, { text: "*NEO-BOT -OVL Ping...*" }, { quoted: cmd_options.ms });
-        const end = Date.now();
-        const latency = end - start;
-        await ovl.sendMessage(ms_org, { text: `*🏓 Pong ! Latence : ${latency}ms*` }, { quoted: cmd_options.ms });
-    }
+  {
+    nom_cmd: "ping",
+    classe: "Outils",
+    react: "🏓",
+    desc: "Mesure la latence du bot.",
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const start = Date.now();
+
+    const msg_envoye = await ovl.sendMessage(ms_org, {
+      text: "*NEO-BOT -OVL Ping...*"
+    }, { quoted: cmd_options.ms });
+
+    const end = Date.now();
+    const latency = end - start;
+
+    await ovl.sendMessage(ms_org, {
+      edit: msg_envoye.key,
+      text: `*🏓 Pong ! Latence : ${latency}ms*`
+    });
+  }
 );
 
 ovlcmd(
