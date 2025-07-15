@@ -74,7 +74,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
         }, { quoted: ms });
  
         return ovl.sendMessage(ms_org, {
-          image: { url: image_oc },
+          image: { url: data.oc_url },
           caption: fiche
         }, { quoted: ms });
       }
