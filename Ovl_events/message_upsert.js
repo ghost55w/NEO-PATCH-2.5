@@ -115,7 +115,8 @@ try {
         auteur_Msg_Repondu,
         ms,
         ms_org,
-        texte
+        texte,
+        getJid
     };
 
     async function isBanned(type, id) {
