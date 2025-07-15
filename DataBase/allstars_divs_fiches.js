@@ -65,6 +65,7 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   cards: { type: DataTypes.TEXT, defaultValue: 'aucune' },
   source: { type: DataTypes.STRING, defaultValue: 'inconnu' },
   jid: { type: DataTypes.STRING, defaultValue: 'null' }
+  oc_url: { type: DataTypes.STRING, defaultValue: 'aucun' }
   
 }, {
   tableName: 'allstars_divs_fiches',
