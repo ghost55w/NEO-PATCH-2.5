@@ -35,40 +35,35 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 ░▒░░ PALMARÈS🏆
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
 ✅ Victoires: ${data.victoires} - ❌ Défaites: ${data.defaites}
-◇ 🏆 Championnats: ${data.championnants}
-◇ 💫 NEO Cup: ${data.neo_cup}
-◇ 💠 EVO: ${data.evo}
-◇ 🅰️ GrandSlam: ${data.grandslam}
-◇ 🌟 TOS: ${data.tos}
-◇ 👑 The BEST: ${data.the_best}
-◇ 🎗 Laureat: ${data.laureat}
-◇ 🗿 Sigma: ${data.sigma}
-◇ 🎖 Neo Globes: ${data.neo_globes}
-◇ 🏵 Golden Boy: ${data.golden_boy}
+*◇🏆Championnats*: ${data.championnants}
+*◇🏆NEO cup💫*: ${data.neo_cup}
+*◇🏆EVO💠*: ${data.evo}
+*◇🏆GrandSlam🅰️*: ${data.grandslam}
+*◇🌟TOS*: ${data.tos}
+*◇👑The BEST🏆*: ${data.the_best}
+*◇🗿Sigma🏆*: ${data.sigma}
+*◇🎖️Neo Globes*: ${data.neo_globes}
+*◇🏵️Golden Rookie🏆*: ${data.golden_boy}
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
 ✅ Cleans: ${data.cleans}
 ❌ Erreurs: ${data.erreurs}
 📈 Note: ${data.note}/100
-░▒░▒░ CITATION 🫵🏻
-▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
-> << ${data.citation} >>
-
 ░▒░▒░ STATS 📊
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
-⌬ Talent🧠: ${data.talent}
-⌬ Puissance🏆: ${data.puissance}
-⌬ Speed💬: ${data.speed}
-⌬ Close combat👊🏻: ${data.close_combat}
-⌬ Attaques🌀: ${data.attaques}
+⌬ *Talent⭐ :*         ▱▱▱▱▬▬▬ ${data.talent}
+⌬ *Intelligence🧠:* ▱▱▱▱▬▬▬ ${data.puissance}
+⌬ *Speed💬 :*         ▱▱▱▱▬▬▬  ${data.speed}
+⌬ *Close fight👊🏻:*  ▱▱▱▱▬▬▬ ${data.close_combat}
+⌬ *Attaques🌀:*     ▱▱▱▱▬▬▬ ${data.attaques}
 ░▒░▒░ CARDS 🎴: ${data.total_cards}
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
 ᪣ ${data.cards}
-▱▱▱▱ ▱▱▱▱
-*⌬𝗡SL🏆*
-> NEO SUPER LEAGUE ESPORTS ROLEPLAY™`;
+▱▱▱▱ ▱▱▱▱ 
+*⌬𝗡SLPro🏆*
+> NEO SUPER LEAGUE ESPORTS™`;
 
         await ovl.sendMessage(ms_org, {
-          video: { url: 'https://files.catbox.moe/hmr1ik.mp4' },
+          video: { url: 'https://files.catbox.moe/nxk0r2.mp4' },
           gifPlayback: true,
           caption: ""
         }, { quoted: ms });
