@@ -62,8 +62,8 @@ ovlcmd(
       }, { quoted: ms });
 
       const liens = [
-        "https://files.catbox.moe/mld35g.jpg",
-        "https://files.catbox.moe/agapcu.jpg",
+        "https://files.catbox.moe/ghkdx6.jpg",
+        "https://files.catbox.moe/lutca9.jpg",
         "https://files.catbox.moe/nlp2ww.jpg",
         "https://files.catbox.moe/qkcxtr.jpg",
       ];
