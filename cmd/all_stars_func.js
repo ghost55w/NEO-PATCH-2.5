@@ -134,12 +134,12 @@ async function latence({ ovl, texte, ms_org }) {
 
   if (isGo) {
     const gifsGo = [
-      'https://files.catbox.moe/996stv.mp4',
-      'https://files.catbox.moe/2vtl2g.mp4',
-      'https://files.catbox.moe/6jo1ua.mp4',
-      'https://files.catbox.moe/996stv.mp4',
-      'https://files.catbox.moe/42xyyi.mp4',
-      'https://files.catbox.moe/4g2rzk.mp4'
+      'https://files.catbox.moe/kzimc0.mp4',
+      'https://files.catbox.moe/8yhuvv.mp4',
+      'https://files.catbox.moe/4trvh4.mp4',
+      'https://files.catbox.moe/cwrrdh.mp4',
+      'https://files.catbox.moe/jlddqf.mp4',
+      'https://files.catbox.moe/z0xo3n.mp4'
     ];
     const randomGif = getRandomElement(gifsGo);
     await ovl.sendMessage(ms_org, {
