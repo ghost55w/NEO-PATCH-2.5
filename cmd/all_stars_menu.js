@@ -56,7 +56,7 @@ ovlcmd(
   async (ms_org, ovl, { arg, ms }) => {
     if (!arg || arg.length === 0) {
       await ovl.sendMessage(ms_org, {
-        video: { url: gifIntro },
+        video: { url: "https://files.catbox.moe/c4n64y.mp4" },
         gifPlayback: true,
         caption: ""
       }, { quoted: ms });
@@ -85,13 +85,14 @@ ovlcmd(
   async (ms_org, ovl, { arg, ms }) => {
     if (!arg || arg.length === 0) {
       await ovl.sendMessage(ms_org, {
-        video: { url: gifIntro },
+        video: { url: "https://files.catbox.moe/c4n64y.mp4" },
         gifPlayback: true,
         caption: ""
       }, { quoted: ms });
 
-      const lien = "https://files.catbox.moe/l8p3xn.jpg";
-      const msg = "";
+      const lien = "https://files.catbox.moe/isfu9l.jpg";
+      const msg = `Welcome sur All stars jump Battle Arena
+> commande +Guide🌀`;
       await ovl.sendMessage(ms_org, { image: { url: lien }, caption: msg }, { quoted: ms });
     }
   }
@@ -123,5 +124,57 @@ ovlcmd(
 > #NSLPro🏆 Text Gaming Esports`;
 
     await ovl.sendMessage(ms_org, { text: texte }, { quoted: ms });
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "nslpro🏆",
+    classe: "AllStars🔷",
+    react: "🏆",
+  },
+  async (ms_org, ovl, { arg, ms }) => {
+    if (!arg || arg.length === 0) {
+      await ovl.sendMessage(ms_org, {
+        video: { url: "https://files.catbox.moe/jy3r7a.mp4" },
+        gifPlayback: true,
+        caption: ""
+      }, { quoted: ms });
+
+      const liens = [
+        "https://files.catbox.moe/afvfo8.jpg",
+        "https://files.catbox.moe/mvlx23.jpg",
+      ];
+      const msg = "";
+      for (const lien of liens) {
+        await ovl.sendMessage(ms_org, { image: { url: lien }, caption: msg }, { quoted: ms });
+      }
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "neoawards💫",
+    classe: "AllStars🔷",
+    react: "💫",
+  },
+  async (ms_org, ovl, { arg, ms }) => {
+    if (!arg || arg.length === 0) {
+      await ovl.sendMessage(ms_org, {
+        video: { url: "https://files.catbox.moe/n0v33m.mp4" },
+        gifPlayback: true,
+        caption: ""
+      }, { quoted: ms });
+
+      const liens = [
+        "https://files.catbox.moe/1x8l2t.jpg",
+        "https://files.catbox.moe/223y4n.jpg",
+      ];
+      const msg = "";
+      for (const lien of liens) {
+        await ovl.sendMessage(ms_org, { image: { url: lien }, caption: msg }, { quoted: ms });
+      }
+    }
   }
 );
