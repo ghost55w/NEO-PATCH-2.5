@@ -79,6 +79,12 @@ ovlcmd({
         duelsEnCours[duelKey] = { equipe1, equipe2, statsCustom: statsCustom || 'Aucune stat personnalisée', arene: areneT };
 
         const fiche = generateFicheDuel(duelsEnCours[duelKey]);
+        await ovl.sendMessage(ms_org, {
+          video: { url: 'https://files.catbox.moe/5dc7r3.mp4' },
+          gifPlayback: true,
+          caption: `*▶️NEO live🎙️ :* \`Direct TV\`
+ Préparation de match,les tickets se vendent, les places se remplissent, l'arène est bouillante pour ce nouveau battle Arena en direct🔥🎫🍿. *#NSLPro🏆*`
+        }, { quoted: ms });
         await ovl.sendMessage(ms_org, { image: { url: areneT.image }, caption: fiche }, { quoted: ms });
     } catch (e) {
         console.error(e);
