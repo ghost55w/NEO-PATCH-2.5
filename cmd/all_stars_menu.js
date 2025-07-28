@@ -111,17 +111,16 @@ ovlcmd(
       caption: ""
     }, { quoted: ms });
 
-    const texte = `░▒░ *🎮CONTROLLER📱*░▒░
+    const texte = `.      ░▒░ *🎮CONTROLLER📱🪀*░▒░
                           ▔▔▔▔▔▔▔                                     
 🎧 \`𝗖𝗵𝗮𝘁\`: 
   ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔    
-🎮 *\`Actions\`*:
+🎮 *\`Actions\`*
+🌀:
 
-🌀👊🏽 
- 
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔                                     
 🌀 *ALL STARS⭐BATTLE ARENA🎮*   
-> NEOverse🔷 Text Gaming Esports Roleplay`;
+> #NSLPro🏆 Text Gaming Esports`;
 
     await ovl.sendMessage(ms_org, { text: texte }, { quoted: ms });
   }
