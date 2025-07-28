@@ -100,80 +100,143 @@ if (resultat === "but") {
 }
 
 const activeCountdowns = {};
+const pausedCountdowns = {};
 
 function getRandomElement(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
-async function latence({ ovl, texte, ms_org }) {
-  const neoTexte = texte.toLowerCase();
-  const userMatch = texte.match(/@(\d+)/);
-  const user = userMatch?.[1] ? `${userMatch[1]}@s.whatsapp.net` : null;
+async function latence(ovl, texte, ms_org, getJid) {
+  const neoTexte = texte.toLowerCase();
+  const userMatch = texte.match(/@(\d+)/);
+  const lid = userMatch?.[1]?.replace(/@/g, "")
+  const user = await getJid(lid, ms_org, ovl);
 
-  if (neoTexte === "stop" || neoTexte.startsWith(".   ░▒░") || neoTexte.startsWith(". 🔷blue lock")) {
-    await stopCountdown(ovl, ms_org);
-    return;
-  }
+  if (neoTexte === "stop" || neoTexte.startsWith(".   ░▒░") || neoTexte.startsWith(". 🔷blue lock")) {
+    await stopCountdown(ovl, ms_org);
+    return;
+  }
 
-  let countdownTime = null;
-  let isGo = false;
+  if (neoTexte === "pause") {
+    if (activeCountdowns[ms_org]) {
+      clearInterval(activeCountdowns[ms_org].interval);
+      pausedCountdowns[ms_org] = activeCountdowns[ms_org];
+      delete activeCountdowns[ms_org];
+      await ovl.sendMessage(ms_org, { text: "⏸️ Décompte en pause." });
+    } else {
+      await ovl.sendMessage(ms_org, { text: "❌ Aucun décompte actif à mettre en pause." });
+    }
+    return;
+  }
 
-  if (neoTexte.startsWith('@') && /(next|nx|nxt)$/.test(neoTexte)) {
-    countdownTime = 5 * 60;
-  } else if (neoTexte.startsWith('@') && /go$/.test(neoTexte)) {
-    countdownTime = 6 * 60;
-    isGo = true;
-  } else {
-    return;
-  }
+  if (["resume", "continue", "go"].includes(neoTexte)) {
+    if (pausedCountdowns[ms_org]) {
+      const { remaining, userMatch, user } = pausedCountdowns[ms_org];
+      let countdownTime = remaining;
 
-  if (activeCountdowns[ms_org]) {
-    await ovl.sendMessage(ms_org, { text: "⚠️ Un décompte est déjà actif ici." });
-    return;
-  }
+      const interval = setInterval(async () => {
+        try {
+          countdownTime--;
+          pausedCountdowns[ms_org].remaining = countdownTime;
 
-  if (isGo) {
-    const gifsGo = [
-      'https://files.catbox.moe/kzimc0.mp4',
-      'https://files.catbox.moe/8yhuvv.mp4',
-      'https://files.catbox.moe/4trvh4.mp4',
-      'https://files.catbox.moe/cwrrdh.mp4',
-      'https://files.catbox.moe/jlddqf.mp4',
-      'https://files.catbox.moe/z0xo3n.mp4'
-    ];
-    const randomGif = getRandomElement(gifsGo);
-    await ovl.sendMessage(ms_org, {
-      video: { url: randomGif },
-      gifPlayback: true,
-      caption: ""
-    });
-  } else {
-    const lienGif = 'https://files.catbox.moe/hqh4iz.mp4';
-    await ovl.sendMessage(ms_org, {
-      video: { url: lienGif },
-      gifPlayback: true,
-      caption: ""
-    });
-  }
+          if (countdownTime === 120 && user) {
+            await ovl.sendMessage(ms_org, { text: `⚠️ @${userMatch[1]} il ne reste plus que 2 minutes.`, mentions: [user] });
+          }
 
-  activeCountdowns[ms_org] = setInterval(async () => {
-    try {
-      countdownTime--;
+          if (countdownTime <= 0) {
+            clearInterval(interval);
+            delete activeCountdowns[ms_org];
+            delete pausedCountdowns[ms_org];
+            await ovl.sendMessage(ms_org, { text: "⚠️ Latence Out" });
+          }
+        } catch {
+          clearInterval(interval);
+          delete activeCountdowns[ms_org];
+          delete pausedCountdowns[ms_org];
+        }
+      }, 1000);
 
-      if (countdownTime === 120 && user) {
-        await ovl.sendMessage(ms_org, { text: `⚠️ @${userMatch[1]} il ne reste plus que 2 minutes.`, mentions: [user] });
-      }
+      activeCountdowns[ms_org] = { interval, remaining: countdownTime, userMatch, user };
+      delete pausedCountdowns[ms_org];
+      await ovl.sendMessage(ms_org, { text: "▶️ Décompte repris." });
+    } else {
+      await ovl.sendMessage(ms_org, { text: "❌ Aucun décompte en pause." });
+    }
+    return;
+  }
 
-      if (countdownTime <= 0) {
-        clearInterval(activeCountdowns[ms_org]);
-        delete activeCountdowns[ms_org];
-        await ovl.sendMessage(ms_org, { text: "⚠️ Latence Out" });
-      }
-    } catch (err) {
-      clearInterval(activeCountdowns[ms_org]);
-      delete activeCountdowns[ms_org];
-    }
-  }, 1000);
+  let countdownTime = null;
+  let isGo = false;
+
+  if (neoTexte.startsWith('@') && /(next|nx|nxt)$/.test(neoTexte)) {
+    countdownTime = 5 * 60;
+  } else if (neoTexte.startsWith('@') && /go$/.test(neoTexte)) {
+    countdownTime = 6 * 60;
+    isGo = true;
+  } else {
+    return;
+  }
+
+  if (activeCountdowns[ms_org] || pausedCountdowns[ms_org]) {
+    await ovl.sendMessage(ms_org, { text: "⚠️ Un décompte est déjà en cours ou en pause." });
+    return;
+  }
+
+  if (isGo) {
+    const gifsGo = [
+      'https://files.catbox.moe/kzimc0.mp4',
+      'https://files.catbox.moe/8yhuvv.mp4',
+      'https://files.catbox.moe/4trvh4.mp4',
+      'https://files.catbox.moe/cwrrdh.mp4',
+      'https://files.catbox.moe/jlddqf.mp4',
+      'https://files.catbox.moe/z0xo3n.mp4'
+    ];
+    const randomGif = getRandomElement(gifsGo);
+    await ovl.sendMessage(ms_org, {
+      video: { url: randomGif },
+      gifPlayback: true,
+      caption: ""
+    });
+  } else {
+    const lienGif = 'https://files.catbox.moe/hqh4iz.mp4';
+    await ovl.sendMessage(ms_org, {
+      video: { url: lienGif },
+      gifPlayback: true,
+      caption: ""
+    });
+  }
+
+  const interval = setInterval(async () => {
+    try {
+      countdownTime--;
+
+      if (countdownTime === 120 && user) {
+        await ovl.sendMessage(ms_org, { text: `⚠️ @${userMatch[1]} il ne reste plus que 2 minutes.`, mentions: [user] });
+      }
+
+      if (countdownTime <= 0) {
+        clearInterval(interval);
+        delete activeCountdowns[ms_org];
+        await ovl.sendMessage(ms_org, { text: "⚠️ Latence Out" });
+      }
+    } catch (err) {
+      clearInterval(interval);
+      delete activeCountdowns[ms_org];
+    }
+  }, 1000);
+
+  activeCountdowns[ms_org] = { interval, remaining: countdownTime, userMatch, user };
+}
+
+async function stopCountdown(ovl, ms_org) {
+  if (activeCountdowns[ms_org]) {
+    clearInterval(activeCountdowns[ms_org].interval);
+    delete activeCountdowns[ms_org];
+  }
+  if (pausedCountdowns[ms_org]) {
+    delete pausedCountdowns[ms_org];
+  }
+  await ovl.sendMessage(ms_org, { text: "🛑 Décompte arrêté." });
 }
 
 async function negs_vic(ovl, texte, ms_org) {
