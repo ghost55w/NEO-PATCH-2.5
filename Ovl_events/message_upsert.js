@@ -7,7 +7,7 @@ const evt = require("../lib/ovlcmd");
 const config = require("../set");
 const prefixe = config.PREFIXE || "";
 const getJid = require("./cache_jid");
-const { goal, latence, negs_vic } = require("../cmd/All_stars_func");
+const { goal, latence, negs_vic } = require("../cmd/all_stars_func");
 const { stats_lineup } = require("../cmd/myneo_lineup_team");
    
 async function message_upsert(m, ovl) {
