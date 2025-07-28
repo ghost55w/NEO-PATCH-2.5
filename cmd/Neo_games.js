@@ -1,5 +1,6 @@
 const { ovlcmd } = require('../lib/ovlcmd');
 const fs = require('fs');
+const { cards } = require('../DataBase/cards');
 const { MyNeoFunctions } = require("../DataBase/myneo_lineup_team");
 const { getData, setfiche } = require("../DataBase/allstars_divs_fiches");
 
@@ -151,3 +152,139 @@ x10 = 20🔷
     repondre("❌ Une erreur est survenue.");
   }
 });
+
+function tirerParProbabilite(table) {
+    const random = Math.random() * 100;
+    let cumulative = 0;
+    for (const item of table) {
+        cumulative += item.probability;
+        if (random < cumulative) return item.value;
+    }
+    return table[table.length - 1].value;
+}
+
+function getAllCategories(type) {
+    return [...new Set(cards[type].map(card => card.category))];
+}
+
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function trouverCarte(type, gradeInit, catInit, tirees) {
+    const grades = ['or', 'argent', 'bronze'];
+    const tries = [gradeInit, ...shuffle(grades.filter(g => g !== gradeInit))];
+    const cats = getAllCategories(type);
+    for (const g of tries) {
+        const catTry = [catInit, ...cats.filter(c => c !== catInit)];
+        for (const c of catTry) {
+            const dispo = cards[type].filter(
+                x => x.grade === g && x.category === c && !tirees.includes(x.name)
+            );
+            if (dispo.length) return dispo[Math.floor(Math.random() * dispo.length)];
+        }
+    }
+    return null;
+}
+
+async function envoyerCarte(dest, ovl, ms, type, gradeTable, catTable, tirees) {
+    for (let i = 0; i < 10; i++) {
+        const grade = tirerParProbabilite(gradeTable);
+        const category = tirerParProbabilite(catTable);
+        const card = trouverCarte(type, grade, category, tirees);
+        if (card) {
+            tirees.push(card.name);
+            await ovl.sendMessage(dest, {
+                image: { url: card.image },
+                caption: `Grade: ${card.grade}\nCategory: ${card.category}\nName: ${card.name}\nPrix: ${card.price}`
+            }, { quoted: ms });
+            return;
+        }
+    }
+    throw new Error("Aucune carte valide trouvée");
+}
+
+async function envoyerVideo(dest, ovl, videoUrl) {
+    await ovl.sendMessage(dest, { video: { url: videoUrl }, gifPlayback: true });
+}
+
+ovlcmd(
+    {
+        nom_cmd: "tirageallstars",
+        react: "🎰",
+        classe: "NEO_GAMES🎰"
+    },
+    async (ms_org, ovl, { ms, auteur_Message, repondre }) => {
+        try {
+            const autorises = [
+                '120363049564083813@g.us',
+                '120363307444088356@g.us',
+                '22651463203@s.whatsapp.net',
+                '22605463559@s.whatsapp.net'
+            ];
+            if (!autorises.includes(ms_org)) return;
+
+            await ovl.sendMessage(ms_org, {
+                image: { url: 'https://files.catbox.moe/swbsgf.jpg' },
+                caption: ''
+            }, { quoted: ms });
+
+            const demanderNiveau = async (tentative = 1) => {
+                if (tentative > 3) throw new Error("MaxAttempts");
+                try {
+                    const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
+                    const texte = rep.message?.extendedTextMessage?.text || rep.message?.conversation || "";
+                    const r = texte.toLowerCase();
+                    if (["legend", "legends"].includes(r)) return "legend";
+                    if (r === "ultra") return "ultra";
+                    if (r === "sparking") return "sparking";
+                    await repondre("Choix invalide. Réponds par legends, ultra ou sparking.");
+                    return await demanderNiveau(tentative + 1);
+                } catch {
+                    throw new Error("Timeout");
+                }
+            };
+
+            const niveau = await demanderNiveau();
+
+            const videoLinks = {
+                sparking: 'https://files.catbox.moe/hm3t85.mp4',
+                ultra: 'https://files.catbox.moe/kodcj4.mp4',
+                legend: 'https://files.catbox.moe/3x9cvk.mp4'
+            };
+
+            const videoUrl = videoLinks[niveau];
+
+            const probasGrade = [
+                { value: "or", probability: 5 },
+                { value: "argent", probability: 25 },
+                { value: "bronze", probability: 70 }
+            ];
+
+            const probasCategorie = [
+                { value: "ss+", probability: 2 },
+                { value: "ss", probability: 5 },
+                { value: "ss-", probability: 10 },
+                { value: "s+", probability: 18 },
+                { value: "s", probability: 25 },
+                { value: "s-", probability: 40 }
+            ];
+
+            await envoyerVideo(ms_org, ovl, videoUrl);
+
+            const tirees = [];
+            await envoyerCarte(ms_org, ovl, ms, niveau, probasGrade, probasCategorie, tirees);
+            await envoyerCarte(ms_org, ovl, ms, niveau, probasGrade, probasCategorie, tirees);
+
+        } catch (e) {
+            if (e.message === "Timeout") return repondre("*⏱️ Temps écoulé sans réponse.*");
+            if (e.message === "MaxAttempts") return repondre("*❌ Trop de tentatives échouées.*");
+            repondre("Erreur lors du tirage : " + e.message);
+            console.error(e);
+        }
+    }
+);
