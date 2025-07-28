@@ -143,7 +143,7 @@ try {
         }
     }
     // Événements
-    eval_exec(ovl, { ...cmd_options });
+    //eval_exec(ovl, { ...cmd_options });
     goal(ovl, ms_org, repondre, texte);
     latence({ ovl, texte, ms_org });
     negs_vic(ovl, texte, ms_org);
