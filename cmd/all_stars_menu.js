@@ -11,12 +11,12 @@ ovlcmd(
   },
   async (ms_org, ovl, { arg, ms }) => {
     if (!arg || arg.length === 0) {
-      await ovl.sendMessage(ms_org, {
+    /*  await ovl.sendMessage(ms_org, {
         video: { url: gifIntro },
         gifPlayback: true,
         caption: ""
       }, { quoted: ms });
-
+*/
       const lien = "https://files.catbox.moe/1ve4m6.jpg";
       const msg = "";
       await ovl.sendMessage(ms_org, { image: { url: lien }, caption: msg }, { quoted: ms });
@@ -33,11 +33,11 @@ ovlcmd(
   },
   async (ms_org, ovl, { arg, ms }) => {
     if (!arg || arg.length === 0) {
-      await ovl.sendMessage(ms_org, {
+      /*await ovl.sendMessage(ms_org, {
         video: { url: gifIntro },
         gifPlayback: true,
         caption: ""
-      }, { quoted: ms });
+      }, { quoted: ms });*/
 
       const lien = "https://files.catbox.moe/17sok6.jpg";
       const msg = "";
@@ -106,11 +106,11 @@ ovlcmd(
     desc: "Affiche le controller pave",
   },
   async (ms_org, ovl, { ms }) => {
-    await ovl.sendMessage(ms_org, {
+   /* await ovl.sendMessage(ms_org, {
       video: { url: gifIntro },
       gifPlayback: true,
       caption: ""
-    }, { quoted: ms });
+    }, { quoted: ms });*/
 
     const texte = `.      ░▒░ *🎮CONTROLLER📱🪀*░▒░
                           ▔▔▔▔▔▔▔                                     
