@@ -87,10 +87,10 @@ ovlcmd({
     isfunc: true
 }, async (ms_org, ovl, { texte, getJid }) => {
     const neoTexte = texte.toLowerCase();
-    const userMatch = texte.match(/@(\d+)/);
+    const userW = neoTexte[0].replace(/^@/, '');
     let user;
-    if (userMatch && userMatch[1].endsWith('lid')) {
-        user = await getJid(userMatch[1], ms_org, ovl);
+    if (userW.endsWith('lid')) {
+        user = await getJid(userW, ms_org, ovl);
     }
 
     const stopCountdown = async () => {
@@ -166,10 +166,10 @@ ovlcmd({
     isfunc: true
 }, async (ms_org, ovl, { texte, getJid }) => {
     const lowerText = texte.toLowerCase();
-    const userMatch = texte.match(/@(\d+)/);
+    const userW = lowerText[0].replace(/^@/, '');
     let user;
-    if (userMatch && userMatch[1].endsWith('lid')) {
-        user = await getJid(userMatch[1], ms_org, ovl);
+    if (userW.endsWith('lid')) {
+        user = await getJid(userW, ms_org, ovl);
     }
 
     if (
