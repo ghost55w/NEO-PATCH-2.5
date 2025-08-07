@@ -149,7 +149,7 @@ async function initFichesAuto() {
       const nom = player.code_fiche;
       const id = player.id.toString();
       const image = player.oc_url;
-      const division = player.division.replace(/\*/g, '');
+      //
 
       add_fiche(nom, id, image, division);
     }
