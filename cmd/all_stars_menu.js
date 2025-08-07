@@ -40,9 +40,9 @@ ovlcmd(
       }, { quoted: ms });
 
       const lien = "https://files.catbox.moe/o2acuc.jpg";
-      const msg = "*🎮GAMEPASS🔷NEOVERSE*
+      const msg = `*🎮GAMEPASS🔷NEOVERSE*
 𝖡𝗂𝖾𝗇𝗏𝖾𝗇𝗎𝖾 𝖽𝖺𝗇𝗌 𝗅𝖾 𝖦𝖠𝖬𝖤𝖯𝖠𝖲𝖲,𝖯𝖫𝖠𝖸🎮 𝖺 𝗍𝖾𝗌 𝗃𝖾𝗎𝗑 𝖺𝗎 𝗆êm𝖾 𝖾𝗇𝖽𝗋𝗈𝗂𝗍:
-+Allstars🌀 +Bluelock⚽  +Elysium💠";
++Allstars🌀 +Bluelock⚽  +Elysium💠`;
       await ovl.sendMessage(ms_org, { image: { url: lien }, caption: msg }, { quoted: ms });
     }
   }
