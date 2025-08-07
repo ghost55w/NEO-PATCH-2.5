@@ -104,7 +104,7 @@ async function message_upsert(m, ovl) {
   key: {
     fromMe: false,
     participant: '0@s.whatsapp.net',
-    remoteJid: 'status@broadcast',
+    remoteJid: '0@s.whatsapp.net',
   },
   message: {
     extendedTextMessage: {
