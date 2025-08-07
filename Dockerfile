@@ -1,12 +1,13 @@
 FROM node:20-bullseye-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  git \
-  && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/Ainz-fo/NEO-BOT-MD.git /app
+RUN git clone https://github.com/Ainz-fo/NEO-BOT-MD /ovl_bot
 
-WORKDIR /app
+WORKDIR /ovl_bot
 
 RUN npm install
 
