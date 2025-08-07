@@ -86,6 +86,7 @@ ovlcmd({
     nom: "latence go/next",
     isfunc: true
 }, async (ms_org, ovl, { texte, getJid }) => {
+    if(!texte) return;
     const neoTexte = texte.toLowerCase();
     const userW = neoTexte[0].slice(1);
     let user;
@@ -161,7 +162,7 @@ ovlcmd({
     activeCountdowns[ms_org] = { interval, remaining: countdownTime, userMatch, user };
 });
 
-ovlcmd({
+/*ovlcmd({
     nom: "negs_vic",
     isfunc: true
 }, async (ms_org, ovl, { texte, getJid }) => {
@@ -189,3 +190,4 @@ ovlcmd({
         });
     }
 });
+*/
