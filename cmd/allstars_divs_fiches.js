@@ -1,6 +1,22 @@
 const { ovlcmd } = require("../lib/ovlcmd");
 const { getData, setfiche, getAllFiches, add_id, del_fiche } = require('../DataBase/allstars_divs_fiches');
 
+const ms_badge = {
+  key: {
+    fromMe: false,
+    participant: '0@s.whatsapp.net',
+    remoteJid: '0@s.whatsapp.net',
+  },
+  message: {
+    extendedTextMessage: {
+      text: 'ɴᴇᴏ-ʙᴏᴛ-ᴍᴅ ʙʏ ᴀɪɴᴢ',
+      contextInfo: {
+        mentionedJid: [],
+      },
+    },
+  }
+};
+
 /*function normalizeText(text) {
   return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
@@ -66,12 +82,12 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
           video: { url: 'https://files.catbox.moe/nxk0r2.mp4' },
           gifPlayback: true,
           caption: ""
-        }, { quoted: ms });
+        }, { quoted: ms_badge });
 
         return ovl.sendMessage(ms_org, {
           image: { url: data.oc_url },
           caption: fiche
-        }, { quoted: ms });
+        }, { quoted: ms_badge });
       }
 
       if (!prenium_id) return await repondre("⛔ Accès refusé ! Seuls les membres de la NS peuvent faire ça.");
