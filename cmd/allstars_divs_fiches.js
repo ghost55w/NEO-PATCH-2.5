@@ -69,7 +69,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 ⌬ *Talent⭐ :*         ▱▱▱▱▬▬▬ ${data.talent}
 ⌬ *Intelligence🧠:* ▱▱▱▱▬▬▬ ${data.intelligence}
 ⌬ *Speed💬 :*         ▱▱▱▱▬▬▬  ${data.speed}
-⌬ *Close fight👊🏻:*  ▱▱▱▱▬▬▬ ${data.close_figth}
+⌬ *Close fight👊🏻:*  ▱▱▱▱▬▬▬ ${data.close_fight}
 ⌬ *Attaques🌀:*     ▱▱▱▱▬▬▬ ${data.attaques}
 ░▒░▒░ CARDS 🎴: ${data.total_cards}
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
