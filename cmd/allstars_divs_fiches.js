@@ -1,5 +1,5 @@
 const { ovlcmd } = require("../lib/ovlcmd");
-const { getData, setfiche, getAllFiches } = require('../DataBase/allstars_divs_fiches');
+const { getData, setfiche, getAllFiches, add_id, del_fiche } = require('../DataBase/allstars_divs_fiches');
 
 /*function normalizeText(text) {
   return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -160,9 +160,50 @@ async function initFichesAuto() {
 
 initFichesAuto();
 
+ovlcmd({
+  nom_cmd: "add_fiche",
+  alias: [],
+  classe: "Gestion",
+  react: "➕",
+}, async (ms_org, ovl, { repondre, arg, prenium_id }) => {
+  if (!prenium_id) return await repondre("⛔ Accès refusé !");
+  if (arg.length < 2) return await repondre("❌ Syntaxe : add_fiche <code_fiche> <division>");
 
+  const id = ms_org.sender;
+  const code_fiche = arg[0];
+  const division = arg.slice(1).join(' ');
+
+  try {
+    await add_id(id, { code_fiche, division });
+    await repondre(`✅ Fiche ajoutée : \`${code_fiche}\` (${division})`);
+  } catch (err) {
+    console.error(err);
+    await repondre("❌ Erreur lors de l'ajout de la fiche.");
+  }
+});
+
+ovlcmd({
+  nom_cmd: "del_fiche",
+  alias: [],
+  classe: "Gestion",
+  react: "🗑️",
+}, async (ms_org, ovl, { repondre, arg, prenium_id }) => {
+  if (!prenium_id) return await repondre("⛔ Accès refusé !");
+  if (!arg.length) return await repondre("❌ Syntaxe : del_fiche <code_fiche>");
+
+  const code_fiche = arg.join(' ');
+  try {
+    const deleted = await del_fiche(code_fiche);
+    if (deleted === 0) return await repondre("❌ Aucune fiche trouvée.");
+    await repondre(`✅ Fiche supprimée : \`${code_fiche}\``);
+  } catch (err) {
+    console.error(err);
+    await repondre("❌ Erreur lors de la suppression de la fiche.");
+  }
+});
 
 */
+  
 async function injectFicheDataEnBase() {
   const fiches = [
     ['westsept👤', '1', 'https://files.catbox.moe/7l5qrc.jpg'],
