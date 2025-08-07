@@ -100,8 +100,22 @@ async function message_upsert(m, ovl) {
     const dev_num = devNumbers.map(n => `${n}@s.whatsapp.net`);
     const dev_id = dev_num.includes(auteur_Message);
     const verif_Admin = verif_Groupe && (groupe_Admin.includes(auteur_Message) || prenium_id);
-
-    const repondre = (msg) => ovl.sendMessage(ms_org, { text: msg }, { quoted: ms });
+    const ms_badge = {
+  key: {
+    fromMe: false,
+    participant: '0@s.whatsapp.net',
+    remoteJid: 'status@broadcast',
+  },
+  message: {
+    extendedTextMessage: {
+      text: 'ɴᴇᴏ-ʙᴏᴛ-ᴍᴅ ʙʏ ᴀɪɴᴢ',
+      contextInfo: {
+        mentionedJid: [],
+      },
+    },
+  }
+};
+    const repondre = (msg) => ovl.sendMessage(ms_org, { text: msg }, { quoted: ms_badge });
 
     const cmd_options = {
       verif_Groupe,
