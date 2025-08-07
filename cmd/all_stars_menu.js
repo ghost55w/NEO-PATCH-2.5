@@ -33,14 +33,16 @@ ovlcmd(
   },
   async (ms_org, ovl, { arg, ms }) => {
     if (!arg || arg.length === 0) {
-      /*await ovl.sendMessage(ms_org, {
-        video: { url: gifIntro },
+      await ovl.sendMessage(ms_org, {
+        video: { url: "https://files.catbox.moe/yimc4o.mp4" },
         gifPlayback: true,
         caption: ""
-      }, { quoted: ms });*/
+      }, { quoted: ms });
 
-      const lien = "https://files.catbox.moe/17sok6.jpg";
-      const msg = "";
+      const lien = "https://files.catbox.moe/o2acuc.jpg";
+      const msg = "*🎮GAMEPASS🔷NEOVERSE*
+𝖡𝗂𝖾𝗇𝗏𝖾𝗇𝗎𝖾 𝖽𝖺𝗇𝗌 𝗅𝖾 𝖦𝖠𝖬𝖤𝖯𝖠𝖲𝖲,𝖯𝖫𝖠𝖸🎮 𝖺 𝗍𝖾𝗌 𝗃𝖾𝗎𝗑 𝖺𝗎 𝗆êm𝖾 𝖾𝗇𝖽𝗋𝗈𝗂𝗍:
++Allstars🌀 +Bluelock⚽  +Elysium💠";
       await ovl.sendMessage(ms_org, { image: { url: lien }, caption: msg }, { quoted: ms });
     }
   }
