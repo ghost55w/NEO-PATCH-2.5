@@ -17,7 +17,7 @@ const ms_badge = {
   }
 };
 
-/*function normalizeText(text) {
+function normalizeText(text) {
   return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
@@ -165,7 +165,7 @@ async function initFichesAuto() {
       const nom = player.code_fiche;
       const id = player.id.toString();
       const image = player.oc_url;
-      //
+      const division = player.division.replace(/\*/g, '');
 
       add_fiche(nom, id, image, division);
     }
@@ -217,60 +217,3 @@ ovlcmd({
     await repondre("❌ Erreur lors de la suppression de la fiche.");
   }
 });
-
-*/
-  
-async function injectFicheDataEnBase() {
-  const fiches = [
-    ['westsept👤', '1', 'https://files.catbox.moe/7l5qrc.jpg'],
-    ['westinferno👤', '3', 'https://files.catbox.moe/ovsazs.jpg'],
-    ['westnash👤', '5', 'https://files.catbox.moe/8yq7hw.jpg'],
-    ['westvanitas👤', '6', 'https://files.catbox.moe/w7icme.jpg'],
-    ['westsolomoe👤', '7', 'https://files.catbox.moe/heuwc0.jpg'],
-    ['westindra👤', '8', 'https://files.catbox.moe/1wux4s.jpg'],
-    ['westaether👤', '9', 'https://files.catbox.moe/cvm2cp.jpg'],
-    ['westhajime👤', '10', 'https://files.catbox.moe/kov9hu.jpg'],
-
-    ['northkiller👤', '38', 'https://files.catbox.moe/zn55pc.jpg'],
-    ['northregulus👤', '11', 'https://files.catbox.moe/log52q.jpg'],
-    ['northeoza👤', '12', 'https://files.catbox.moe/zcmhoo.jpg'],
-    ['northomnimoh👤', '13', 'https://files.catbox.moe/spk4fw.jpg'],
-    ['norththanatos👤', '14', 'https://files.catbox.moe/c3gpr4.jpg'],
-    ['northlily👤', '15', 'https://files.catbox.moe/k7s0nu.jpg'],
-    ['northaizen👤', '16', 'https://files.catbox.moe/feylzj.jpg'],
-    ['northkazuta👤', '17', 'https://files.catbox.moe/f0fgga.jpg'],
-    ['northakashi👤', '18', 'https://files.catbox.moe/2oftco.jpg'],
-    ['northainz👤', '19', 'https://files.catbox.moe/69zjvs.jpg'],
-    ['northdamian👤', '37', 'https://files.catbox.moe/dndmbe.jpg'],
-
-    ['centralhazlay👤', '20', 'https://files.catbox.moe/nsnj8e.jpg'],
-    ['centraldabi👤', '21', 'https://files.catbox.moe/rsykzr.jpg'],
-    ['centralyuan👤', '22', 'https://files.catbox.moe/8w855m.jpg'],
-    ['centralrudeus👤', '23', 'https://files.catbox.moe/4qaqn1.jpg'],
-    ['centralhakuji👤', '24', 'https://files.catbox.moe/lmcqrp.jpg'],
-    ['centralirito👤', '25', 'https://files.catbox.moe/zr2536.jpg'],
-    ['centralarthur👤', '26', 'https://files.catbox.moe/jci0bz.jpg'],
-
-    ['eastgoldy👤', '27', 'https://files.catbox.moe/eyy6gq.jpg'],
-    ['eastjuuzo👤', '28', 'https://files.catbox.moe/u2h38m.jpg'],
-    ['eastatsushi👤', '29', 'https://files.catbox.moe/ja7yo3.jpg'],
-    ['eastadam👤', '30', 'https://files.catbox.moe/04wn4f.jpg'],
-    ['eastak👤', '34', 'https://files.catbox.moe/foskr5.jpg'],
-    ['eastserena👤', '36', 'https://files.catbox.moe/hzgfkw.jpg']
-  ];
-
-  for (const [code_fiche, id, oc_url] of fiches) {
-    try {
-      await setfiche('code_fiche', code_fiche, id);
-      await setfiche('oc_url', oc_url, id);
-      console.log(`✅ Fiche injectée pour ID ${id} (${code_fiche})`);
-    } catch (err) {
-      console.error(`❌ Erreur sur ID ${id} :`, err);
-    }
-  }
-
-  console.log('✅ Injection des données terminée.');
-}
-
-injectFicheDataEnBase();
-
