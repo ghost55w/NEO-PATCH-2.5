@@ -93,31 +93,41 @@ ovlcmd({
 });
 
 ovlcmd({
-    nom_cmd: "duel_stats",
-    classe: "Duel",
-    react: "📊",
-    desc: "Modifie les stats d'un joueur."
-}, async (ms_org, ovl, { arg, repondre, ms }) => {
-    if (arg.length < 4) return repondre('Format: @NomDuJoueur stat +/- valeur');
+    nom: "duel stats",
+    isfunc: true
+}, async (ms_org, ovl, { texte, repondre, ms, getJid }) => {
+    const mots = texte.trim().split(/\s+/);
+    const statsAutorisees = ["sta", "energie", "vie"];
 
-    const [joueurId, stat, signe, valeurStr] = arg;
-    const valeur = parseInt(valeurStr);
-    if (isNaN(valeur)) return repondre('❌ Valeur invalide.');
+    if (mots.length !== 4) return;
+    let [joueurId, stat, signe, valeurStr] = mots;
 
-    const duelKey = Object.keys(duelsEnCours).find(k => k.includes(joueurId));
-    if (!duelKey) return repondre('❌ Joueur non trouvé.');
+    if (!statsAutorisees.includes(stat.toLowerCase())) return;
+    if (!["+", "-"].includes(signe)) return;
 
-    const duel = duelsEnCours[duelKey];
-    const joueur = duel.equipe1.find(j => j.nom === joueurId) || duel.equipe2.find(j => j.nom === joueurId);
-    if (!joueur || !['sta', 'energie', 'vie'].includes(stat)) return repondre('❌ Stat invalide.');
+    const valeur = parseInt(valeurStr);
+    if (isNaN(valeur)) return;
 
-    const { stats, message } = limiterStats(joueur.stats, stat, (signe === '-' ? -valeur : valeur));
-    joueur.stats = stats;
+    if (joueurId.startsWith("@")) {
+        joueurId = await getJid(joueurId, ms_org, ovl);
+    }
 
-    if (message) repondre(message);
-    const fiche = generateFicheDuel(duel);
-    ovl.sendMessage(ms_org, { image: { url: duel.arene.image }, caption: fiche }, { quoted: ms });
+    const duelKey = Object.keys(duelsEnCours).find(k => k.includes(joueurId));
+    if (!duelKey) return;
+
+    const duel = duelsEnCours[duelKey];
+    const joueur = duel.equipe1.find(j => j.nom === joueurId) || duel.equipe2.find(j => j.nom === joueurId);
+    if (!joueur) return;
+
+    const { stats, message } = limiterStats(joueur.stats, stat.toLowerCase(), (signe === "-" ? -valeur : valeur));
+    joueur.stats = stats;
+
+    if (message) await repondre(message);
+
+    const fiche = generateFicheDuel(duel);
+    await ovl.sendMessage(ms_org, { image: { url: duel.arene.image }, caption: fiche }, { quoted: ms });
 });
+
 
 ovlcmd({
     nom_cmd: "reset_stats",
