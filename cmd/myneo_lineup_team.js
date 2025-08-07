@@ -109,8 +109,14 @@ ovlcmd({
 ░░░░░░░
 🔷NEO🔷 ════════════`;
 
+      await ovl.sendMessage(ms_org, {
+        video: { url: "https://files.catbox.moe/yimc4o.mp4" },
+        gifPlayback: true,
+        caption: ""
+      }, { quoted: ms });
+      
       return await ovl.sendMessage(ms_org, {
-        image: { url: "https://files.catbox.moe/mgmrkp.jpg" },
+        image: { url: "https://files.catbox.moe/nyy6fb.jpg" },
         caption: myn
       }, { quoted: cmd_options.ms });
     }
