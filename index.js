@@ -13,7 +13,6 @@ const {
 
 const get_session = require('./DataBase/session');
 const { useSQLiteAuthState, WAAuth } = require('./lib/OvlAuth');
-const { getMessage } = require('./lib/store');
 const config = require("./set");
 
 const {
