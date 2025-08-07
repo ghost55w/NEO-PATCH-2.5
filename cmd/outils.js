@@ -30,8 +30,7 @@ ovlcmd(
         return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
       }
       const cible =
-        auteur_Msg_Repondu || 
-        (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
+        auteur_Msg_Repondu || arg[0]
  
       if (!cible) return repondre("Mentionnez un utilisateur valide à bannir.");
 
@@ -70,8 +69,7 @@ ovlcmd(
         return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
       }
       const cible =
-        auteur_Msg_Repondu || 
-        (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
+        auteur_Msg_Repondu || arg[0]
  
       if (!cible) return repondre("Mentionnez un utilisateur valide à débannir.");
 
@@ -167,8 +165,7 @@ ovlcmd(
       return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
     }
     const cible =
-      auteur_Msg_Repondu ||
-      (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
+      auteur_Msg_Repondu || arg[0]
  
     if (!cible) {
       return repondre("Veuillez mentionner un utilisateur valide pour l'ajouter en premium.");
@@ -247,8 +244,7 @@ ovlcmd(
       return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
     }
     const cible =
-      auteur_Msg_Repondu ||
-      (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`);
+      auteur_Msg_Repondu || arg[0]
      
     if (!cible) {
       return repondre("Veuillez mentionner un utilisateur");
