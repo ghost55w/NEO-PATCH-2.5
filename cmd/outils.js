@@ -15,6 +15,22 @@ function stylize(text) {
     }).join('');
 }
 
+const ms_badge = {
+  key: {
+    fromMe: false,
+    participant: '0@s.whatsapp.net',
+    remoteJid: '0@s.whatsapp.net',
+  },
+  message: {
+    extendedTextMessage: {
+      text: 'ɴᴇᴏ-ʙᴏᴛ-ᴍᴅ ʙʏ ᴀɪɴᴢ',
+      contextInfo: {
+        mentionedJid: [],
+      },
+    },
+  }
+};
+
 ovlcmd(
   {
     nom_cmd: "ban",
@@ -384,12 +400,12 @@ ovlcmd(
                 await ovl.sendMessage(ms_org, {
                     image: { url: "https://files.catbox.moe/zxbny1.jpg" },
                     caption: stylize(menu)
-                }, { quoted: cmd_options.ms });
+                }, { quoted: ms_badge });
           } catch (error) {
             console.error("Erreur lors de la génération de allmenu :", error.message || error);
             await ovl.sendMessage(ms_org, {
                 text: "Une erreur est survenue lors de l'affichage du menu complet."
-            }, { quoted: cmd_options.ms });
+            }, { quoted: ms_badge });
         }
     }
 );
@@ -406,7 +422,7 @@ ovlcmd(
 
     const msg_envoye = await ovl.sendMessage(ms_org, {
       text: "*NEO-BOT -OVL Ping...*"
-    }, { quoted: cmd_options.ms });
+    }, { quoted: ms_badge });
 
     const end = Date.now();
     const latency = end - start;
@@ -437,6 +453,6 @@ ovlcmd(
         if (h > 0) uptime += `${h}H `;
         if (m > 0) uptime += `${m}M `;
         if (s > 0) uptime += `${s}S`;
-        await ovl.sendMessage(ms_org, { text: `⏳ Temps de fonctionnement : ${uptime}` }, { quoted: cmd_options.ms });
+        await ovl.sendMessage(ms_org, { text: `⏳ Temps de fonctionnement : ${uptime}` }, { quoted: ms_badge });
     }
 );
