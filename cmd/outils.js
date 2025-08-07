@@ -378,10 +378,11 @@ ovlcmd(
 
             let menu = `╭──⟪ 🤖 NEO-BOT -OVL ⟫──╮
 ├ ߷ Préfixe       : ${config.PREFIXE}
-├ ߷ Owner         : ${config.NOM_OWNER}
+├ ߷ Owner         : AINZ-K⚜️
 ├ ߷ Commandes  : ${commandes.length}
 ├ ߷ Uptime        : ${uptime.trim()}
-├ ߷ D-H: ${dateStr} - ${heureStr}
+├ ߷ Date          : ${dateStr}
+├ ߷ Heure         : ${heureStr}
 ├ ߷ Plateforme  : ${platform}
 ├ ߷ Développeur : AINZ-K⚜️
 ╰──────────────────╯\n\n`;
