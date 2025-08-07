@@ -325,29 +325,54 @@ ovlcmd({
   }
 });
 
-async function stats_lineup(tex, repondre) {
-  const texte = tex.trim().toLowerCase().split(/\s+/);
+ovlcmd({
+    nom: "stats_lineup",
+    isfunc: true
+}, async (ms_org, ovl, { texte, repondre, getJid }) => {
+    const mots = texte.trim().toLowerCase().split(/\s+/);
 
-  if (texte.length === 4 && texte[0].startsWith("@")) {
-    const userId = `${texte[0].replace("@", "")}@lid`;
-    const joueurKey = texte[1].toLowerCase();
-    if (!/^j\d+$/.test(joueurKey)) return null;
+    if (mots.length === 4 && mots[0].startsWith("@")) {
+        const userW = mots[0].slice(1);
+        let userId;
 
-    const statKey = `stat${joueurKey.replace("j", "")}`;
-    const signe = texte[2];
-    const valeur = parseInt(texte[3], 10);
-    if (isNaN(valeur) || valeur <= 0 || (signe !== "+" && signe !== "-")) return null;
+        if (userW.endsWith('lid')) {
+            userId = await getJid(userW, ms_org, ovl);
+        } else {
+            return repondre("⚠️ Format incorrect : le @ doit se terminer par 'lid'.");
+        }
 
-    const msg = await updateStats(userId, statKey, signe, valeur);
-    return repondre(msg);
+        const joueurKey = mots[1];
+        if (!/^j\d+$/.test(joueurKey)) return repondre("⚠️ Mauvais joueur. Exemple : j1, j2...");
 
-  } else if (texte.length === 2 && texte[1] === "reset_stats" && texte[0].startsWith("@")) {
-    const userId = `${texte[0].replace("@", "")}@lid`;
-    if (typeof BlueLockFunctions.resetStats === "function") {
-      const msg = await BlueLockFunctions.resetStats(userId);
-      return repondre(msg);
+        const statKey = `stat${joueurKey.replace("j", "")}`;
+        const signe = mots[2];
+        const valeur = parseInt(mots[3], 10);
+
+        if (isNaN(valeur) || valeur <= 0 || !['+', '-'].includes(signe)) {
+            return repondre("⚠️ Format de valeur ou opérateur invalide. Utilise + ou - suivi d’un nombre.");
+        }
+
+        const msg = await updateStats(userId, statKey, signe, valeur);
+        return repondre(msg);
     }
-  }
 
-  return null;
-}
+    if (mots.length === 2 && mots[1] === "reset_stats" && mots[0].startsWith("@")) {
+        const userW = mots[0].slice(1);
+        let userId;
+
+        if (userW.endsWith('lid')) {
+            userId = await getJid(userW, ms_org, ovl);
+        } else {
+            return repondre("⚠️ Format incorrect : le @ doit se terminer par 'lid'.");
+        }
+
+        if (typeof BlueLockFunctions?.resetStats === "function") {
+            const msg = await BlueLockFunctions.resetStats(userId);
+            return repondre(msg);
+        } else {
+            return repondre("❌ Fonction resetStats non disponible.");
+        }
+    }
+
+    return null;
+});
