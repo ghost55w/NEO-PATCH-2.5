@@ -1,62 +1,26 @@
-const { jidDecode } = require("@whiskeysockets/baileys");
 const config = require('../set');
 
-async function group_participants_update (data, ovl) {
-    const parseID = (jid) => {
-        if (!jid) return jid;
-        if (/:\d+@/gi.test(jid)) {
-            const decode = jidDecode(jid) || {};
-            return (decode.user && decode.server && `${decode.user}@${decode.server}`) || jid;
-        }
-        return jid;
-    };
+async function group_participants_update(data, ovl) {
+  try {
+    for (const participant of data.participants) {
+      if (
+        data.action == 'add' &&
+        data.id == '120363031940789145@g.us' &&
+        config.WELCOME == 'oui'
+      ) {
+        const message = `*🎮WELCOME🔷NEOVERSE*
+𝖡𝗂𝖾𝗇𝗏𝖾𝗇𝗎𝖾 𝗃𝗈𝗎𝗋 @${participant.split("@")[0]} 𝖽𝖺𝗇𝗌 𝗅𝖾 𝗇𝗈𝗎𝗏𝖾𝖺𝗎 𝗆𝗈𝗇𝖽𝖾 𝖽𝗎 𝗋𝗈𝗅𝖾𝗉𝗅𝖺𝗒, 𝖭𝖾𝗈𝗏𝖾𝗋𝗌𝖾, 𝖯𝖫𝖠𝖸🎮 𝖺 𝗍𝖾𝗌 𝗃𝖾𝗎𝗑 𝖺𝗎 𝗆𝖾̂𝗆𝖾 𝖾𝗇𝖽𝗋𝗈𝗂𝗍. 𝖵𝖾𝗎𝗂𝗅𝗅𝖾𝗓 𝗋𝖾𝗆𝗉𝗅𝗂𝗋 𝗅𝖾𝗌 𝖼𝗈𝗇𝖽𝗂𝗍𝗂𝗈𝗇𝗌 𝗉𝗈𝗎𝗋 𝗋𝖾𝗃𝗈𝗂𝗇𝖽𝗋𝖾 𝗅'𝖺𝗏𝖾𝗇𝗍𝗎𝗋𝖾 😃`;
 
-    try {
-         
-        for (const participant of data.participants) {
-            let profilePic;
-            try {
-                profilePic = await ovl.profilePictureUrl(participant, 'image');
-            } catch (err) {
-                console.error(err);
-                profilePic = 'https://files.catbox.moe/54ip7g.jpg';
-            }
-
-            const userMention = `@${participant.split("@")[0]}`;
-
-            if (data.action === 'add' && data.id == '120363031940789145@g.us' && config.WELCOME == 'oui') {
-                const message = `🎉 🔷 *🎉WELCOME 𝗮̀ 🔷𝗡Ξ𝗢𝘃𝗲𝗿𝘀𝗲🎉* 🎮
-░▒▒▒▒░░▒░▔▔▔▔▔▔▔▔▔▔▔▔▔
-Bienvenue à vous *${userMention}* 😃💙👋🏻, ceci est le salon de Recrutement des nouveaux joueurs ! Une fois avoir lu et terminé les conditions d'intégration, vous serez ajoutés dans le Salon principal. #NEONation💙 #Welcome💙👋🏻🙂. 
-
-🔷🎮 *𝖢𝖮𝖭𝖣𝖨𝖳𝖨𝖮𝖭𝖲 𝖭𝖤𝖮𝗏𝖾𝗋𝗌𝖾*
-░▒▒▒▒░░▒░▔▔▔▔▔▔▔▔▔▔▔▔▔
-❓Voici comment s'enregistrer à NEOverse👇🏼:
-
-👉🏽 *ÉTAPE 1️⃣*: Votre Pseudo (Nom de joueur + Pays + Numéro de téléphone)
-👉🏽 *ÉTAPE 2️⃣:* Envoyer une photo de profil de votre avatar (de préférence un perso anime comme Blue Lock, etc.). 
-👉🏽 *ÉTAPE 3️⃣* : Follow les deux chaînes ci-dessous 
-👉🏽 *ÉTAPE 4️⃣*: Attendez votre première carte de jeu avant de demander l'intégration : https://chat.whatsapp.com/LrKSRoxMcPi133sCtQB8Hf. 
-
-*🌍NOS LIENS*👇👇👇
-▔▔▔▔▔▔▔▔▔▔▔▔▔
-👉🏽🪀 *Chaîne* : /whatsapp.com/channel/0029VaN9Z2yL2AU55DSahC23
-
-👉🏽 *🛍️RP Store* : /whatsapp.com/channel/0029VaS9ngkFHWqAHps0BL3f
-
-░░░░░░░░░░░░░░░░░░░
-▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
-💙𝗡Ξ𝗢🙂🏆🎉`;
-                await ovl.sendMessage(data.id, {
-                    image: { url: profilePic },
-                    caption: message,
-                    mentions: [participant]
-                });
-            }
-        }
-    } catch (err) {
-        console.error(err);
+        await ovl.sendMessage(data.id, {
+          image: { url: "https://files.catbox.moe/o2acuc.jpg" },
+          caption: message,
+          mentions: [participant],
+        });
+      }
     }
-};
+  } catch (err) {
+    console.error(err);
+  }
+}
 
 module.exports = group_participants_update;
