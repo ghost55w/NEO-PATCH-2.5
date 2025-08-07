@@ -43,10 +43,8 @@ async function connection_update(con, ovl, main) {
 ╰──────────────⬣`;
 
       console.log(start_msg + "\n");
-
-      if (ovl.user?.id) {
+      await delay(5000);
         await ovl.sendMessage(ovl.user.id, { text: start_msg });
-      }
       break;
 
     case "close":
