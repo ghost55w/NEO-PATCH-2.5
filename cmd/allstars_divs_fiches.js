@@ -179,7 +179,7 @@ initFichesAuto();
 ovlcmd({
   nom_cmd: "add_fiche",
   alias: [],
-  classe: "Gestion",
+  classe: "Other",
   react: "➕",
 }, async (ms_org, ovl, { repondre, arg, prenium_id }) => {
   if (!prenium_id) return await repondre("⛔ Accès refusé !");
@@ -201,7 +201,7 @@ ovlcmd({
 ovlcmd({
   nom_cmd: "del_fiche",
   alias: [],
-  classe: "Gestion",
+  classe: "Other",
   react: "🗑️",
 }, async (ms_org, ovl, { repondre, arg, prenium_id }) => {
   if (!prenium_id) return await repondre("⛔ Accès refusé !");
