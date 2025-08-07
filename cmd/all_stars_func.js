@@ -87,7 +87,7 @@ ovlcmd({
     isfunc: true
 }, async (ms_org, ovl, { texte, getJid }) => {
     const neoTexte = texte.toLowerCase();
-    const userW = neoTexte[0].replace(/^@/, '');
+    const userW = neoTexte[0].slice(1);
     let user;
     if (userW.endsWith('lid')) {
         user = await getJid(userW, ms_org, ovl);
@@ -166,7 +166,7 @@ ovlcmd({
     isfunc: true
 }, async (ms_org, ovl, { texte, getJid }) => {
     const lowerText = texte.toLowerCase();
-    const userW = lowerText[0].replace(/^@/, '');
+    const userW = lowerText[0].slice(1);
     let user;
     if (userW.endsWith('lid')) {
         user = await getJid(userW, ms_org, ovl);
