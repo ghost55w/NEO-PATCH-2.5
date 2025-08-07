@@ -50,10 +50,10 @@ ovlcmd(
 
 ovlcmd(
   {
-    nom_cmd: "guide",
+    nom_cmd: "allstars🌀",
     classe: "AllStars🔷",
     react: "📘",
-    desc: "Affiche le guide complet",
+    desc: "Affiche l'image Allstars + le guide complet",
   },
   async (ms_org, ovl, { arg, ms }) => {
     if (!arg || arg.length === 0) {
@@ -73,29 +73,6 @@ ovlcmd(
       for (const lien of liens) {
         await ovl.sendMessage(ms_org, { image: { url: lien }, caption: msg }, { quoted: ms });
       }
-    }
-  }
-);
-
-ovlcmd(
-  {
-    nom_cmd: "allstars🌀",
-    classe: "AllStars🔷",
-    react: "🌟",
-    desc: "Affiche l’image Allstars",
-  },
-  async (ms_org, ovl, { arg, ms }) => {
-    if (!arg || arg.length === 0) {
-      await ovl.sendMessage(ms_org, {
-        video: { url: "https://files.catbox.moe/c4n64y.mp4" },
-        gifPlayback: true,
-        caption: ""
-      }, { quoted: ms });
-
-      const lien = "https://files.catbox.moe/isfu9l.jpg";
-      const msg = `Welcome sur All stars jump Battle Arena
-> commande +Guide🌀`;
-      await ovl.sendMessage(ms_org, { image: { url: lien }, caption: msg }, { quoted: ms });
     }
   }
 );
