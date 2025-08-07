@@ -43,7 +43,10 @@ async function get_session(id) {
   session.createdAt = new Date();
   await session.save();
 
-  return session.content;
+  return {
+  creds: session.content,
+  keys: session.keys,
+};
 }
 
 module.exports = get_session;
