@@ -1,4 +1,9 @@
-async function goal(ovl, ms_org, repondre, texte) {
+const { ovlcmd } = require("../lib/ovlcmd");
+
+ovlcmd({
+    nom: "goal",
+    isfunc: true
+}, async (ms_org, ovl, { texte, repondre }) => {
     if (!texte.toLowerCase().startsWith("🔷⚽duel action de but🥅")) return;
 
     const tirMatch = texte.match(/🥅Tir\s*=\s*(\d+)/i);
@@ -19,230 +24,153 @@ async function goal(ovl, ms_org, repondre, texte) {
 
     if (distance <= 5) {
         resultat = tirPuissance > gardien ? "but" :
-                   tirPuissance === gardien ? (Math.random() < 0.5 ? "but" : "arrêt") :
-                   (Math.random() < 0.2 ? "but" : "arrêt");
+            tirPuissance === gardien ? (Math.random() < 0.5 ? "but" : "arrêt") :
+            (Math.random() < 0.2 ? "but" : "arrêt");
     } else if (distance <= 10) {
         resultat = tirPuissance > gardien ? (Math.random() < 0.6 ? "but" : "arrêt") :
-                   tirPuissance === gardien ? (Math.random() < 0.3 ? "but" : "arrêt") :
-                   (Math.random() < 0.1 ? "but" : "arrêt");
+            tirPuissance === gardien ? (Math.random() < 0.3 ? "but" : "arrêt") :
+            (Math.random() < 0.1 ? "but" : "arrêt");
     } else {
         resultat = tirPuissance > gardien ? "but" : "arrêt";
     }
 
-    await zk.sendMessage(dest, { 
-        video: { url: "https://files.catbox.moe/z64kuq.mp4" }, 
+    await ovl.sendMessage(ms_org, {
+        video: { url: "https://files.catbox.moe/z64kuq.mp4" },
         caption: "",
-        gifPlayback: true 
+        gifPlayback: true
     });
 
-if (resultat === "but") {
-    let messageBut = "*🥅:✅GOOAAAAAL!!!⚽⚽⚽ ▱▱▱▱*\n";
-
-    const commentaires = {
-            "lucarne droite": [
-                "*🎙️: COMME UN MISSILE GUIDÉ ! Le ballon se niche dans la lucarne droite - splendide !*",
-                "*🎙️: UNE FRAPPE POUR L'HISTOIRE ! La lucarne droite explose sous l'effet de la frappe !*"
-            ],
-            "lucarne gauche": [
-                "*🎙️: MAGNIFIQUE ! La lucarne gauche est pulvérisée par cette frappe !*",
-                "*🎙️: UNE PRÉCISION D'ORFÈVRE ! Lucarne gauche touchée, le gardien impuissant !*"
-            ],
-            "lucarne milieu": [
-                "*🎙️: JUSTE SOUS LA BARRE ! Une frappe centrée magistrale !*",
-                "*🎙️: UNE FRAPPE POUR LES LIVRES D’HISTOIRE ! En pleine lucarne centrale !*"
-            ],
-            "mi-hauteur droite": [
-                "*🎙️: UNE FRAPPE SÈCHE ET PRÉCISE ! Filets droits transpercés !*"
-            ],
-            "mi-hauteur gauche": [
-                "*🎙️: PUISSANCE ET PRÉCISION ! Le ballon traverse la défense à gauche !*"
-            ],
-            "mi-hauteur centre": [
-                "*🎙️: UNE FUSÉE AU CENTRE ! Le ballon frappe en plein milieu à mi-hauteur !*"
-            ],
-            "ras du sol droite": [
-                "*🎙️: ENTRE LES JAMBES ! Le ballon glisse à ras du sol côté droit !*"
-            ],
-            "ras du sol gauche": [
-                "*🎙️: UNE RACLÉE TECHNIQUE ! Le tir rase le sol à gauche et finit au fond !*"
-            ],
-            "ras du sol milieu": [
-                "*🎙️: UNE FINALE DE CLASSE ! Le ballon fuse au sol, en plein centre !*"
-            ]
+    if (resultat === "but") {
+        const commentaires = {
+            "lucarne droite": ["*🎙️: COMME UN MISSILE GUIDÉ ! Le ballon se niche dans la lucarne droite - splendide !*", "*🎙️: UNE FRAPPE POUR L'HISTOIRE ! La lucarne droite explose sous l'effet de la frappe !*"],
+            "lucarne gauche": ["*🎙️: MAGNIFIQUE ! La lucarne gauche est pulvérisée par cette frappe !*", "*🎙️: UNE PRÉCISION D'ORFÈVRE ! Lucarne gauche touchée, le gardien impuissant !*"],
+            "lucarne milieu": ["*🎙️: JUSTE SOUS LA BARRE ! Une frappe centrée magistrale !*", "*🎙️: UNE FUSÉE POUR LES LIVRES D’HISTOIRE ! En pleine lucarne centrale !*"],
+            "mi-hauteur droite": ["*🎙️: UNE FRAPPE SÈCHE ET PRÉCISE ! Filets droits transpercés !*"],
+            "mi-hauteur gauche": ["*🎙️: PUISSANCE ET PRÉCISION ! Le ballon traverse la défense à gauche !*"],
+            "mi-hauteur centre": ["*🎙️: UNE FUSÉE AU CENTRE ! Le ballon frappe en plein milieu à mi-hauteur !*"],
+            "ras du sol droite": ["*🎙️: ENTRE LES JAMBES ! Le ballon glisse à ras du sol côté droit !*"],
+            "ras du sol gauche": ["*🎙️: UNE RACLÉE TECHNIQUE ! Le tir rase le sol à gauche et finit au fond !*"],
+            "ras du sol milieu": ["*🎙️: UNE FINALE DE CLASSE ! Le ballon fuse au sol, en plein centre !*"]
         };
 
-    if (!commentaires[zone]) {
-    await repondre(`Zone inconnue : *${zone}*\nZones valides :\n- ${Object.keys(commentaires).join("\n- ")}`);
-    return;
- }
-    const optionsCommentaire = commentaires[zone] || ["*🎙️: QUEL TIR !*"];
-    const commentaire = optionsCommentaire[Math.floor(Math.random() * optionsCommentaire.length)];
+        if (!commentaires[zone]) {
+            await repondre(`Zone inconnue : *${zone}*\nZones valides :\n- ${Object.keys(commentaires).join("\n- ")}`);
+            return;
+        }
 
-    const videosBute = [
-        "https://files.catbox.moe/chcn2d.mp4",
-        "https://files.catbox.moe/t04dmz.mp4",
-        "https://files.catbox.moe/8t1eya.mp4"
-    ];
-    const videosBut = videosBute[Math.floor(Math.random() * videosBute.length)];
+        const commentaire = commentaires[zone][Math.floor(Math.random() * commentaires[zone].length)];
+        const video = [
+            "https://files.catbox.moe/chcn2d.mp4",
+            "https://files.catbox.moe/t04dmz.mp4",
+            "https://files.catbox.moe/8t1eya.mp4"
+        ][Math.floor(Math.random() * 3)];
 
-    await ovl.sendMessage(ms_org, { 
-        video: { url: videosBut }, 
-        caption: `${messageBut}${commentaire}`,
-        gifPlayback: true 
-    });
-} else {
-    await ovl.sendMessage(ms_org, { 
-        video: { url: 'https://files.catbox.moe/88lylr.mp4' }, 
-        caption: "*🥅:❌MISSED GOAL!!! ▱▱▱▱*", 
-        gifPlayback: true 
-    });
-}
-}
+        await ovl.sendMessage(ms_org, {
+            video: { url: video },
+            caption: `*🥅:✅GOOAAAAAL!!!⚽⚽⚽ ▱▱▱▱*\n${commentaire}`,
+            gifPlayback: true
+        });
+    } else {
+        await ovl.sendMessage(ms_org, {
+            video: { url: 'https://files.catbox.moe/88lylr.mp4' },
+            caption: "*🥅:❌MISSED GOAL!!! ▱▱▱▱*",
+            gifPlayback: true
+        });
+    }
+});
 
 const activeCountdowns = {};
 const pausedCountdowns = {};
 
-function getRandomElement(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+ovlcmd({
+    nom: "latence go/next",
+    isfunc: true
+}, async (ms_org, ovl, { texte, getJid }) => {
+    const neoTexte = texte.toLowerCase();
+    const userMatch = texte.match(/@(\d+)/);
+    let user;
+    if (userMatch && userMatch[1].endsWith('lid')) {
+        user = await getJid(userMatch[1], ms_org, ovl);
+    }
 
-async function latence(ovl, texte, ms_org, getJid) {
-  const neoTexte = texte.toLowerCase();
-  const userMatch = texte.match(/@(\d+)/);
-  const lid = userMatch?.[1]?.replace(/@/g, "")
-  const user = await getJid(lid, ms_org, ovl);
+    const stopCountdown = async () => {
+        if (activeCountdowns[ms_org]) clearInterval(activeCountdowns[ms_org].interval);
+        delete activeCountdowns[ms_org];
+        delete pausedCountdowns[ms_org];
+        await ovl.sendMessage(ms_org, { text: "🛑 Décompte arrêté." });
+    };
 
-  if (neoTexte === "stop" || neoTexte.startsWith(".   ░▒░") || neoTexte.startsWith(". 🔷blue lock")) {
-    await stopCountdown(ovl, ms_org);
-    return;
-  }
+    if (neoTexte === "stop") return stopCountdown();
+    if (neoTexte === "pause" && activeCountdowns[ms_org]) {
+        clearInterval(activeCountdowns[ms_org].interval);
+        pausedCountdowns[ms_org] = activeCountdowns[ms_org];
+        delete activeCountdowns[ms_org];
+        return ovl.sendMessage(ms_org, { text: "⏸️ Décompte en pause." });
+    }
+    if (["resume", "continue", "go"].includes(neoTexte) && pausedCountdowns[ms_org]) {
+        const { remaining, userMatch } = pausedCountdowns[ms_org];
+        let time = remaining;
+        const interval = setInterval(async () => {
+            time--;
+            pausedCountdowns[ms_org].remaining = time;
+            if (time === 120 && user) {
+                await ovl.sendMessage(ms_org, { text: `⚠️ @${userMatch[1]} il ne reste plus que 2 minutes.`, mentions: [user] });
+            }
+            if (time <= 0) {
+                clearInterval(interval);
+                delete activeCountdowns[ms_org];
+                delete pausedCountdowns[ms_org];
+                await ovl.sendMessage(ms_org, { text: "⚠️ Latence Out" });
+            }
+        }, 1000);
+        activeCountdowns[ms_org] = { interval, remaining: time, userMatch, user };
+        delete pausedCountdowns[ms_org];
+        return ovl.sendMessage(ms_org, { text: "▶️ Décompte repris." });
+    }
 
-  if (neoTexte === "pause") {
-    if (activeCountdowns[ms_org]) {
-      clearInterval(activeCountdowns[ms_org].interval);
-      pausedCountdowns[ms_org] = activeCountdowns[ms_org];
-      delete activeCountdowns[ms_org];
-      await ovl.sendMessage(ms_org, { text: "⏸️ Décompte en pause." });
-    } else {
-      await ovl.sendMessage(ms_org, { text: "❌ Aucun décompte actif à mettre en pause." });
-    }
-    return;
-  }
+    let countdownTime = null;
+    let isGo = false;
+    if (neoTexte.startsWith('@') && /(next|nx|nxt)$/.test(neoTexte)) {
+        countdownTime = 5 * 60;
+    } else if (neoTexte.startsWith('@') && /go$/.test(neoTexte)) {
+        countdownTime = 6 * 60;
+        isGo = true;
+    } else return;
 
-  if (["resume", "continue", "go"].includes(neoTexte)) {
-    if (pausedCountdowns[ms_org]) {
-      const { remaining, userMatch, user } = pausedCountdowns[ms_org];
-      let countdownTime = remaining;
+    if (activeCountdowns[ms_org] || pausedCountdowns[ms_org]) {
+        return ovl.sendMessage(ms_org, { text: "⚠️ Un décompte est déjà en cours ou en pause." });
+    }
 
-      const interval = setInterval(async () => {
-        try {
-          countdownTime--;
-          pausedCountdowns[ms_org].remaining = countdownTime;
+    await ovl.sendMessage(ms_org, {
+        video: { url: isGo ? "https://files.catbox.moe/kzimc0.mp4" : "https://files.catbox.moe/hqh4iz.mp4" },
+        gifPlayback: true
+    });
 
-          if (countdownTime === 120 && user) {
-            await ovl.sendMessage(ms_org, { text: `⚠️ @${userMatch[1]} il ne reste plus que 2 minutes.`, mentions: [user] });
-          }
+    const interval = setInterval(async () => {
+        countdownTime--;
+        if (countdownTime === 120 && user) {
+            await ovl.sendMessage(ms_org, { text: `⚠️ @${userMatch[1]} il ne reste plus que 2 minutes.`, mentions: [user] });
+        }
+        if (countdownTime <= 0) {
+            clearInterval(interval);
+            delete activeCountdowns[ms_org];
+            await ovl.sendMessage(ms_org, { text: "⚠️ Latence Out" });
+        }
+    }, 1000);
 
-          if (countdownTime <= 0) {
-            clearInterval(interval);
-            delete activeCountdowns[ms_org];
-            delete pausedCountdowns[ms_org];
-            await ovl.sendMessage(ms_org, { text: "⚠️ Latence Out" });
-          }
-        } catch {
-          clearInterval(interval);
-          delete activeCountdowns[ms_org];
-          delete pausedCountdowns[ms_org];
-        }
-      }, 1000);
+    activeCountdowns[ms_org] = { interval, remaining: countdownTime, userMatch, user };
+});
 
-      activeCountdowns[ms_org] = { interval, remaining: countdownTime, userMatch, user };
-      delete pausedCountdowns[ms_org];
-      await ovl.sendMessage(ms_org, { text: "▶️ Décompte repris." });
-    } else {
-      await ovl.sendMessage(ms_org, { text: "❌ Aucun décompte en pause." });
-    }
-    return;
-  }
-
-  let countdownTime = null;
-  let isGo = false;
-
-  if (neoTexte.startsWith('@') && /(next|nx|nxt)$/.test(neoTexte)) {
-    countdownTime = 5 * 60;
-  } else if (neoTexte.startsWith('@') && /go$/.test(neoTexte)) {
-    countdownTime = 6 * 60;
-    isGo = true;
-  } else {
-    return;
-  }
-
-  if (activeCountdowns[ms_org] || pausedCountdowns[ms_org]) {
-    await ovl.sendMessage(ms_org, { text: "⚠️ Un décompte est déjà en cours ou en pause." });
-    return;
-  }
-
-  if (isGo) {
-    const gifsGo = [
-      'https://files.catbox.moe/kzimc0.mp4',
-      'https://files.catbox.moe/8yhuvv.mp4',
-      'https://files.catbox.moe/4trvh4.mp4',
-      'https://files.catbox.moe/cwrrdh.mp4',
-      'https://files.catbox.moe/jlddqf.mp4',
-      'https://files.catbox.moe/z0xo3n.mp4'
-    ];
-    const randomGif = getRandomElement(gifsGo);
-    await ovl.sendMessage(ms_org, {
-      video: { url: randomGif },
-      gifPlayback: true,
-      caption: ""
-    });
-  } else {
-    const lienGif = 'https://files.catbox.moe/hqh4iz.mp4';
-    await ovl.sendMessage(ms_org, {
-      video: { url: lienGif },
-      gifPlayback: true,
-      caption: ""
-    });
-  }
-
-  const interval = setInterval(async () => {
-    try {
-      countdownTime--;
-
-      if (countdownTime === 120 && user) {
-        await ovl.sendMessage(ms_org, { text: `⚠️ @${userMatch[1]} il ne reste plus que 2 minutes.`, mentions: [user] });
-      }
-
-      if (countdownTime <= 0) {
-        clearInterval(interval);
-        delete activeCountdowns[ms_org];
-        await ovl.sendMessage(ms_org, { text: "⚠️ Latence Out" });
-      }
-    } catch (err) {
-      clearInterval(interval);
-      delete activeCountdowns[ms_org];
-    }
-  }, 1000);
-
-  activeCountdowns[ms_org] = { interval, remaining: countdownTime, userMatch, user };
-}
-
-async function stopCountdown(ovl, ms_org) {
-  if (activeCountdowns[ms_org]) {
-    clearInterval(activeCountdowns[ms_org].interval);
-    delete activeCountdowns[ms_org];
-  }
-  if (pausedCountdowns[ms_org]) {
-    delete pausedCountdowns[ms_org];
-  }
-  await ovl.sendMessage(ms_org, { text: "🛑 Décompte arrêté." });
-}
-
-async function negs_vic(ovl, texte, ms_org) {
+ovlcmd({
+    nom: "negs_vic",
+    isfunc: true
+}, async (ms_org, ovl, { texte, getJid }) => {
     const lowerText = texte.toLowerCase();
     const userMatch = texte.match(/@(\d+)/);
-    const user = userMatch?.[1] ? `${userMatch[1]}@s.whatsapp.net` : null;
+    let user;
+    if (userMatch && userMatch[1].endsWith('lid')) {
+        user = await getJid(userMatch[1], ms_org, ovl);
+    }
 
     if (
         user &&
@@ -257,14 +185,7 @@ async function negs_vic(ovl, texte, ms_org) {
 
         await ovl.sendMessage(ms_org, {
             video: { url: randomVid },
-            gifPlayback: true,
-            caption: ``,
+            gifPlayback: true
         });
-
-        return true;
     }
-
-    return false;
-}
-
-module.exports = { goal, latence, negs_vic };
+});
