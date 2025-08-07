@@ -96,6 +96,7 @@ ovlcmd({
     nom: "duel stats",
     isfunc: true
 }, async (ms_org, ovl, { texte, repondre, ms, getJid }) => {
+    if(!texte) return;
     const mots = texte.trim().split(/\s+/);
     const statsAutorisees = ["sta", "energie", "vie"];
 
