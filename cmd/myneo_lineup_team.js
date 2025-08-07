@@ -335,6 +335,7 @@ ovlcmd({
     nom: "stats_lineup",
     isfunc: true
 }, async (ms_org, ovl, { texte, repondre, getJid }) => {
+    if(!texte) return;
     const mots = texte.trim().toLowerCase().split(/\s+/);
 
     if (mots.length === 4 && mots[0].startsWith("@")) {
