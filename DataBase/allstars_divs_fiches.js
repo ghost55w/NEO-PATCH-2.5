@@ -77,6 +77,10 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   console.log("✅ Table 'allstars_divs_fiches' synchronisée avec succès.");
 })();
 
+async function getAllFiches() {
+  return await AllStarsDivsFiche.findAll();
+}
+
 async function getData(where = {}) {
   const [fiche, created] = await AllStarsDivsFiche.findOrCreate({
     where,
@@ -116,4 +120,10 @@ async function add_id(id, data = {}) {
   return fiche;
 }
 
-module.exports = { setfiche, getData, add_id };
+async function del_fiche(code_fiche) {
+  return await AllStarsDivsFiche.destroy({
+    where: { code_fiche }
+  });
+}
+
+module.exports = { getAllFiches, setfiche, getData, add_id, del_fiche};
