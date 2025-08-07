@@ -55,17 +55,17 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   cleans: { type: DataTypes.INTEGER, defaultValue: 0 },
   erreurs: { type: DataTypes.INTEGER, defaultValue: 0 },
   note: { type: DataTypes.INTEGER, defaultValue: 0 },
-  citation: { type: DataTypes.TEXT, defaultValue: 'aucune' },
   talent: { type: DataTypes.INTEGER, defaultValue: 0 },
-  puissance: { type: DataTypes.INTEGER, defaultValue: 0 },
+  intelligence: { type: DataTypes.INTEGER, defaultValue: 0 },
   speed: { type: DataTypes.INTEGER, defaultValue: 0 },
-  close_combat: { type: DataTypes.INTEGER, defaultValue: 0 },
+  close_fight: { type: DataTypes.INTEGER, defaultValue: 0 },
   attaques: { type: DataTypes.INTEGER, defaultValue: 0 },
   total_cards: { type: DataTypes.INTEGER, defaultValue: 0 },
   cards: { type: DataTypes.TEXT, defaultValue: 'aucune' },
   source: { type: DataTypes.STRING, defaultValue: 'inconnu' },
   jid: { type: DataTypes.STRING, defaultValue: 'null' },
-  oc_url: { type: DataTypes.STRING, defaultValue: 'aucun' }
+  oc_url: { type: DataTypes.STRING, defaultValue: 'https://files.catbox.moe/4quw3r.jpg' },
+  code_fiche: { type: DataTypes.STRING, defaultValue: 'aucun' },
   
 }, {
   tableName: 'allstars_divs_fiches',
