@@ -141,7 +141,8 @@ async function message_upsert(m, ovl) {
       ms,
       ms_org,
       texte,
-      getJid
+      getJid,
+      mention_JID
     };
 
     async function isBanned(type, id) {
