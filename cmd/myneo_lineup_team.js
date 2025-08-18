@@ -335,51 +335,53 @@ ovlcmd({
     nom: "stats_lineup",
     isfunc: true
 }, async (ms_org, ovl, { texte, repondre, getJid }) => {
-    if(!texte) return;
-    const mots = texte.trim().toLowerCase().split(/\s+/);
+    try {
+        if (!texte) return;
+        const mots = texte.trim().toLowerCase().split(/\s+/);
 
-    if (mots.length === 4 && mots[0].startsWith("@")) {
-        const userW = mots[0].slice(1);
-        let userId;
+        if (mots.length === 4 && mots[0].startsWith("@")) {
+            const userW = mots[0].slice(1);
+            let userId;
+            if (userW.endsWith('lid')) {
+                userId = await getJid(userW, ms_org, ovl);
+            } else {
+                throw new Error("⚠️ Format incorrect : le @ doit se terminer par 'lid'.");
+            }
 
-        if (userW.endsWith('lid')) {
-            userId = await getJid(userW, ms_org, ovl);
-        } else {
-            return repondre("⚠️ Format incorrect : le @ doit se terminer par 'lid'.");
-        }
+            const joueurKey = mots[1];
+            if (!/^j\d+$/.test(joueurKey)) throw new Error("⚠️ Mauvais joueur. Exemple : j1, j2...");
 
-        const joueurKey = mots[1];
-        if (!/^j\d+$/.test(joueurKey)) return repondre("⚠️ Mauvais joueur. Exemple : j1, j2...");
+            const statKey = `stat${joueurKey.replace("j", "")}`;
+            const signe = mots[2];
+            const valeur = parseInt(mots[3], 10);
 
-        const statKey = `stat${joueurKey.replace("j", "")}`;
-        const signe = mots[2];
-        const valeur = parseInt(mots[3], 10);
+            if (isNaN(valeur) || valeur <= 0 || !['+', '-'].includes(signe)) {
+                throw new Error("⚠️ Format de valeur ou opérateur invalide. Utilise + ou - suivi d’un nombre.");
+            }
 
-        if (isNaN(valeur) || valeur <= 0 || !['+', '-'].includes(signe)) {
-            return repondre("⚠️ Format de valeur ou opérateur invalide. Utilise + ou - suivi d’un nombre.");
-        }
-
-        const msg = await updateStats(userId, statKey, signe, valeur);
-        return repondre(msg);
-    }
-
-    if (mots.length === 2 && mots[1] === "reset_stats" && mots[0].startsWith("@")) {
-        const userW = mots[0].slice(1);
-        let userId;
-
-        if (userW.endsWith('lid')) {
-            userId = await getJid(userW, ms_org, ovl);
-        } else {
-            return repondre("⚠️ Format incorrect : le @ doit se terminer par 'lid'.");
-        }
-
-        if (typeof BlueLockFunctions?.resetStats === "function") {
-            const msg = await BlueLockFunctions.resetStats(userId);
+            const msg = await updateStats(userId, statKey, signe, valeur);
             return repondre(msg);
-        } else {
-            return repondre("❌ Fonction resetStats non disponible.");
         }
-    }
 
-    return null;
+        if (mots.length === 2 && mots[1] === "reset_stats" && mots[0].startsWith("@")) {
+            const userW = mots[0].slice(1);
+            let userId;
+            if (userW.endsWith('lid')) {
+                userId = await getJid(userW, ms_org, ovl);
+            } else {
+                throw new Error("⚠️ Format incorrect : le @ doit se terminer par 'lid'.");
+            }
+
+            if (typeof BlueLockFunctions?.resetStats === "function") {
+                const msg = await BlueLockFunctions.resetStats(userId);
+                return repondre(msg);
+            } else {
+                throw new Error("❌ Fonction resetStats non disponible.");
+            }
+        }
+
+        throw new Error("⚠️ Commande invalide.");
+    } catch (e) {
+        console.error("Erreur stats_lineup:", e.message || e);
+    }
 });
