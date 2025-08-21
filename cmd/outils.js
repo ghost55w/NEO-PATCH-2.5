@@ -290,23 +290,25 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: "jid",
-    classe: "Outils",
+    classe: "Owner",
     react: "🆔",
-    desc: "fournit le jid d'une personne ou d'un groupe",
-  },  
+    desc: "Fournit le JID d'une personne ou d'un groupe",
+  },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, auteur_Msg_Repondu, prenium_id, msg_Repondu } = cmd_options;
+    const { repondre, auteur_Msg_Repondu, prenium_id, msg_Repondu, arg } = cmd_options;
 
     if (!prenium_id) {
       return repondre("Seuls les utilisateurs prenium peuvent utiliser cette commande");
     }
 
-    let jid;
+    let cbl =
+      auteur_Msg_Repondu || arg[0];
 
-    if (!msg_Repondu) {
-      jid = ms_org;
+    let jid;
+    if (cbl) {
+      jid = cbl;
     } else {
-      jid = auteur_Msg_Repondu;
+      jid = ms_org;
     }
 
     repondre(jid);
