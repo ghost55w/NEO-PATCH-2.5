@@ -109,11 +109,11 @@ async function setfiche(colonne, valeur, id) {
   console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur id ${id}`);
 }
 
-async function add_id(id, data = {}) {
-  if (!id) throw new Error("ID requis");
-  const defaults = { id, ...data };
+async function add_id(jid, data = {}) {
+  if (!jid) throw new Error("JID requis");
+  const defaults = { jid, ...data };
   const [fiche, created] = await AllStarsDivsFiche.findOrCreate({
-    where: { id },
+    where: { jid },
     defaults
   });
   if (!created) return null;
