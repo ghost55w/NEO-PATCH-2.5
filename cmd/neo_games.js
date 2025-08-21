@@ -35,7 +35,7 @@ ovlcmd({
     const userData = await MyNeoFunctions.getUserData(auteur_Message);
     if (!userData) return repondre("❌ Joueur introuvable dans MyNeo.");
 
-    const fiche = await getData({ id: auteur_Message });
+    const fiche = await getData({ jid: auteur_Message });
     if (!fiche) return repondre("❌ Fiche All Stars introuvable pour ce joueur.");
 
     let valeur_np = parseInt(userData.np) || 0;
