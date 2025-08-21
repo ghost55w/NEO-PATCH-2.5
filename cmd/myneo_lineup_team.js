@@ -113,7 +113,7 @@ ovlcmd({
         video: { url: "https://files.catbox.moe/yimc4o.mp4" },
         gifPlayback: true,
         caption: ""
-      }, { quoted: ms });
+      }, { quoted: cmd_options.ms });
       
       return await ovl.sendMessage(ms_org, {
         image: { url: "https://files.catbox.moe/nyy6fb.jpg" },
