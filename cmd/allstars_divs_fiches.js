@@ -160,7 +160,7 @@ async function initFichesAuto() {
     const all = await getAllFiches();
 
     for (const player of all) {
-      if (!player.code_fiche || !player.division || !player.oc_url || !player.id) continue;
+      if (!player.code_fiche || player.code_fiche == "pas de fiche" || !player.division || !player.oc_url || !player.id) continue;
 
       const nom = player.code_fiche;
       const id = player.id.toString();
