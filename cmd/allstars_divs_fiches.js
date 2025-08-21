@@ -110,7 +110,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 
 async function processUpdates(args, jid) {
   const updates = [];
-  const data = await getData(jid);
+  const data = await getData({ id: jid });
   let i = 0;
 
   while (i < args.length) {
@@ -185,9 +185,9 @@ ovlcmd({
   if (!prenium_id) return await repondre("⛔ Accès refusé !");
   if (arg.length < 2) return await repondre("❌ Syntaxe : add_fiche <code_fiche> <division>");
 
-  const id = ms_org.sender;
-  const code_fiche = arg[0];
-  const division = arg.slice(1).join(' ');
+  const id = arg[0];
+  const code_fiche = arg[1];
+  const division = arg.slice(2).join(' ');
 
   try {
     await add_id(id, { code_fiche, division });
