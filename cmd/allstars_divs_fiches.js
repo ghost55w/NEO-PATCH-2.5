@@ -117,7 +117,7 @@ async function processUpdates(args, jid) {
     const object = args[i++];
     const signe = args[i++];
     const valeur = args[i++];
-    const texte = [];
+    const texte = valeur !== undefined ? [valeur] : [];
 
     while (i < args.length && !['+', '-', '=', 'add', 'supp'].includes(args[i])) {
       texte.push(args[i++]);
