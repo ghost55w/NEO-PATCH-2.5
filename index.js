@@ -8,13 +8,13 @@ const {
   makeCacheableSignalKeyStore,
   Browsers,
   fetchLatestBaileysVersion,
-  delay
+  delay,
+  useMultiFileAuthState
 } = require("@whiskeysockets/baileys");
 
 const get_session = require('./DataBase/session');
-const { useSQLiteAuthState, WAAuth } = require('./lib/OvlAuth');
-const config = require("./set");
-
+const { get_session, restaureAuth } = require('./DataBase/session');
+const config = require('./set');
 const {
   message_upsert,
   group_participants_update,
@@ -25,34 +25,19 @@ const {
 
 async function startPrincipalSession() {
   const instanceId = "principale";
-  const credsPath = path.join(__dirname, `./auth/${instanceId}_store.db`);
+  const sessionData = await get_session(sessionId);
 
-  if (!fs.existsSync(credsPath)) {
-    try {
-      const auth = await get_session(config.SESSION_ID);
-      if (!auth) return;
+    await restaureAuth(instanceId, sessionData.creds, sessionData.keys);
 
-      await WAAuth.upsert({ key: `creds--${instanceId}`, value: auth.creds || null });
-      await WAAuth.upsert({ key: `keys--${instanceId}`, value: auth.keys || null });
-    } catch (err) {
-      console.log(`❌ Erreur récupération creds pour ${instanceId} :`, err.message);
-      return;
-    }
-  }
-
-  try {
-    const { state, saveCreds } = await useSQLiteAuthState(instanceId);
-    const { version } = await fetchLatestBaileysVersion();
+    const { state, saveCreds } = await useMultiFileAuthState(`./auth/${instanceId}`);
 
     const ovl = makeWASocket({
-      version,
       auth: {
         creds: state.creds,
         keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }).child({ level: 'silent' }))
       },
       logger: pino({ level: 'silent' }),
       browser: Browsers.ubuntu('Chrome'),
-      printQRInTerminal: false,
       keepAliveIntervalMs: 10000,
       markOnlineOnConnect: false,
       generateHighQualityLinkPreview: true,
