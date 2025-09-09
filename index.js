@@ -2,13 +2,12 @@ const fs = require('fs');
 const path = require('path');
 const pino = require("pino");
 const axios = require('axios');
+const express = require('express');
 
 const {
   default: makeWASocket,
   makeCacheableSignalKeyStore,
   Browsers,
-  fetchLatestBaileysVersion,
-  delay,
   useMultiFileAuthState
 } = require("@whiskeysockets/baileys");
 
@@ -23,17 +22,23 @@ const {
 } = require('./Ovl_events');
 
 async function startPrincipalSession() {
-  const instanceId = "principale";
-  const sessionData = await get_session(sessionId);
+  try {
+    const instanceId = "principale";
+    const sessionData = await get_session(instanceId);
 
-    await restaureAuth(instanceId, sessionData.creds, sessionData.keys);
+    if (sessionData) {
+      await restaureAuth(instanceId, sessionData.creds, sessionData.keys);
+    }
 
     const { state, saveCreds } = await useMultiFileAuthState(`./auth/${instanceId}`);
 
     const ovl = makeWASocket({
       auth: {
         creds: state.creds,
-        keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }).child({ level: 'silent' }))
+        keys: makeCacheableSignalKeyStore(
+          state.keys,
+          pino({ level: 'silent' }).child({ level: 'silent' })
+        )
       },
       logger: pino({ level: 'silent' }),
       browser: Browsers.ubuntu('Chrome'),
@@ -41,7 +46,7 @@ async function startPrincipalSession() {
       markOnlineOnConnect: false,
       generateHighQualityLinkPreview: true,
       getMessage: async (key) => {
-        const msg = getMessage(key.id);
+        const msg = await recup_msg({ id: key.id });
         return msg?.message || undefined;
       }
     });
@@ -66,8 +71,7 @@ startPrincipalSession().catch((err) => {
   console.error("❌ Erreur inattendue :", err.message || err);
 });
 
-// Express web server pour les pings
-const express = require('express');
+// ---------------------- EXPRESS SERVER ----------------------
 const app = express();
 const port = process.env.PORT || 3000;
 
