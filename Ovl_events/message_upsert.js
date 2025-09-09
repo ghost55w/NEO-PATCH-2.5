@@ -1,6 +1,5 @@
 const { Bans } = require("../DataBase/ban");
 const { Sudo } = require('../DataBase/sudo');
-const eval_exec = require('../lib/eval_exec');
 const { jidDecode, getContentType } = require("@whiskeysockets/baileys");
 const evt = require("../lib/ovlcmd");
 const config = require("../set");
@@ -115,7 +114,7 @@ async function message_upsert(m, ovl) {
     },
   }
 };
-    const repondre = (msg) => ovl.sendMessage(ms_org, { text: msg }, { quoted: ms_badge });
+    const repondre = (msg) => ovl.sendMessage(ms_org, { text: msg }, { quoted: ms });
 
     const cmd_options = {
       verif_Groupe,
