@@ -1,4 +1,4 @@
-const { dl_save_media_ms, recup_msg } = require('./autres_fonctions');
+const { dl_save_media_ms, recup_msg } = require('./fonctions');
 
 module.exports = {
   message_upsert: require('./message_upsert'),
