@@ -130,7 +130,11 @@ app.get('/', (req, res) => {
 
 app.listen(port, () => {
   console.log("Listening on port: " + port);
-  setupAutoPing(`http://localhost:${port}/`);
+  let publicURL;
+  if (process.env.RENDER_EXTERNAL_URL) publicURL = process.env.RENDER_EXTERNAL_URL;
+  else if (process.env.KOYEB_PUBLIC_DOMAIN) publicURL = `https://${process.env.KOYEB_PUBLIC_DOMAIN}`;
+  else publicURL = `http://localhost:${port}`;
+  setupAutoPing(publicURL);
 });
 
 function setupAutoPing(url) {
