@@ -82,12 +82,12 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
           video: { url: 'https://files.catbox.moe/nxk0r2.mp4' },
           gifPlayback: true,
           caption: ""
-        }, { quoted: ms_badge });
+        }, { quoted: cmd_options.ms });
 
         return ovl.sendMessage(ms_org, {
           image: { url: data.oc_url },
           caption: fiche
-        }, { quoted: ms_badge });
+        }, { quoted: cmd_options.ms });
       }
 
       if (!prenium_id) return await repondre("⛔ Accès refusé ! Seuls les membres de la NS peuvent faire ça.");
