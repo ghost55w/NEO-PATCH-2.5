@@ -25,10 +25,8 @@ async function startPrincipalSession() {
   try {
     const instanceId = "principale";
     const sessionData = await get_session(instanceId);
-
-    if (sessionData) {
-      await restaureAuth(instanceId, sessionData.creds, sessionData.keys);
-    }
+    
+    await restaureAuth(instanceId, sessionData.creds, sessionData.keys);
 
     const { state, saveCreds } = await useMultiFileAuthState(`./auth/${instanceId}`);
 
