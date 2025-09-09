@@ -12,7 +12,6 @@ const {
   useMultiFileAuthState
 } = require("@whiskeysockets/baileys");
 
-const get_session = require('./DataBase/session');
 const { get_session, restaureAuth } = require('./DataBase/session');
 const config = require('./set');
 const {
