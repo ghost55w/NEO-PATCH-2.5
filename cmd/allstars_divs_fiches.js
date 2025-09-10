@@ -1,22 +1,6 @@
 const { ovlcmd } = require("../lib/ovlcmd");
 const { getData, setfiche, getAllFiches, add_id, del_fiche } = require('../DataBase/allstars_divs_fiches');
 
-const ms_badge = {
-  key: {
-    fromMe: false,
-    participant: '0@s.whatsapp.net',
-    remoteJid: '0@s.whatsapp.net',
-  },
-  message: {
-    extendedTextMessage: {
-      text: 'ɴᴇᴏ-ʙᴏᴛ-ᴍᴅ ʙʏ ᴀɪɴᴢ',
-      contextInfo: {
-        mentionedJid: [],
-      },
-    },
-  }
-};
-
 function normalizeText(text) {
   return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
@@ -79,7 +63,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 > NEO SUPER LEAGUE ESPORTS™`;
 
         await ovl.sendMessage(ms_org, {
-          video: { url: 'https://files.catbox.moe/nxk0r2.mp4' },
+          video: { url: 'https://files.catbox.moe/w37yae.mp4' },
           gifPlayback: true,
           caption: ""
         }, { quoted: cmd_options.ms });
@@ -183,24 +167,30 @@ ovlcmd({
   react: "➕",
 }, async (ms_org, ovl, { repondre, arg, prenium_id }) => {
   if (!prenium_id) return await repondre("⛔ Accès refusé !");
-  if (arg.length < 2) return await repondre("❌ Syntaxe : add_fiche <code_fiche> <division>");
+  if (arg.length < 3) return await repondre("❌ Syntaxe : add_fiche <jid> <code_fiche> <division>");
 
-  const id = arg[0];
+  const jid = arg[0];
   const code_fiche = arg[1];
-  const division = arg.slice(2).join(' ');
+  const division = arg.slice(2).join(" ");
 
   try {
-    await add_id(id, { code_fiche, division });
-    await repondre(`✅ Fiche ajoutée : \`${code_fiche}\` (${division})`);
+    await add_id(jid, { code_fiche, division });
+    initFichesAuto();
+
+    await repondre(
+      `✅ Nouvelle fiche enregistrée :\n` +
+      `• *JID* : \`${jid}\`\n` +
+      `• *Code Fiche* : \`${code_fiche}\`\n` +
+      `• *Division* : \`${division}\``
+    );
   } catch (err) {
-    console.error(err);
-    await repondre("❌ Erreur lors de l'ajout de la fiche.");
+    console.error("❌ Erreur lors de l'ajout de la fiche :", err);
+    await repondre("❌ Erreur lors de l'ajout de la fiche. Vérifie la console pour plus de détails.");
   }
 });
 
 ovlcmd({
   nom_cmd: "del_fiche",
-  alias: [],
   classe: "Other",
   react: "🗑️",
 }, async (ms_org, ovl, { repondre, arg, prenium_id }) => {
