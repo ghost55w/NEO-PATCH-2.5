@@ -24,7 +24,7 @@ const {
 async function startPrincipalSession() {
   try {
     const instanceId = "principale";
-    const sessionData = await get_session(instanceId);
+    const sessionData = await get_session(config.SESSION_ID);
     
     await restaureAuth(instanceId, sessionData.creds, sessionData.keys);
 
