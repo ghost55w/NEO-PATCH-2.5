@@ -83,119 +83,107 @@ const activeCountdowns = {};
 const pausedCountdowns = {};
 
 ovlcmd({
-    nom: "latence go/next",
-    isfunc: true
+  nom: "latence go/next",
+  isfunc: true
 }, async (ms_org, ovl, { texte, getJid }) => {
-    if (!texte) return;
-    const mots = texte.trim().toLowerCase().split(/\s+/);
-    const neoTexte = mots.join(" ");
+  if (!texte) return;
+  const mots = texte.trim().toLowerCase().split(/\s+/);
+  const neoTexte = mots.join(" ");
 
-    let user = null;
-    let userW = null;
+  let user = null, userW = null;
+  if (mots[0]?.startsWith("@")) {
+    userW = mots[0].slice(1);
+    user = await getJid(userW + "@lid", ms_org, ovl);
+  }
 
-    if (mots[0].startsWith("@")) {
-        userW = mots[0].slice(1);
-        if (userW.endsWith("lid")) {
-            user = await getJid(userW, ms_org, ovl);
-        }
-    }
+  const stopCountdown = async () => {
+    if (activeCountdowns[ms_org]) clearInterval(activeCountdowns[ms_org].interval);
+    delete activeCountdowns[ms_org];
+    delete pausedCountdowns[ms_org];
+    await ovl.sendMessage(ms_org, { text: "🛑 Décompte arrêté." });
+  };
 
-    const stopCountdown = async () => {
-        if (activeCountdowns[ms_org]) clearInterval(activeCountdowns[ms_org].interval);
-        delete activeCountdowns[ms_org];
-        delete pausedCountdowns[ms_org];
-        await ovl.sendMessage(ms_org, { text: "🛑 Décompte arrêté." });
-    };
+  if (neoTexte === "stop") return stopCountdown();
 
-    if (neoTexte === "stop") return stopCountdown();
+  if (neoTexte === "pause" && activeCountdowns[ms_org]) {
+    clearInterval(activeCountdowns[ms_org].interval);
+    pausedCountdowns[ms_org] = activeCountdowns[ms_org];
+    delete activeCountdowns[ms_org];
+    return ovl.sendMessage(ms_org, { text: "⏸️ Décompte en pause." });
+  }
 
-    if (neoTexte === "pause" && activeCountdowns[ms_org]) {
-        clearInterval(activeCountdowns[ms_org].interval);
-        pausedCountdowns[ms_org] = activeCountdowns[ms_org];
-        delete activeCountdowns[ms_org];
-        return ovl.sendMessage(ms_org, { text: "⏸️ Décompte en pause." });
-    }
-
-    if (["resume", "continue", "go"].includes(neoTexte) && pausedCountdowns[ms_org]) {
-        const { remaining, userW, user } = pausedCountdowns[ms_org];
-        let time = remaining;
-        const interval = setInterval(async () => {
-            time--;
-            pausedCountdowns[ms_org].remaining = time;
-            if (time === 120 && user) {
-                await ovl.sendMessage(ms_org, { text: `⚠️ @${userW} il ne reste plus que 2 minutes.`, mentions: [user] });
-            }
-            if (time <= 0) {
-                clearInterval(interval);
-                delete activeCountdowns[ms_org];
-                delete pausedCountdowns[ms_org];
-                await ovl.sendMessage(ms_org, { text: "⚠️ Latence Out" });
-            }
-        }, 1000);
-        activeCountdowns[ms_org] = { interval, remaining: time, userW, user };
-        delete pausedCountdowns[ms_org];
-        return ovl.sendMessage(ms_org, { text: "▶️ Décompte repris." });
-    }
-
-    let countdownTime = null;
-    let isGo = false;
-    if (mots[0].startsWith('@') && /(next|nx|nxt)$/.test(mots[1])) {
-        countdownTime = 5 * 60;
-    } else if (mots[0].startsWith('@') && /go$/.test(mots[1])) {
-        countdownTime = 6 * 60;
-        isGo = true;
-    } else return;
-
-    if (activeCountdowns[ms_org] || pausedCountdowns[ms_org]) {
-        return ovl.sendMessage(ms_org, { text: "⚠️ Un décompte est déjà en cours ou en pause." });
-    }
-
-    await ovl.sendMessage(ms_org, {
-        video: { url: isGo ? "https://files.catbox.moe/kzimc0.mp4" : "https://files.catbox.moe/hqh4iz.mp4" },
-        gifPlayback: true
-    });
-
+  if (["resume", "continue", "go"].includes(neoTexte) && pausedCountdowns[ms_org]) {
+    const { remaining, userW, user } = pausedCountdowns[ms_org];
+    let time = remaining;
     const interval = setInterval(async () => {
-        countdownTime--;
-        if (countdownTime === 120 && user) {
-            await ovl.sendMessage(ms_org, { text: `⚠️ @${userW} il ne reste plus que 2 minutes.`, mentions: [user] });
-        }
-        if (countdownTime <= 0) {
-            clearInterval(interval);
-            delete activeCountdowns[ms_org];
-            await ovl.sendMessage(ms_org, { text: "⚠️ Latence Out" });
-        }
+      time--;
+      activeCountdowns[ms_org].remaining = time;
+      if (time === 120 && user) {
+        await ovl.sendMessage(ms_org, { text: `⚠️ @${userW} il ne reste plus que 2 minutes.`, mentions: [user] });
+      }
+      if (time <= 0) {
+        clearInterval(interval);
+        delete activeCountdowns[ms_org];
+        await ovl.sendMessage(ms_org, { text: "⚠️ Latence Out" });
+      }
     }, 1000);
+    activeCountdowns[ms_org] = { interval, remaining: time, userW, user };
+    delete pausedCountdowns[ms_org];
+    return ovl.sendMessage(ms_org, { text: "▶️ Décompte repris." });
+  }
 
-    activeCountdowns[ms_org] = { interval, remaining: countdownTime, userW, user };
+  let countdownTime = null;
+  let isGo = false;
+  if (mots[0]?.startsWith("@") && /(next|nx|nxt)$/.test(mots[1] || "")) {
+    countdownTime = 5 * 60;
+  } else if (mots[0]?.startsWith("@") && /go$/.test(mots[1] || "")) {
+    countdownTime = 6 * 60;
+    isGo = true;
+  } else return;
+
+  if (activeCountdowns[ms_org] || pausedCountdowns[ms_org]) {
+    return ovl.sendMessage(ms_org, { text: "⚠️ Un décompte est déjà en cours ou en pause." });
+  }
+
+  await ovl.sendMessage(ms_org, {
+    video: { url: isGo ? "https://files.catbox.moe/kzimc0.mp4" : "https://files.catbox.moe/hqh4iz.mp4" },
+    gifPlayback: true
+  });
+
+  const interval = setInterval(async () => {
+    countdownTime--;
+    if (countdownTime === 120 && user) {
+      await ovl.sendMessage(ms_org, { text: `⚠️ @${userW} il ne reste plus que 2 minutes.`, mentions: [user] });
+    }
+    if (countdownTime <= 0) {
+      clearInterval(interval);
+      delete activeCountdowns[ms_org];
+      await ovl.sendMessage(ms_org, { text: "⚠️ Latence Out" });
+    }
+  }, 1000);
+
+  activeCountdowns[ms_org] = { interval, remaining: countdownTime, userW, user };
 });
 
-/*ovlcmd({
-    nom: "negs_vic",
-    isfunc: true
-}, async (ms_org, ovl, { texte, getJid }) => {
-    const lowerText = texte.toLowerCase();
-    const userW = lowerText[0].slice(1);
-    let user;
-    if (userW.endsWith('lid')) {
-        user = await getJid(userW, ms_org, ovl);
-    }
+ovlcmd({
+  nom: "fin_combat",
+  isfunc: true
+}, async (ms_org, ovl, { texte }) => {
+  const lowerText = texte.toLowerCase().trim();
+  const prefix = "╭──⟪ *🎮verdict moderateur* ⟫──╮";
+  if (!lowerText.startsWith(prefix)) return;
 
-    if (
-        user &&
-        lowerText.includes("victoire") &&
-        lowerText.includes("negs diff")
-    ) {
-        const victoryVids = [
-            "https://files.catbox.moe/ydrzja.mp4",
-            "https://files.catbox.moe/laargl.mp4"
-        ];
-        const randomVid = victoryVids[Math.floor(Math.random() * victoryVids.length)];
+  const words = texte.split(/\s+/);
+  const winner = words.find(w => w.startsWith("@"));
+  if (!winner) return;
 
-        await ovl.sendMessage(ms_org, {
-            video: { url: randomVid },
-            gifPlayback: true
-        });
-    }
+  const victoryVid = "https://files.catbox.moe/m68az6.mp4";
+  const message = `*🎙️NEO TV🎬:* Félicitations à ${winner} pour sa victoire devant la foule en délire et une arène bouillante🎊🎊🎊🎉🎉🎉🎉`;
+
+  await ovl.sendMessage(ms_org, {
+    video: { url: victoryVid },
+    caption: message,
+    gifPlayback: true,
+    mentions: [winner.replace("@", "")]
+  });
 });
-*/
