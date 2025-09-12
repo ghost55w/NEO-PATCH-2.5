@@ -1,6 +1,7 @@
 const { exec } = require("child_process");
 const { ovlcmd, cmd } = require("../lib/ovlcmd");
 const config = require("../set");
+const axios = require('axios');
 const { Bans } = require('../DataBase/ban');
 const { Sudo } = require('../DataBase/sudo');
 
@@ -458,4 +459,51 @@ ovlcmd(
         if (s > 0) uptime += `${s}S`;
         await ovl.sendMessage(ms_org, { text: `⏳ Temps de fonctionnement : ${uptime}` }, { quoted: cmd_options.ms });
     }
+);
+
+async function uploadToCatbox(filePath) {
+  try {
+    const form = new FormData();
+    form.append('reqtype', 'fileupload');
+    form.append('fileToUpload', fs.createReadStream(filePath));
+
+    const res = await axios.post('https://catbox.moe/user/api.php', form, {
+      headers: form.getHeaders()
+    });
+
+    return res.data;
+  } catch (error) {
+    console.error("Erreur lors de l'upload sur Catbox:", error);
+    throw new Error("Une erreur est survenue lors de l'upload du fichier.");
+  }
+}
+
+ovlcmd(
+  {
+    nom_cmd: "url",
+    classe: "Conversion",
+    react: "📤",
+    desc: "Upload un fichier (image, vidéo, audio) sur Catbox et renvoie le lien"
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { msg_Repondu, ms } = cmd_options;
+
+    if (!msg_Repondu) {
+      return ovl.sendMessage(ms_org, { text: "Veuillez mentionner un fichier (image, vidéo, audio ou document)." }, { quoted: ms });
+    }
+
+    const mediaMessage = msg_Repondu.imageMessage || msg_Repondu.videoMessage || msg_Repondu.audioMessage;
+    if (!mediaMessage) {
+      return ovl.sendMessage(ms_org, { text: "Type de fichier non supporté. Veuillez mentionner une image, vidéo ou audio." }, { quoted: ms });
+    }
+
+    try {
+      const media = await ovl.dl_save_media_ms(mediaMessage);
+      const link = await uploadToCatbox(media);
+      await ovl.sendMessage(ms_org, { text: link }, { quoted: ms });
+    } catch (error) {
+      console.error("Erreur lors de l'upload sur Catbox:", error);
+      await ovl.sendMessage(ms_org, { text: "Erreur lors de la création du lien Catbox." }, { quoted: ms });
+    }
+  }
 );
