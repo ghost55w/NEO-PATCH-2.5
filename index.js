@@ -3,14 +3,12 @@ const path = require('path');
 const pino = require("pino");
 const axios = require('axios');
 const express = require('express');
-
 const {
   default: makeWASocket,
   makeCacheableSignalKeyStore,
   Browsers,
   useMultiFileAuthState
 } = require("@whiskeysockets/baileys");
-
 const { get_session, restaureAuth } = require('./DataBase/session');
 const config = require('./set');
 const {
@@ -21,15 +19,12 @@ const {
   recup_msg
 } = require('./Ovl_events');
 
-async function startPrincipalSession() {
+async function main() {
   try {
     const instanceId = "principale";
     const sessionData = await get_session(config.SESSION_ID);
-    
     await restaureAuth(instanceId, sessionData.creds, sessionData.keys);
-
     const { state, saveCreds } = await useMultiFileAuthState(`./auth/${instanceId}`);
-
     const ovl = makeWASocket({
       auth: {
         creds: state.creds,
@@ -40,7 +35,6 @@ async function startPrincipalSession() {
       },
       logger: pino({ level: 'silent' }),
       browser: Browsers.ubuntu('Chrome'),
-      keepAliveIntervalMs: 10000,
       markOnlineOnConnect: false,
       generateHighQualityLinkPreview: true,
       getMessage: async (key) => {
@@ -48,31 +42,25 @@ async function startPrincipalSession() {
         return msg?.message || undefined;
       }
     });
-
     ovl.ev.on("messages.upsert", async (m) => message_upsert(m, ovl));
     ovl.ev.on("group-participants.update", async (data) => group_participants_update(data, ovl));
-    ovl.ev.on("connection.update", (update) => connection_update(update, ovl, startPrincipalSession));
+    ovl.ev.on("connection.update", (update) => connection_update(update, ovl));
     ovl.ev.on("creds.update", saveCreds);
-
     ovl.dl_save_media_ms = (msg, filename = '', attachExt = true, dir = './downloads') =>
       dl_save_media_ms(ovl, msg, filename, attachExt, dir);
-
     ovl.recup_msg = (params = {}) => recup_msg({ ovl, ...params });
-
     console.log("✅ Session principale démarrée");
   } catch (err) {
     console.error("❌ Erreur au lancement :", err.message || err);
   }
 }
 
-startPrincipalSession().catch((err) => {
+main().catch((err) => {
   console.error("❌ Erreur inattendue :", err.message || err);
 });
 
-// ---------------------- EXPRESS SERVER ----------------------
 const app = express();
 const port = process.env.PORT || 3000;
-
 let dernierPingRecu = Date.now();
 
 app.get('/', (req, res) => {
@@ -152,5 +140,5 @@ function setupAutoPing(url) {
 }
 
 process.on('uncaughtException', async (e) => {
-  console.log('Une erreur inattendue est survenue :', e.message);
+  console.error('Une erreur inattendue est survenue :', e);
 });
