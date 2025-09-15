@@ -20,7 +20,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
     const { repondre, ms, arg, prenium_id } = cmd_options;
 
     try {
-      const data = await getData({ id: jid });
+      const data = await getData({ jid: jid });
 
       if (!arg.length) {
         const fiche = `░▒▒░░▒░ *👤N E O P L A Y E R 🎮*
@@ -99,7 +99,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 
 async function processUpdates(args, jid) {
   const updates = [];
-  const data = await getData({ id: jid });
+  const data = await getData({ jid: jid });
   let i = 0;
 
   while (i < args.length) {
@@ -154,11 +154,11 @@ async function initFichesAuto() {
       if (!player.code_fiche || player.code_fiche == "pas de fiche" || !player.division || !player.oc_url || !player.id) continue;
 
       const nom = player.code_fiche;
-      const id = player.id.toString();
+      const jid = player.jid;
       const image = player.oc_url;
       const division = player.division.replace(/\*/g, '');
 
-      add_fiche(nom, id, image, division);
+      add_fiche(nom, jid, image, division);
     }
   } catch (e) {
     console.error("Erreur d'initFichesAuto:", e);
