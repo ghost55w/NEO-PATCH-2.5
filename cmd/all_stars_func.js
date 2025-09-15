@@ -92,8 +92,9 @@ ovlcmd({
 
   let user = null, userW = null;
   if (mots[0]?.startsWith("@")) {
-    userW = mots[0].slice(1);
-    user = await getJid(userW + "@lid", ms_org, ovl);
+    const userLid = mots[0].slice(1);
+    user = await getJid(userLid + "@lid", ms_org, ovl);
+    userW = user.split("@")[0]
   }
 
   const stopCountdown = async () => {
