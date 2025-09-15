@@ -334,7 +334,7 @@ ovlcmd({
 ovlcmd({
     nom: "stats_lineup",
     isfunc: true
-}, async (ms_org, ovl, { texte, repondre, getJid }) => {
+}, async (ms_org, ovl, { texte, getJid }) => {
     try {
         if (!texte) return;
         const mots = texte.trim().toLowerCase().split(/\s+/);
@@ -344,44 +344,28 @@ ovlcmd({
             let userId;
             if (userW.endsWith('lid')) {
                 userId = await getJid(userW, ms_org, ovl);
-            } else {
-                throw new Error("⚠️ Format incorrect : le @ doit se terminer par 'lid'.");
             }
 
             const joueurKey = mots[1];
-            if (!/^j\d+$/.test(joueurKey)) throw new Error("⚠️ Mauvais joueur. Exemple : j1, j2...");
-
-            const statKey = `stat${joueurKey.replace("j", "")}`;
-            const signe = mots[2];
-            const valeur = parseInt(mots[3], 10);
-
-            if (isNaN(valeur) || valeur <= 0 || !['+', '-'].includes(signe)) {
-                throw new Error("⚠️ Format de valeur ou opérateur invalide. Utilise + ou - suivi d’un nombre.");
+            if (/^j\d+$/.test(joueurKey)) {
+                const statKey = `stat${joueurKey.replace("j", "")}`;
+                const signe = mots[2];
+                const valeur = parseInt(mots[3], 10);
+                if (!isNaN(valeur) && valeur > 0 && ['+', '-'].includes(signe)) {
+                    await updateStats(userId, statKey, signe, valeur);
+                }
             }
-
-            const msg = await updateStats(userId, statKey, signe, valeur);
-            return repondre(msg);
-        }
-
-        if (mots.length === 2 && mots[1] === "reset_stats" && mots[0].startsWith("@")) {
+        } else if (mots.length === 2 && mots[1] === "reset_stats" && mots[0].startsWith("@")) {
             const userW = mots[0].slice(1);
             let userId;
             if (userW.endsWith('lid')) {
                 userId = await getJid(userW, ms_org, ovl);
-            } else {
-                throw new Error("⚠️ Format incorrect : le @ doit se terminer par 'lid'.");
             }
-
             if (typeof BlueLockFunctions?.resetStats === "function") {
-                const msg = await BlueLockFunctions.resetStats(userId);
-                return repondre(msg);
-            } else {
-                throw new Error("❌ Fonction resetStats non disponible.");
+                await BlueLockFunctions.resetStats(userId);
             }
         }
-
-        throw new Error("⚠️ Commande invalide.");
     } catch (e) {
-        console.error("Erreur stats_lineup:", e.message || e);
+        console.error("Erreur stats_lineup:", e);
     }
 });
