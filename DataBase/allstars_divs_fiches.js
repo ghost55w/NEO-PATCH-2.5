@@ -94,12 +94,12 @@ async function getData(where = {}) {
   return fiche;
 }
 
-async function setfiche(colonne, valeur, id) {
+async function setfiche(colonne, valeur, jid) {
   const updateData = {};
   updateData[colonne] = valeur;
 
   const [updatedCount] = await AllStarsDivsFiche.update(updateData, {
-    where: { id },
+    where: { jid },
   });
 
   if (updatedCount === 0) {
