@@ -1,11 +1,16 @@
 const { ovlcmd } = require("../lib/ovlcmd");
 const { getData, setfiche, getAllFiches, add_id, del_fiche } = require('../DataBase/allstars_divs_fiches');
 
+const registeredFiches = new Set();
+
 function normalizeText(text) {
   return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
 function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
+  if (registeredFiches.has(nom_joueur)) return;
+  registeredFiches.add(nom_joueur);
+
   ovlcmd({
     nom_cmd: nom_joueur,
     classe: joueur_div,
@@ -58,7 +63,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 ░▒░▒░ CARDS 🎴: ${data.total_cards}
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
 ᪣ ${data.cards}
-▱▱▱▱ ▱▱▱▱ 
+▱▱▱▱ ▱▱▱▱ 
 *⌬𝗡SLPro🏆*
 > NEO SUPER LEAGUE ESPORTS™`;
 
@@ -66,12 +71,12 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
           video: { url: 'https://files.catbox.moe/w37yae.mp4' },
           gifPlayback: true,
           caption: ""
-        }, { quoted: cmd_options.ms });
+        }, { quoted: ms });
 
         return ovl.sendMessage(ms_org, {
           image: { url: data.oc_url },
           caption: fiche
-        }, { quoted: cmd_options.ms });
+        }, { quoted: ms });
       }
 
       if (!prenium_id) return await repondre("⛔ Accès refusé ! Seuls les membres de la NS peuvent faire ça.");
@@ -115,7 +120,9 @@ async function processUpdates(args, jid) {
     let newValue;
 
     if (signe === '+' || signe === '-') {
-      newValue = eval(`${oldValue} ${signe} ${valeur}`);
+      const n1 = Number(oldValue) || 0;
+      const n2 = Number(valeur) || 0;
+      newValue = signe === '+' ? n1 + n2 : n1 - n2;
     } else if (signe === '=') {
       newValue = texte.join(' ');
     } else if (signe === 'add') {
@@ -175,7 +182,7 @@ ovlcmd({
 
   try {
     await add_id(jid, { code_fiche, division });
-    initFichesAuto();
+    await initFichesAuto();
 
     await repondre(
       `✅ Nouvelle fiche enregistrée :\n` +
@@ -201,6 +208,7 @@ ovlcmd({
   try {
     const deleted = await del_fiche(code_fiche);
     if (deleted === 0) return await repondre("❌ Aucune fiche trouvée.");
+    registeredFiches.delete(code_fiche);
     await repondre(`✅ Fiche supprimée : \`${code_fiche}\``);
   } catch (err) {
     console.error(err);
