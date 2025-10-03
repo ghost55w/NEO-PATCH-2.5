@@ -121,10 +121,10 @@ const MyNeoFunctions = {
 };
 
 const BlueLockFunctions = {
-  async saveUser(jid, nom) {
+  async saveUser(jid, data = {}) {
     const existing = await BlueLockStats.findByPk(jid);
     if (existing) return "⚠️ Ce joueur est déjà enregistré.";
-    await BlueLockStats.create({ id: jid, nom });
+    await BlueLockStats.create({ id: jid, ...data });
     return "✅ Joueur enregistré avec succès.";
   },
   async deleteUser(jid) {
