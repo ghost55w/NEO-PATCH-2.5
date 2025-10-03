@@ -103,10 +103,10 @@ async function setfiche(colonne, valeur, jid) {
   });
 
   if (updatedCount === 0) {
-    throw new Error(`❌ Aucun joueur trouvé avec l'id : ${id}`);
+    throw new Error(`❌ Aucun joueur trouvé avec l'id : ${jid}`);
   }
 
-  console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur id ${id}`);
+  console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur id ${jid}`);
 }
 
 async function add_id(jid, data = {}) {
