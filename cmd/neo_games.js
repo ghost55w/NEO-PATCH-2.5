@@ -22,7 +22,7 @@ ovlcmd({
   classe: 'NEO_GAMES🎰',
   react: '🎰',
   desc: 'Lance une roulette aléatoire avec récompenses.'
-}, async (ms, ovl, { repondre, auteur_Message }) => {
+}, async (ms_org, ovl, { ms, repondre, auteur_Message }) => {
   try {
     const authorizedChats = [
       '120363024647909493@g.us',
@@ -76,10 +76,10 @@ x10 = 20🔷
 
     const getConfirmation = async (attempt = 1) => {
       if (attempt > 3) throw new Error('TooManyAttempts');
-      const rep = await ovl.recup_msg({ auteur: auteur_Message, ms, temps: 60000 });
+      const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
       const response = (rep?.message?.extendedTextMessage?.text || rep?.message?.conversation || "").trim().toLowerCase();
-      if (response === 'oui') return true;
-      if (response === 'non') throw new Error('GameCancelledByUser');
+      if (response == 'oui') return true;
+      if (response == 'non') throw new Error('GameCancelledByUser');
       await repondre('❓ Veuillez répondre par Oui ou Non.');
       return await getConfirmation(attempt + 1);
     };
@@ -96,7 +96,7 @@ x10 = 20🔷
         caption: isSecond ? '🎊😃: *Vous avez une deuxième chance ! Choisissez un autre numéro. Vous avez 1 min ⚠️* (Répondre à ce message)' : '🎊😃: *Choisissez un numéro. Vous avez 1 min ⚠️* (Répondre à ce message)',
         gifPlayback: true
       }, { quoted: ms });
-      const rep = await ovl.recup_msg({ auteur: auteur_Message, ms, temps: 60000 });
+      const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
       const number = parseInt(rep?.message?.extendedTextMessage?.text || rep?.message?.conversation);
       if (isNaN(number) || number < 0 || number > 50) {
         await repondre('❌ Numéro invalide.');
