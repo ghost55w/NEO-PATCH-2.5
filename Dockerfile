@@ -1,6 +1,9 @@
-FROM node:20-alpine
+FROM node:20-bullseye-slim
 
-RUN apk add --no-cache git bash
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN git clone https://github.com/Ainz-fo/NEO-BOT-MD.git /ovl_bot
 
