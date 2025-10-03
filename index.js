@@ -36,11 +36,7 @@ async function main() {
       logger: pino({ level: 'silent' }),
       browser: Browsers.ubuntu('Chrome'),
       markOnlineOnConnect: false,
-      generateHighQualityLinkPreview: true,
-      getMessage: async (key) => {
-        const msg = await recup_msg({ id: key.id });
-        return msg?.message || undefined;
-      }
+      generateHighQualityLinkPreview: true
     });
     ovl.ev.on("messages.upsert", async (m) => message_upsert(m, ovl));
     ovl.ev.on("group-participants.update", async (data) => group_participants_update(data, ovl));
@@ -56,7 +52,7 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error("❌ Erreur inattendue :", err.message || err);
+  console.error("❌ Erreur inattendue :", err);
 });
 
 const app = express();
