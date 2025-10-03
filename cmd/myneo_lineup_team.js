@@ -274,7 +274,11 @@ ovlcmd({
   desc: "Afficher ou modifier l'équipe du joueur.",
 }, async (ms_org, ovl, cmd_options) => {
   const { arg, repondre, auteur_Message } = cmd_options;
-   const userId = arg[0];
+   let userId = auteur_Message;
+  if (arg.length >= 1) {
+    userId = arg[0];
+    if (!userId) return repondre("⚠️ Mentionne un utilisateur.");
+  }
   const data = await getLineup(userId);
   if (!data) return repondre("⚠️ Joueur introuvable.");
 
