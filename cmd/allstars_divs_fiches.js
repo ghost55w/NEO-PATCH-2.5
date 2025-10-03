@@ -210,6 +210,7 @@ ovlcmd({
     if (deleted === 0) return await repondre("❌ Aucune fiche trouvée.");
     registeredFiches.delete(code_fiche);
     await repondre(`✅ Fiche supprimée : \`${code_fiche}\``);
+    await initFichesAuto();
   } catch (err) {
     console.error(err);
     await repondre("❌ Erreur lors de la suppression de la fiche.");
