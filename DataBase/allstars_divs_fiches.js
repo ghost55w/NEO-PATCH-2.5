@@ -111,12 +111,31 @@ async function setfiche(colonne, valeur, jid) {
 
 async function add_id(jid, data = {}) {
   if (!jid) throw new Error("JID requis");
-  const defaults = { jid, ...data };
-  const [fiche, created] = await AllStarsDivsFiche.findOrCreate({
-    where: { jid },
-    defaults
+
+  const existing = await AllStarsDivsFiche.findOne({ where: { jid } });
+  if (existing) return null;
+
+  const fiches = await AllStarsDivsFiche.findAll({
+    attributes: ['id'],
+    order: [['id', 'ASC']]
   });
-  if (!created) return null;
+
+  const ids = fiches.map(f => f.id);
+  let newId = 1;
+  for (let i = 0; i < ids.length; i++) {
+    if (ids[i] !== i + 1) {
+      newId = i + 1;
+      break;
+    }
+    newId = ids.length + 1;
+  }
+
+  const fiche = await AllStarsDivsFiche.create({
+    id: newId,
+    jid,
+    ...data
+  });
+
   return fiche;
 }
 
