@@ -185,6 +185,6 @@ ovlcmd({
     video: { url: victoryVid },
     caption: message,
     gifPlayback: true,
-    mentions: [winner.replace("@", "")]
+    mentions: [winner.replace("@", "") + "@lid"]
   });
 });
