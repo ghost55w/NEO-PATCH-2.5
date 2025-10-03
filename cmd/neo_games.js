@@ -22,7 +22,7 @@ ovlcmd({
   classe: 'NEO_GAMES🎰',
   react: '🎰',
   desc: 'Lance une roulette aléatoire avec récompenses.'
-}, async (ms_org, ovl, { repondre, auteur_Message }) => {
+}, async (ms, ovl, { repondre, auteur_Message }) => {
   try {
     const authorizedChats = [
       '120363024647909493@g.us',
@@ -30,7 +30,7 @@ ovlcmd({
       '22651463203@s.whatsapp.net',
       '22605463559@s.whatsapp.net'
     ];
-    if (!authorizedChats.includes(ms_org)) return repondre("Commande non autorisée pour ce chat.");
+    if (!authorizedChats.includes(ms)) return repondre("Commande non autorisée pour ce chat.");
 
     const userData = await MyNeoFunctions.getUserData(auteur_Message);
     if (!userData) return repondre("❌ Joueur introuvable dans MyNeo.");
@@ -51,7 +51,7 @@ ovlcmd({
 
     let msga = `*🎰𝗧𝗘𝗡𝗧𝗘𝗭 𝗩𝗢𝗧𝗥𝗘 𝗖𝗛𝗔𝗡𝗖𝗘🥳 !!*🎉🎉
 ▭▬▭▬▭▬▭▬▭▬▭▬════░▒▒▒▒░░▒░
-                           
+
 Bienvenue dans la Roulette, choisissez un chiffre parmis les *5️⃣0️⃣*. Si vous choisissez le bon chiffre alors vous gagnez une récompense 🎁. *⚠️Vous avez 2 chances pour choisir le bon numéro*. 
 🎊▔▔🎊▔🎊▔🎊▔▔🎊▔▔🎊▔🎊▔🎊
 *\`${numbers.join(', ')}\`*. ▱▱▱ ▱▱▱ ▱▱▱ ▱▱▱
@@ -67,8 +67,8 @@ x10 = 20🔷
 ✅: \`Oui\`
 ❌: \`Non\`
                                           ══░▒▒▒▒░░▒░`;
-    
-    await ovl.sendMessage(ms_org, {
+
+    await ovl.sendMessage(ms, {
       video: { url: 'https://files.catbox.moe/amtfgl.mp4' },
       caption: msga,
       gifPlayback: true
@@ -76,27 +76,27 @@ x10 = 20🔷
 
     const getConfirmation = async (attempt = 1) => {
       if (attempt > 3) throw new Error('TooManyAttempts');
-      const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
-      const response = rep?.message?.extendedTextMessage?.text || rep?.message?.conversation;
-      if (response?.toLowerCase() === 'oui') return true;
-      if (response?.toLowerCase() === 'non') throw new Error('GameCancelledByUser');
+      const rep = await ovl.recup_msg({ auteur: auteur_Message, ms, temps: 60000 });
+      const response = (rep?.message?.extendedTextMessage?.text || rep?.message?.conversation || "").trim().toLowerCase();
+      if (response === 'oui') return true;
+      if (response === 'non') throw new Error('GameCancelledByUser');
       await repondre('❓ Veuillez répondre par Oui ou Non.');
       return await getConfirmation(attempt + 1);
     };
 
     await getConfirmation();
- 
+
     valeur_np -= 1;
     await MyNeoFunctions.updateUser(auteur_Message, { np: valeur_np });
-    
+
     const getChosenNumber = async (isSecond = false, attempt = 1) => {
       if (attempt > 3) throw new Error('TooManyAttempts');
-      await ovl.sendMessage(ms_org, {
+      await ovl.sendMessage(ms, {
         video: { url: 'https://files.catbox.moe/amtfgl.mp4' },
         caption: isSecond ? '🎊😃: *Vous avez une deuxième chance ! Choisissez un autre numéro. Vous avez 1 min ⚠️* (Répondre à ce message)' : '🎊😃: *Choisissez un numéro. Vous avez 1 min ⚠️* (Répondre à ce message)',
         gifPlayback: true
-      }, { quoted: ms_org });
-      const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
+      }, { quoted: ms });
+      const rep = await ovl.recup_msg({ auteur: auteur_Message, ms, temps: 60000 });
       const number = parseInt(rep?.message?.extendedTextMessage?.text || rep?.message?.conversation);
       if (isNaN(number) || number < 0 || number > 50) {
         await repondre('❌ Numéro invalide.');
@@ -107,7 +107,8 @@ x10 = 20🔷
 
     const checkNumber = async (num, isSecond = false) => {
       if (winningNumbers.includes(num)) {
-        let reward = rewards[winningNumbers.indexOf(num)];
+        const idx = winningNumbers.indexOf(num);
+        let reward = rewards[idx];
         switch (reward) {
           case '5🔷':
             valeur_nc += 5;
@@ -122,18 +123,17 @@ x10 = 20🔷
             await MyNeoFunctions.updateUser(auteur_Message, { coupons: valeur_coupons });
             break;
         }
-        await ovl.sendMessage(ms_org, {
+        await ovl.sendMessage(ms, {
           video: { url: 'https://files.catbox.moe/vfv2hk.mp4' },
-          caption: `🎰FÉLICITATIONS ! 🥳🥳 vous avez gagner +${reward} 🎁🎊
+          caption: `🎰FÉLICITATIONS ! 🥳🥳 vous avez gagné +${reward} 🎁🎊
 ══░▒▒▒▒░░▒░`,
           gifPlayback: true
         }, { quoted: ms });
         return true;
       } else if (isSecond) {
-        await ovl.sendMessage(ms_org, {
+        await ovl.sendMessage(ms, {
           video: { url: 'https://files.catbox.moe/hmhs29.mp4' },
-          caption: `🎰❌❌SORRY ! 😖😣 Mauvais numéro💔💔💔💔. T'abandonne ? 😝
-══░▒▒▒▒░░▒░`,
+          caption: `😫😖💔 ▭▬▭▬▭▬▭▬▭▬▭▬▭▬▭▬❌NON ! C'était le mauvais numéro ! Dommage tu y étais presque💔▭▬▭▬▭▬▭▬▭▬▭▬▭▬😫😖💔`,
           gifPlayback: true
         }, { quoted: ms });
       }
