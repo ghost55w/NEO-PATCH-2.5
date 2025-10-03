@@ -93,7 +93,7 @@ const MyNeoFunctions = {
     try {
       const exists = await MyNeo.findByPk(id);
       if (exists) return "⚠️ Ce joueur est déjà enregistré.";
-      await MyNeo.create({ id, tel: id.replace("@s.whatsapp.net", ""), ...data });
+      await MyNeo.create({ id, ...data });
       return "✅ Joueur enregistré avec succès.";
     } catch (err) {
       console.error("❌ Erreur enregistrement utilisateur:", err);
