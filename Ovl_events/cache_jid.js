@@ -1,24 +1,48 @@
-const groupCache = new Map();
+const fs = require("fs");
+const path = require("path");
 
-async function getJid(lid, ms_org, ovl) {
-    try {
-        if (!lid || typeof lid !== "string") return null;
-        if (lid.endsWith("@s.whatsapp.net")) return lid;
-        if (groupCache.has(lid)) return groupCache.get(lid);
+const filePath = path.join(__dirname, "../lib/cache_jid.json");
 
-        const metadata = await ovl.groupMetadata(ms_org);
-        if (!metadata || !Array.isArray(metadata.participants)) return null;
+if (!fs.existsSync(filePath)) {
+  fs.writeFileSync(filePath, JSON.stringify({}, null, 2));
+}
 
-        const participant = metadata.participants.find(p => p.id === lid);
-        if (!participant) return null;
+function readCache() {
+  const data = fs.readFileSync(filePath, "utf-8");
+  return JSON.parse(data);
+}
 
-        const jid = participant.jid;
-        groupCache.set(lid, jid);
-        return jid;
-    } catch (e) {
-        console.error("❌ Erreur dans getJid:", e.message);
-        return null;
-    }
+function writeCache(cache) {
+  fs.writeFileSync(filePath, JSON.stringify(cache, null, 2));
+}
+
+async function getJid(lid, ms_org, ovl, attempt = 0) {
+  try {
+    if (!lid || typeof lid !== "string") return null;
+    if (lid.endsWith("@s.whatsapp.net")) return lid;
+
+    const cache = readCache();
+    if (cache[lid]) return cache[lid];
+
+    const metadata = await ovl.groupMetadata(ms_org);
+    if (!metadata || !Array.isArray(metadata.participants)) return null;
+
+    const participant = metadata.participants.find(p => p.id == lid);
+    if (!participant) return null;
+
+    const jid = participant.jid || participant.id;
+    cache[lid] = jid;
+    writeCache(cache);
+
+    return jid;
+
+  } catch (e) {
+    if (attempt < 2) {
+      return getJid(lid, ms_org, ovl, attempt + 1);
+    }
+    console.error("❌ Erreur dans getJid après 3 tentatives:", e.message);
+    return null;
+  }
 }
 
 module.exports = getJid;
