@@ -17,7 +17,7 @@ ovlcmd({
 
   const type = arg[1]?.toLowerCase();
   const baseMyNeo = {
-    users: "aucun", tel: "", points_jeu: 0, nc: 0, np: 0,
+    users: "aucun", tel: mention.replace("@s.whatsapp.net", ""), points_jeu: 0, nc: 0, np: 0,
     coupons: 0, gift_box: 0, all_stars: "", blue_lock: "+Team⚽", elysium: "+ElysiumMe💠"
   };
   const baseTeam = {
@@ -366,6 +366,6 @@ ovlcmd({
             }
         }
     } catch (e) {
-        console.error("Erreur stats_lineup:", e);
+        // console.error("Erreur stats_lineup:", e);
     }
 });
