@@ -178,7 +178,7 @@ ovlcmd({
   const winner = words.find(w => w.startsWith("@"));
   if (!winner) return;
 
-  const victoryVid = "https://files.catbox.moe/m68az6.mp4";
+  const victoryVid = "https://files.catbox.moe/mdwjpd.mp4";
   const message = `*🎙️NEO TV🎬:* Félicitations à ${winner} pour sa victoire devant la foule en délire et une arène bouillante🎊🎊🎊🎉🎉🎉🎉`;
 
   await ovl.sendMessage(ms_org, {
