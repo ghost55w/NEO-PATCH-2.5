@@ -31,7 +31,8 @@ async function analyserTir(texte, repondre) {
     const data = response.data;
     if (data.candidates && data.candidates.length > 0) {
       const reponseTexte = data.candidates[0]?.content?.parts?.[0]?.text || "";
-      return reponseTexte;
+     console.log(reponseTexte);
+      return reponseTexte;
     }
   } catch (err) {
     console.error("Erreur Gemini :", err);
