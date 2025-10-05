@@ -100,6 +100,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 async function processUpdates(args, jid) {
   const updates = [];
   const data = await getData({ jid: jid });
+  const columns = Object.keys(data.dataValues);
   let i = 0;
 
   while (i < args.length) {
