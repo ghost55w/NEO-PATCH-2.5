@@ -63,9 +63,9 @@ async function message_upsert(m, ovl) {
     let arg = texte.trim().split(/ +/).slice(1);
 
     for (let i = 0; i < arg.length; i++) {
-      if (arg[i].endsWith('@lid')) {
+      if (arg[i].startsWith('@')) {
         const rawId = arg[i].replace(/^@/, '');
-        arg[i] = await getJid(arawId, ms_org, ovl);
+        arg[i] = await getJid(rawId + "@lid", ms_org, ovl);
       }
     }
 
