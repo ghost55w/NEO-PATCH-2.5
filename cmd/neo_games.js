@@ -68,7 +68,7 @@ x10 = 20🔷
 ❌: \`Non\`
                                           ══░▒▒▒▒░░▒░`;
 
-    await ovl.sendMessage(ms, {
+    await ovl.sendMessage(ms_org, {
       video: { url: 'https://files.catbox.moe/amtfgl.mp4' },
       caption: msga,
       gifPlayback: true
@@ -91,7 +91,7 @@ x10 = 20🔷
 
     const getChosenNumber = async (isSecond = false, attempt = 1) => {
       if (attempt > 3) throw new Error('TooManyAttempts');
-      await ovl.sendMessage(ms, {
+      await ovl.sendMessage(ms_org, {
         video: { url: 'https://files.catbox.moe/amtfgl.mp4' },
         caption: isSecond ? '🎊😃: *Vous avez une deuxième chance ! Choisissez un autre numéro. Vous avez 1 min ⚠️* (Répondre à ce message)' : '🎊😃: *Choisissez un numéro. Vous avez 1 min ⚠️* (Répondre à ce message)',
         gifPlayback: true
@@ -123,7 +123,7 @@ x10 = 20🔷
             await MyNeoFunctions.updateUser(auteur_Message, { coupons: valeur_coupons });
             break;
         }
-        await ovl.sendMessage(ms, {
+        await ovl.sendMessage(ms_org, {
           video: { url: 'https://files.catbox.moe/vfv2hk.mp4' },
           caption: `🎰FÉLICITATIONS ! 🥳🥳 vous avez gagné +${reward} 🎁🎊
 ══░▒▒▒▒░░▒░`,
@@ -131,7 +131,7 @@ x10 = 20🔷
         }, { quoted: ms });
         return true;
       } else if (isSecond) {
-        await ovl.sendMessage(ms, {
+        await ovl.sendMessage(ms_org, {
           video: { url: 'https://files.catbox.moe/hmhs29.mp4' },
           caption: `😫😖💔 ▭▬▭▬▭▬▭▬▭▬▭▬▭▬▭▬❌NON ! C'était le mauvais numéro ! Dommage tu y étais presque💔▭▬▭▬▭▬▭▬▭▬▭▬▭▬😫😖💔`,
           gifPlayback: true
