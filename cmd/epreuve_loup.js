@@ -114,9 +114,10 @@ ovlcmd({
   nom_cmd: 'epreuve du tir',
   isfunc: true
 }, async (ms_org, ovl, { repondre, auteur_Message, texte }) => {
+  if (!texte.toLowerCase().endsWith("*⚽blue🔷lock🥅*")) return;
   const id = auteur_Message;
   const joueur = joueurs.get(id);
-  if (!joueur || !joueur.en_cours) return repondre("❌ Vous n’avez pas d’épreuve en cours. Lancez avec `exercice4`.");
+  if (!joueur || !joueur.en_cours) return;
 
   const analyse = await analyserTir(texte, repondre);
   if (!analyse || !analyse.tir_type || !analyse.tir_zone) return;
@@ -173,7 +174,7 @@ ovlcmd({
 
 ovlcmd({
   nom_cmd: 'stop_exercice',
-  isfunc: true
+  react: '⚽'  
 }, async (ms_org, ovl, { repondre, arg, auteur_Message, texte }) => {
   const action = arg[0]?.toLowerCase();
   const targetId = arg[1] + "@s.whatsapp.net";
