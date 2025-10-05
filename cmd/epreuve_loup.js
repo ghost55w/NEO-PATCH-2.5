@@ -20,7 +20,7 @@ async function analyserTir(texte, repondre) {
   try {
     const fullText = `${promptSystem}\n"${texte}"`;
     const response = await axios.post(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyAk9Mtmnk8SuuCf7T9z8Hkw5dPxiAMVc8U',
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCtDv8matHBhGOQF_bN4zPO-J9-60vnwFE',
       {
         contents: [
           { parts: [{ text: fullText }] }
