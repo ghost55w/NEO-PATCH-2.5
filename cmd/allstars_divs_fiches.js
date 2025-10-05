@@ -109,7 +109,7 @@ async function processUpdates(args, jid) {
     const texte = valeur !== undefined ? [valeur] : [];
 
     while (i < args.length && !['+', '-', '=', 'add', 'supp'].includes(args[i]) &&
-      !columns.includes(args[i]);
+      !columns.includes(args[i])) {
     }
 
     if (!Object.keys(data.dataValues).includes(object)) {
