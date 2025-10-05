@@ -148,7 +148,7 @@ x10 = 20🔷
     }
 
   } catch (e) {
-    console.error('Erreur roulette:', e.message);
+    console.error('Erreur roulette:', e);
     repondre("❌ Une erreur est survenue.");
   }
 });
