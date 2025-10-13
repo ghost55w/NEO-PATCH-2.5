@@ -54,20 +54,29 @@ ovlcmd({
     });
 
     const texteDebut = `*🔷ÉPREUVE DE TIRS⚽🥅*
-⚠️Objectif : marquer 18 buts en 18 tirs max en 20 mins.
-Gardien Robot mémorise vos tirs.
-SI VOUS RATEZ UN TIR, FIN DE L'EXERCICE ❌.
-*🔷BLUE LOCK⚽*
-🥇18 buts⚽ (100 pts) 
-🥈12 buts⚽ (50 pts) 
-🥉6 buts⚽  (25 pts)  
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
+
+                   🔷⚽RÈGLES:
+Dans cet exercice l'objectif est de marquer 18 buts en 18 tirs max dans le temps imparti ❗20 mins⌛ face à un gardien Robot qui  mémorise vos tirs pour bloquer le même tir de suite. ⚠Vous devez marquer au moins 6 buts sinon vous êtes éliminé ❌. 
+
+⚠SI VOUS RATEZ UN TIR, FIN DE L'EXERCICE ❌.
+
+▔▔▔▔▔▔▔ 🔷RANKING🏆 ▔▔▔▔▔▔▔  
+                       
+🥉Novice: 6 buts⚽ (25 pts) 
+🥈Pro: 12 buts⚽ (50 pts) 
+🥇Classe mondiale: 18 buts⚽🏆(100 pts) 
+
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔░ ░                         
+
 Souhaitez-vous lancer l'exercice ? :
-✅ \`Oui\`
-❌ \`Non\`
-*BLUE LOCK🔷Neoverse*`;
+✅ Oui
+❌ Non
+
+                         ⚽BLUE🔷LOCK`;
 
     await ovl.sendMessage(ms_org, {
-      image: { url: 'https://files.catbox.moe/xpwx9x.jpg' },
+      image: { url: 'https://files.catbox.moe/09rll9.jpg' },
       caption: texteDebut
     });
 
