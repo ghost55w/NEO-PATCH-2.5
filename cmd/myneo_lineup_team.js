@@ -299,8 +299,8 @@ ovlcmd({
 6  👤(MD) ${data.joueur6} : ${data.stat6}%🫀
 7  👤(DG) ${data.joueur7} : ${data.stat7}%🫀
 8  👤(DC) ${data.joueur8} : ${data.stat8}%🫀
-9  👤(DD) ${data.joueur9} : ${data.stat9}%🫀
-10 👤(GB) ${data.joueur10} : ${data.stat10}%🫀
+9  👤(DC) ${data.joueur9} : ${data.stat9}%🫀
+10 👤(DD) ${data.joueur10} : ${data.stat10}%🫀
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▱▱▱▱
 *🔷BENCH🥅*:
 11 👤${data.joueur11}
