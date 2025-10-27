@@ -21,8 +21,8 @@ ovlcmd(
       const msg = `Bienvenue à NEOverse🔷, votre communauté de jeux text gaming RPTG🎮 sur whatsapp🪀par sa Majesté NEO KÏNGS⚜. Veuillez tapez les commandes pour être introduit à notre NE🌀Galaxy:
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔░▒▒░
 +Gamepass🎮 (pour voir nos jeux)
-+NSLpro🏆(pour voir les infos de la ligue
-+Neoawards💫 ( remise des prix).
++NSLpro🏆 (infos de la ligue) 
++Neoawards💫 (remise des prix).
 
 
 🔷NEOVERSE🎮 `;
@@ -52,20 +52,18 @@ ovlcmd(
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔░▒▒░
 +Allstars🌀 +Bluelock⚽  +Elysium💠
 
-
 🔷NEOVERSE🎮`;
       await ovl.sendMessage(ms_org, { image: { url: lien }, caption: msg }, { quoted: ms });
     }
   }
 );
 
-
 // commande pour afficher le menu allstars
 ovlcmd(
   {
     nom_cmd: "allstars🌀",
     classe: "AllStars🌀",
-    react: "📘",
+    react: "🎮",
     desc: "Affiche l'image Allstars + le guide complet",
   },
   async (ms_org, ovl, { arg, ms }) => {
@@ -104,7 +102,7 @@ ovlcmd(
   {
     nom_cmd: "pave",
     classe: "AllStars🌀",
-    react: "📘",
+    react: "🎮",
     desc: "Affiche le controller pave",
   },
   async (ms_org, ovl, { ms }) => {
@@ -142,7 +140,7 @@ ovlcmd(
 // commande nslpro
 ovlcmd(
   {
-    nom_cmd: "nslpro🏆",
+    nom_cmd: "nsl🏆",
     classe: "AllStars🔷",
     react: "🏆",
     desc: "Affiche la présentation NSL Pro",
