@@ -21,8 +21,8 @@ ovlcmd(
       const msg = `Bienvenue à NEOverse🔷, votre communauté de jeux text gaming RPTG🎮 sur whatsapp🪀par sa Majesté NEO KÏNGS⚜. Veuillez tapez les commandes pour être introduit à notre NE🌀Galaxy:
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔░▒▒░
 +Gamepass🎮 (pour voir nos jeux)
-+NSLpro🏆(pour voir les infos de la ligue
-+Neoawards💫 ( remise des prix).
++NSLpro🏆 (infos de la ligue) 
++Neoawards💫 (remise des prix).
 
 
 🔷NEOVERSE🎮 `;
