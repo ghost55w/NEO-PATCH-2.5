@@ -133,14 +133,14 @@ ovlcmd(
 🔆 ALL STARS JUMP 🌀
 `;
 
-    await sock.sendMessage(ms_org, { text: texte }, { quoted: ms });
+    await ovl.sendMessage(ms_org, { text: texte }, { quoted: ms });
   }
 );
 
 // commande nslpro
 ovlcmd(
   {
-    nom_cmd: "nsl🏆",
+    nom_cmd: "nslpro🏆",
     classe: "AllStars🔷",
     react: "🏆",
     desc: "Affiche la présentation NSL Pro",
