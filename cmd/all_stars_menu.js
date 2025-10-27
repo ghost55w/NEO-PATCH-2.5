@@ -130,8 +130,7 @@ ovlcmd(
 🌀👊🏽 
 
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
-🔆 ALL STARS JUMP 🌀
-`;
+            *🔆ALL STARS JUMP🌀*`;
 
     await ovl.sendMessage(ms_org, { text: texte }, { quoted: ms });
   }
