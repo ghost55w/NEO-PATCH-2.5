@@ -147,7 +147,7 @@ ovlcmd({
   }
 
   await ovl.sendMessage(ms_org, {
-    video: { url: isGo ? "https://files.catbox.moe/kzimc0.mp4" : "https://files.catbox.moe/7jmwi8.mp4" },
+    video: { url: isGo ? "https://files.catbox.moe/5nr1ie.mp4" : "https://files.catbox.moe/7jmwi8.mp4" },
     gifPlayback: true
   });
 
@@ -178,8 +178,8 @@ ovlcmd({
   const winner = words.find(w => w.startsWith("@"));
   if (!winner) return;
 
-  const victoryVid = "https://files.catbox.moe/mdwjpd.mp4";
-  const message = `*🎙️NEO TV🎬:* Félicitations à ${winner} pour sa victoire devant la foule en délire et une arène bouillante🎊🎊🎊🎉🎉🎉🎉`;
+  const victoryVid = "https://files.catbox.moe/g54udj.mp4";
+  const message = `*🎙️NEO TV🎬:* Félicitations à ${winner} pour sa victoire🎊🎊🎊🎉🎉🎉🎉`;
 
   await ovl.sendMessage(ms_org, {
     video: { url: victoryVid },
