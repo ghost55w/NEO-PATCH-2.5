@@ -147,7 +147,7 @@ ovlcmd({
   }
 
   await ovl.sendMessage(ms_org, {
-    video: { url: isGo ? "https://files.catbox.moe/kzimc0.mp4" : "https://files.catbox.moe/hqh4iz.mp4" },
+    video: { url: isGo ? "https://files.catbox.moe/kzimc0.mp4" : "https://files.catbox.moe/7jmwi8.mp4" },
     gifPlayback: true
   });
 
