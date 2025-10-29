@@ -1,25 +1,33 @@
 {
-  "name": "NEO-BOT",
+  "name": "neo-bot-md",
   "version": "2.0.0",
-  "description": "Bot WhatsApp multi-appareil développé par Ainz",
+  "description": "Bot WhatsApp multi-device NEO-BOT-MD optimisé pour Render (24h actif, session persistante)",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "pm2 start index.js --attach --name neo-bot",
-    "stop": "pm2 stop all"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
-  "keywords": ["Ainz", "NEO-BOT", "Whatsapp", "Baileys", "Neoverse"],
-  "author": "Ainz",
-  "license": "MIT",
   "dependencies": {
-    "@whiskeysockets/baileys": "npm:ovl-baileys@2.0.0",
-    "axios": "^1.4.0",
+    "@whiskeysockets/baileys": "^6.7.9",
     "express": "^4.18.2",
-    "file-type": "16.5.3",
-    "os": "^0.1.2",
-    "pg": "^8.11.2",
-    "pino": "^8.15.0",
-    "pm2": "^6.0.5",
-    "sequelize": "^6.37.5",
-    "sqlite3": "^5.1.7"
-  }
+    "node-fetch": "^3.3.2",
+    "pino": "^8.15.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "whatsapp-bot",
+    "baileys",
+    "neo-bot-md",
+    "render",
+    "keep-alive",
+    "session-persist"
+  ],
+  "author": "Sam Mouk",
+  "license": "MIT"
 }
