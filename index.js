@@ -138,3 +138,80 @@ function setupAutoPing(url) {
 process.on('uncaughtException', async (e) => {
   console.error('Une erreur inattendue est survenue :', e);
 });
+// ==============================
+// NEO-BOT-MD — Version Render 24h
+// ==============================
+
+import makeWASocket, { useMultiFileAuthState, DisconnectReason } from "@whiskeysockets/baileys";
+import pino from "pino";
+import express from "express";
+import fetch from "node-fetch";
+
+// === 1️⃣ Initialisation Express pour garder le bot actif ===
+const app = express();
+app.get("/", (req, res) => res.send("🤖 NEO-BOT-MD est en ligne et actif 24h/24 !"));
+app.listen(process.env.PORT || 3000, () => console.log("🌐 Serveur Keep-Alive actif sur Render"));
+
+// === 2️⃣ Fonction principale du bot ===
+async function startBot() {
+  const { state, saveCreds } = await useMultiFileAuthState("./session"); // dossier session
+  const sock = makeWASocket({
+    printQRInTerminal: true,
+    logger: pino({ level: "silent" }),
+    auth: state,
+    browser: ["RenderBot", "Chrome", "1.0"],
+  });
+
+  // Sauvegarde automatique des credentials
+  sock.ev.on("creds.update", saveCreds);
+
+  // Gestion des mises à jour de connexion
+  sock.ev.on("connection.update", (update) => {
+    const { connection, lastDisconnect } = update;
+    if (connection === "close") {
+      const reason = lastDisconnect?.error?.output?.statusCode;
+      console.log("⚠️ Déconnexion détectée :", reason);
+
+      if (reason !== DisconnectReason.loggedOut) {
+        console.log("🔄 Tentative de reconnexion...");
+        startBot(); // relance auto
+      } else {
+        console.log("❌ Session expirée. Supprime le dossier 'session' et rescanner le QR.");
+      }
+    } else if (connection === "open") {
+      console.log("✅ Connecté à WhatsApp !");
+    }
+  });
+
+  // Exemple de réponse automatique
+  sock.ev.on("messages.upsert", async (msg) => {
+    try {
+      const m = msg.messages[0];
+      if (!m.message || m.key.fromMe) return;
+      const from = m.key.remoteJid;
+      const text = m.message.conversation || m.message.extendedTextMessage?.text || "";
+
+      if (text.toLowerCase() === "ping") {
+        await sock.sendMessage(from, { text: "🏓 Pong ! Le bot est en ligne." });
+      }
+    } catch (err) {
+      console.error("Erreur message :", err);
+    }
+  });
+}
+
+startBot();
+
+// === 3️⃣ Keep Alive — Ping automatique vers ton lien Render ===
+// ⚠️ Remplace ci-dessous ton lien Render EXACT :
+const RENDER_URL = "https://ton-lien-render.onrender.com";
+
+setInterval(() => {
+  fetch(RENDER_URL)
+    .then(() => console.log("⏱️ Ping envoyé pour garder le bot actif"))
+    .catch((err) => console.error("Erreur ping :", err));
+}, 5 * 60 * 1000); // toutes les 5 minutes
+
+// ==============================
+// Fin du code
+// ==============================
