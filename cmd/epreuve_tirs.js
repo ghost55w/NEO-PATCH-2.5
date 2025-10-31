@@ -5,8 +5,8 @@ const joueurs = new Map();
 const promptSystem = `
 Tu es un assistant spécialisé dans l'analyse d'expressions textuelles décrivant un tir au football.
 Ton rôle est d'extraire deux valeurs : 
-1. tir_type : description libre du type de tir (ex: tir du pied gauche, tir lobé, tir puissant, etc.)
-2. tir_zone : zone de tir parmi [ras du sol gauche, ras du sol droite, mi-hauteur gauche, mi-hauteur droite, lucarne gauche, lucarne droite]
+1. tir_type : exacte, proche où equivalent [tir direct de la pointe du pied droit, tir direct de la pointe du pied gauche, tir direct du cou du pied droit, tir direct du cou du pied gauche, tir direct de l'intérieur du pied droit, tir direct de l'intérieur du pied gauche, tir enroulé de l'intérieur du pied droit avec corps décalé à 60° sur le côté droit, courbe de tir de 1m ou < 1m, tir enroulé de l'intérieur du pied gauche avec corps décalé à 60° sur le côté gauche courbe de tir de 1m ou < 1m, tir trivela de l'extérieur du pied droit avec corps décalé à 60° sur le côté gauche, courbe de tir de 1m ou < 1m, tir trivela de l'extérieur du pied gauche avec corps décalé à 60° sur le côté droit courbe de tir de 1m ou < 1m] 
+2. tir_zone : zone de tir parmi [ras du sol gauche, ras du sol droite, mi-hauteur gauche, mi-hauteur droite,lucarne gauche, lucarne droite]
 
 Répond toujours au format JSON strict :
 {
