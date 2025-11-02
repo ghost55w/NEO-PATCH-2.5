@@ -194,7 +194,7 @@ Souhaitez-vous lancer l'exercice ? :
   }
 });
 
-    }
+    
 
 ovlcmd({
   nom_cmd: 'epreuve du tir',
