@@ -227,10 +227,21 @@ return envoyerResultats(ms_org, ovl, joueur);
   joueur.tirs_total++;
   joueur.but++;
 
+  const restants = 15 - joueur.but;
   await ovl.sendMessage(ms_org, {
-    text: `✅ BUT ! (${joueur.but}/18)\nContinue !`
+    video: { url: "https://files.catbox.moe/pad98d.mp4" },
+    gifPlayback: true,
+    caption: `✅⚽GOAL : ${joueur.but} but${joueur.but > 1 ? 's' : ''} 🎯\n⚠️ Il vous reste ${restants} tirs ⌛`
   });
-});
+
+  if (joueur.but >= 15) {
+    clearTimeout(joueur.timer);
+    joueur.en_cours = false;
+    return envoyerResultats(ms_org, ovl, joueur);
+  }
+
+});    
+
 
     
 ovlcmd({
