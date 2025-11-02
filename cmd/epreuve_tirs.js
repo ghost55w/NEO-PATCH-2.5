@@ -194,67 +194,7 @@ Souhaitez-vous lancer l'exercice ? :
   }
 });
 
-ovlcmd({
-  nom_cmd: 'epreuve du tir',
-  isfunc: true
-}, async (ms_org, ovl, { repondre, auteur_Message, texte }) => {
-  if (!texte.toLowerCase().endsWith("*⚽blue🔷lock🥅*")) return;
-  const id = auteur_Message;
-  const joueur = joueurs.get(id);
-  if (!joueur || !joueur.en_cours) return;
-
-  const analyse = await analyserTir(texte, repondre);
-  if (!analyse || !analyse.tir_type || !analyse.tir_zone) return;
-
-  joueur.tirs_total++;
-  const tir_courant = { tir_type: analyse.tir_type, tir_zone: analyse.tir_zone };
-
-  const tir_repeté = joueur.tir_info.some(
-    t => t.tir_type === tir_courant.tir_type && t.tir_zone === tir_courant.tir_zone
-  );
-
-  if (tir_repeté) {
-    clearTimeout(joueur.timer);
-    joueur.en_cours = false;
-    await ovl.sendMessage(ms_org, {
-      video: { url: "https://files.catbox.moe/9k5b3v.mp4" },
-      gifPlayback: true,
-      caption: "❌MISSED! : Tir manqué, vous avez échoué à l'exercice. Fermeture de la session..."
-    });
-    return envoyerResultats(ms_org, ovl, joueur);
-  }
-
-  const dernier_tir = joueur.tir_info[joueur.tir_info.length - 1];
-  const est_different = !dernier_tir || dernier_tir.tir_zone !== tir_courant.tir_zone;
-
-  if (est_different) {
-    joueur.but++;
-    joueur.tir_info.push(tir_courant);
-    if (joueur.tir_info.length > 3) joueur.tir_info.shift();
-    const restants = 15 - joueur.but;
-
-    await ovl.sendMessage(ms_org, {
-      video: { url: "https://files.catbox.moe/pad98d.mp4" },
-      gifPlayback: true,
-      caption: `✅⚽GOAL : ${joueur.but} but${joueur.but > 1 ? 's' : ''} ⚽ marqué 🎯\n⚠️ \`Il vous reste ${restants} tirs\` ⌛`
-    });
-
-    if (joueur.but >= 15) {
-      clearTimeout(joueur.timer);
-      joueur.en_cours = false;
-      return envoyerResultats(ms_org, ovl, joueur);
-    }
-  } else {
-    clearTimeout(joueur.timer);
-    joueur.en_cours = false;
-    await ovl.sendMessage(ms_org, {
-      video: { url: "https://files.catbox.moe/x5skj8.mp4" },
-      gifPlayback: true,
-      caption: "❌MISSED! : Tir manqué, vous avez échoué à l'exercice. Fermeture de la session..."
-    });
-    return envoyerResultats(ms_org, ovl, joueur);
-  }
-});
+    }
 
 ovlcmd({
   nom_cmd: 'epreuve du tir',
@@ -266,69 +206,81 @@ ovlcmd({
   const joueur = joueurs.get(id);
   if (!joueur || !joueur.en_cours) return;
 
-  // --- DÉTECTION LOCALE ROBUSTE ---
+  // --- DÉTECTION LOCALE DES MISSED ---
   function detectMissLocal(text) {
     const t = (text || "").toLowerCase().trim();
-
-    // Phrases trop vagues (aucune info technique)
     const vagueRegex = /\b(je\s+)?(tire?|tir|frappe|je\s+fais\s+un\s+tir|je\s+vais\s+tirer|je\s+fais\s+un\s+tir trivela?)\b/;
-
-    // Mots techniques
     const detailRegex = /\b(pointe|cou du pied|intérieur|interieur|extérieur|exterieur|enroul|enroulé|trivela|lucarne|ras du sol|mi-?hauteur|gauche|droite|60\s*°|corps décalé|corps.*décalé|courbe\s*de\s*1m|<\s*1m)\b/;
 
-    // 1) Tir direct ou enroulé de l’extérieur → MISS
-    if (/\b(exterieur|extérieur).*(pied|pied droit|pied gauche)\b/.test(t)) {
-      return { tir_type: "MISSED", tir_zone: "AUCUNE" };
-    }
-    if (/\b(enroul|enroulé).*(exterieur|extérieur)\b/.test(t)) {
+    // 1) Tir direct/enroulé extérieur → MISS
+    if (/\b(exterieur|extérieur).*(pied|pied droit|pied gauche)\b/.test(t)) return { tir_type: "MISSED", tir_zone: "AUCUNE" };
+    if (/\b(enroul|enroulé).*(exterieur|extérieur)\b/.test(t)) return { tir_type: "MISSED", tir_zone: "AUCUNE" };
+
+    // 2) Trivela/enroulé sans corps décalé → MISS
+    if (/\b(trivela|enroul|enroulé)\b/.test(t) && !/\b(60\s*°|corps\s*décalé|corps.*décalé)\b/.test(t)) {
       return { tir_type: "MISSED", tir_zone: "AUCUNE" };
     }
 
-    // 2) Trivela/enroulé sans corps décalé 60° → MISS
-    if (/\b(trivela|enroul|enroulé)\b/.test(t) &&
-        !/\b(60\s*°|corps\s*décalé|corps.*décalé)\b/.test(t)) {
-      return { tir_type: "MISSED", tir_zone: "AUCUNE" };
-    }
-
-    // 3) Trivela pied gauche → corps 60° sur droite + courbe obligatoire
+    // 3) Trivela pied gauche → corps 60° côté droit + courbe obligatoire
     if (/\btrivela\b/.test(t) && /\bpied\s*gauche\b/.test(t)) {
       const corpsOk = /\b(60\s*°|corps\s*décalé|corps.*décalé).*côté\s*droit\b/.test(t);
       const courbeOk = /\b(courbe\s*de\s*1m|<\s*1m)\b/.test(t);
       if (!corpsOk || !courbeOk) return { tir_type: "MISSED", tir_zone: "AUCUNE" };
     }
 
-    // 4) Trivela pied droit → corps 60° sur gauche + courbe obligatoire
+    // 4) Trivela pied droit → corps 60° côté gauche + courbe obligatoire
     if (/\btrivela\b/.test(t) && /\bpied\s*droit\b/.test(t)) {
       const corpsOk = /\b(60\s*°|corps\s*décalé|corps.*décalé).*côté\s*gauche\b/.test(t);
       const courbeOk = /\b(courbe\s*de\s*1m|<\s*1m)\b/.test(t);
       if (!corpsOk || !courbeOk) return { tir_type: "MISSED", tir_zone: "AUCUNE" };
     }
 
-    // 5) Phrases vagues sans détails techniques → MISS
-    if (vagueRegex.test(t) && !detailRegex.test(t)) {
-      return { tir_type: "MISSED", tir_zone: "AUCUNE" };
-    }
-
-    // 6) Tir trivela/enroulé avec mots détournés (ex: "tir à l'extérieur") → MISS
-    if (/\btrivela\b/.test(t) && /\b(exterieur|extérieur)\b/.test(t)) {
-      return { tir_type: "MISSED", tir_zone: "AUCUNE" };
-    }
-    if (/\benroul|enroulé\b/.test(t) && /\b(exterieur|extérieur)\b/.test(t)) {
-      return { tir_type: "MISSED", tir_zone: "AUCUNE" };
-    }
+    // 5) Phrase trop vague sans détails techniques → MISS
+    if (vagueRegex.test(t) && !detailRegex.test(t)) return { tir_type: "MISSED", tir_zone: "AUCUNE" };
 
     return null; // Sinon analyse par Gemini
   }
 
+  // --- Fonction pour gérer la répétition après 3 tirs différents ---
+  function estTirRepeté(tir_info, tir_courant) {
+    // Trouve le dernier tir identique
+    const indexDernierIdentique = [...tir_info].reverse().findIndex(
+      t => t.tir_type === tir_courant.tir_type && t.tir_zone === tir_courant.tir_zone
+    );
+
+    if (indexDernierIdentique === -1) return false; // jamais fait → pas répétition
+
+    // Compte le nombre de tirs différents depuis ce tir identique
+    const derniersTirs = tir_info.slice(-(indexDernierIdentique));
+    const tirsDifferents = derniersTirs.filter(
+      t => t.tir_type !== tir_courant.tir_type || t.tir_zone !== tir_courant.tir_zone
+    );
+
+    return tirsDifferents.length < 3; // vrai → répétition interdite
+  }
+
+  // --- Étape 1 : Vérification locale obligatoire ---
   let analyse = detectMissLocal(texte);
 
+  if (analyse && analyse.tir_type === "MISSED") {
+    clearTimeout(joueur.timer);
+    joueur.en_cours = false;
+    await ovl.sendMessage(ms_org, {
+      video: { url: "https://files.catbox.moe/9k5b3v.mp4" },
+      gifPlayback: true,
+      caption: "❌MISSED! : Tir manqué, vous avez échoué à l'exercice. Fermeture de la session..."
+    });
+    return envoyerResultats(ms_org, ovl, joueur);
+  }
+
+  // --- Étape 2 : analyse Gemini si pas de MISS local ---
   if (!analyse) {
     analyse = await analyserTir(texte, repondre);
   }
 
   if (!analyse || !analyse.tir_type || !analyse.tir_zone) return;
 
-  // --- Si le tir est MISS (local ou IA) ---
+  // --- Étape 3 : GEMINI renvoie MISSED ?
   if (analyse.tir_type === "MISSED") {
     clearTimeout(joueur.timer);
     joueur.en_cours = false;
@@ -340,13 +292,9 @@ ovlcmd({
     return envoyerResultats(ms_org, ovl, joueur);
   }
 
-  // --- Tir valide ---
-  joueur.tirs_total++;
+  // --- Étape 4 : Vérification répétition selon règle des 3 tirs différents ---
   const tir_courant = { tir_type: analyse.tir_type, tir_zone: analyse.tir_zone };
-
-  const tir_repeté = joueur.tir_info.some(
-    t => t.tir_type === tir_courant.tir_type && t.tir_zone === tir_courant.tir_zone
-  );
+  const tir_repeté = estTirRepeté(joueur.tir_info, tir_courant);
 
   if (tir_repeté) {
     clearTimeout(joueur.timer);
@@ -354,43 +302,30 @@ ovlcmd({
     await ovl.sendMessage(ms_org, {
       video: { url: "https://files.catbox.moe/9k5b3v.mp4" },
       gifPlayback: true,
-      caption: "❌MISSED! : Tir identique détecté. Exercice terminé ❌"
+      caption: "❌MISSED! : Tir manqué, vous avez échoué à l'exercice . Fermeture de la session❌"
     });
     return envoyerResultats(ms_org, ovl, joueur);
   }
 
-  const dernier_tir = joueur.tir_info[joueur.tir_info.length - 1];
-  const est_different = !dernier_tir || dernier_tir.tir_zone !== tir_courant.tir_zone;
+  // --- Étape 5 : Tir valide normal ---
+  joueur.tirs_total++;
+  joueur.but++;
+  joueur.tir_info.push(tir_courant);
 
-  if (est_different) {
-    joueur.but++;
-    joueur.tir_info.push(tir_courant);
-    if (joueur.tir_info.length > 3) joueur.tir_info.shift();
-    const restants = 15 - joueur.but;
+  const restants = 15 - joueur.but;
+  await ovl.sendMessage(ms_org, {
+    video: { url: "https://files.catbox.moe/pad98d.mp4" },
+    gifPlayback: true,
+    caption: `✅⚽GOAL : ${joueur.but} but${joueur.but > 1 ? 's' : ''} 🎯\n⚠️ Il vous reste ${restants} tirs ⌛`
+  });
 
-    await ovl.sendMessage(ms_org, {
-      video: { url: "https://files.catbox.moe/pad98d.mp4" },
-      gifPlayback: true,
-      caption: `✅⚽GOAL : ${joueur.but} but${joueur.but > 1 ? 's' : ''} 🎯\n⚠️ Il vous reste ${restants} tirs ⌛`
-    });
-
-    if (joueur.but >= 15) {
-      clearTimeout(joueur.timer);
-      joueur.en_cours = false;
-      return envoyerResultats(ms_org, ovl, joueur);
-    }
-
-  } else {
+  if (joueur.but >= 15) {
     clearTimeout(joueur.timer);
     joueur.en_cours = false;
-    await ovl.sendMessage(ms_org, {
-      video: { url: "https://files.catbox.moe/x5skj8.mp4" },
-      gifPlayback: true,
-      caption: "❌MISSED! : Le tir est prévisible, échec de l'exercice."
-    });
     return envoyerResultats(ms_org, ovl, joueur);
   }
-});
+
+});    
 
 
 ovlcmd({
