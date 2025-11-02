@@ -219,7 +219,18 @@ ovlcmd({
       gifPlayback: true,
       caption: "❌MISSED! : Tir manqué, vous avez échoué à l'exercice . Fermeture de la session❌"
     });    
+return envoyerResultats(ms_org, ovl, joueur);
+  }
 
+  // Tir valide (pas répétition)
+  joueur.tir_info.push(tir_courant);
+  joueur.tirs_total++;
+  joueur.but++;
+
+  await ovl.sendMessage(ms_org, {
+    text: `✅ BUT ! (${joueur.but}/18)\nContinue !`
+  });
+});
 
     
 ovlcmd({
