@@ -2,7 +2,6 @@ const { ovlcmd } = require('../lib/ovlcmd');
 const axios = require('axios');
 const joueurs = new Map();
 
-// -------------------- PROMPT ULTRA-TOLÉRANT --------------------
 const promptSystem = `
 Tu es un assistant spécialisé dans l'analyse d'expressions textuelles décrivant un tir au football.
 
@@ -31,7 +30,6 @@ Répond **toujours** au format JSON strict :
 }
 `;
 
-// -------------------- ANALYSE GEMINI --------------------
 async function analyserTir(texte, repondre) {
   try {
     const fullText = `${promptSystem}\n"${texte}"`;
@@ -54,8 +52,7 @@ async function analyserTir(texte, repondre) {
     console.error("Erreur Gemini :", err);
   }
   return null;
-};
-
+}
 
 
 ovlcmd({
@@ -137,7 +134,6 @@ Souhaitez-vous lancer l'exercice ? :
     console.error(error);
   }
 });
-
 
 
 ovlcmd({
@@ -224,7 +220,7 @@ ovlcmd({
     });    
 
 
-
+    
 ovlcmd({
   nom_cmd: 'stop_exercice',
   react: '⚽'  
