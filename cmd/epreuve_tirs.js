@@ -54,7 +54,8 @@ async function analyserTir(texte, repondre) {
     console.error("Erreur Gemini :", err);
   }
   return null;
-}
+};
+
 
 
 ovlcmd({
@@ -136,6 +137,8 @@ Souhaitez-vous lancer l'exercice ? :
     console.error(error);
   }
 });
+
+
 
 ovlcmd({
   nom_cmd: 'epreuve du tir',
