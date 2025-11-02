@@ -114,6 +114,7 @@ async function analyserTir(texte, repondre) {
   return null;
 }
 
+
 ovlcmd({
   nom_cmd: 'exercice1',
   classe: 'BLUELOCK⚽',
@@ -195,7 +196,6 @@ Souhaitez-vous lancer l'exercice ? :
 });
 
     
-
 ovlcmd({
   nom_cmd: 'epreuve du tir',
   isfunc: true
