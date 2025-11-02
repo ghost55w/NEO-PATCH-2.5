@@ -2,116 +2,58 @@ const { ovlcmd } = require('../lib/ovlcmd');
 const axios = require('axios');
 const joueurs = new Map();
 
+// -------------------- PROMPT ULTRA-TOLÉRANT --------------------
 const promptSystem = `
 Tu es un assistant spécialisé dans l'analyse d'expressions textuelles décrivant un tir au football.
 
-Avant d'extraire les valeurs, applique **les règles suivantes** :
-
-❌ Si l'utilisateur écrit une phrase trop vague comme :
-- "je tir" / "je tire" / "je frappe"
-→ Réponds immédiatement :
+❌ Si l'utilisateur ne précise pas de zone de tir parmi :
+[ras du sol gauche, ras du sol droite, mi-hauteur gauche, mi-hauteur droite, lucarne gauche, lucarne droite]
+→ Répond immédiatement :
 {
   "tir_type": "MISSED",
   "tir_zone": "AUCUNE"
 }
 
-❌ Si l'utilisateur décrit :
-- un tir direct de l'extérieur du pied (droit ou gauche)
-→ Réponds :
-{
-  "tir_type": "MISSED",
-  "tir_zone": "AUCUNE"
-}
+Sinon, considère que le joueur peut écrire n'importe quelle phrase, tant que les mots-clés suivants sont présents, le tir est valide :
+- tir direct, tir enroulé, tir trivela
+- pointe du pied, cou du pied, intérieur du pied, extérieur du pied
+- 60° décalé / corps décalé / courbe de 1m (pour les tirs enroulés et trivela)
 
-❌ Si l'utilisateur décrit :
-- un tir enroulé avec l'extérieur du pied (droit ou gauche)
-→ Réponds :
-{
-  "tir_type": "MISSED",
-  "tir_zone": "AUCUNE"
-}
+⚠️ La zone de tir est **obligatoire**.
 
-❌ Si l'utilisateur décrit :
-- un tir enroulé avec la pointe de pieds (droit ou gauche)
-→ Réponds :
-{
-  "tir_type": "MISSED",
-  "tir_zone": "AUCUNE"
-}
-
-❌ Si l'utilisateur décrit :
-- un tir trivela de l'intérieur du pied où la pointe de pied (droit ou gauche)
-→ Réponds :
-{
-  "tir_type": "MISSED",
-  "tir_zone": "AUCUNE"
-}
-
-❌ Si l'utilisateur décrit un tir enroulé de l'intérieur du pied droit **sans préciser que le corps est décalé de 60° sur la droite avec une courbe de 1m où <** :
-→ Réponds :
-{
-  "tir_type": "MISSED",
-  "tir_zone": "AUCUNE"
-}
-
-❌ Si l'utilisateur décrit un tir enroulé de l'intérieur du pied gauche **sans préciser que le corps est décalé de 60° sur la gauche avec une courbe de 1m où <** :
-→ Réponds :
-{
-  "tir_type": "MISSED",
-  "tir_zone": "AUCUNE"
-}
-
-❌ Si l'utilisateur décrit un tir trivela de l'extérieur du pieds gauche **sans préciser que le corps est décalé de 60° sur la droite avec une courbe de 1m où <** :
-→ Réponds :
-{
-  "tir_type": "MISSED",
-  "tir_zone": "AUCUNE"
-}
-
-❌ Si l'utilisateur décrit un tir trivela de l'extérieur du pieds droit **sans préciser que le corps est décalé de 60° sur la gauche avec une courbe de 1m où <** :
-→ Réponds :
-{
-  "tir_type": "MISSED",
-  "tir_zone": "AUCUNE"
-}
-------------------------------------------------------
-
-Sinon, ton rôle est d'extraire deux valeurs : 
-1. tir_type : exacte, proche ou équivalente parmi :
+Extrais les valeurs exactes de tir_type et tir_zone parmi :
 [tir direct de la pointe du pied droit, tir direct de la pointe du pied gauche, tir direct du cou du pied droit, tir direct du cou du pied gauche, tir direct de l'intérieur du pied droit, tir direct de l'intérieur du pied gauche, tir enroulé de l'intérieur du pied droit avec corps décalé à 60° sur le côté droit, courbe de tir de 1m ou < 1m, tir enroulé de l'intérieur du pied gauche avec corps décalé à 60° sur le côté gauche courbe de tir de 1m ou < 1m, tir trivela de l'extérieur du pied droit avec corps décalé à 60° sur le côté gauche, courbe de tir de 1m ou < 1m, tir trivela de l'extérieur du pied gauche avec corps décalé à 60° sur le côté droit courbe de tir de 1m ou < 1m]
 
-2. tir_zone : parmi :
-[ras du sol gauche, ras du sol droite, mi-hauteur gauche, mi-hauteur droite, lucarne gauche, lucarne droite]
-
-Réponds **toujours** au format JSON strict :
+Répond **toujours** au format JSON strict :
 {
  "tir_type": "<valeur>",
  "tir_zone": "<valeur>"
 }
-` ;
+`;
 
+// -------------------- ANALYSE GEMINI --------------------
 async function analyserTir(texte, repondre) {
-  try {
-    const fullText = `${promptSystem}\n"${texte}"`;
-    const response = await axios.post(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCtDv8matHBhGOQF_bN4zPO-J9-60vnwFE',
-      {
-        contents: [
-          { parts: [{ text: fullText }] }
-        ]
-      },
-      { headers: { 'Content-Type': 'application/json' } }
-    );
-    const data = response.data;
-    if (data.candidates && data.candidates.length > 0) {
-      const reponseTexte = data.candidates[0]?.content?.parts?.[0]?.text || "";
-      console.log(JSON.parse(reponseTexte.replace(/```json|```/g, '').trim()));
+  try {
+    const fullText = `${promptSystem}\n"${texte}"`;
+    const response = await axios.post(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCtDv8matHBhGOQF_bN4zPO-J9-60vnwFE',
+      {
+        contents: [
+          { parts: [{ text: fullText }] }
+        ]
+      },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    const data = response.data;
+    if (data.candidates && data.candidates.length > 0) {
+      const reponseTexte = data.candidates[0]?.content?.parts?.[0]?.text || "";
+      console.log(JSON.parse(reponseTexte.replace(/```json|```/g, '').trim()));
       return JSON.parse(reponseTexte.replace(/```json|```/g, '').trim());
-    }
-  } catch (err) {
-    console.error("Erreur Gemini :", err);
-  }
-  return null;
+    }
+  } catch (err) {
+    console.error("Erreur Gemini :", err);
+  }
+  return null;
 }
 
 
@@ -195,7 +137,6 @@ Souhaitez-vous lancer l'exercice ? :
   }
 });
 
-    
 ovlcmd({
   nom_cmd: 'epreuve du tir',
   isfunc: true
@@ -206,60 +147,35 @@ ovlcmd({
   const joueur = joueurs.get(id);
   if (!joueur || !joueur.en_cours) return;
 
-  // --- DÉTECTION LOCALE DES MISSED ---
+  // --- DÉTECTION LOCALE ULTRA-TOLÉRANTE ---
   function detectMissLocal(text) {
     const t = (text || "").toLowerCase().trim();
-    const vagueRegex = /\b(je\s+)?(tire?|tir|frappe|je\s+fais\s+un\s+tir|je\s+vais\s+tirer|je\s+fais\s+un\s+tir trivela?)\b/;
-    const detailRegex = /\b(pointe|cou du pied|intérieur|interieur|extérieur|exterieur|enroul|enroulé|trivela|lucarne|ras du sol|mi-?hauteur|gauche|droite|60\s*°|corps décalé|corps.*décalé|courbe\s*de\s*1m|<\s*1m)\b/;
 
-    // 1) Tir direct/enroulé extérieur → MISS
-    if (/\b(exterieur|extérieur).*(pied|pied droit|pied gauche)\b/.test(t)) return { tir_type: "MISSED", tir_zone: "AUCUNE" };
-    if (/\b(enroul|enroulé).*(exterieur|extérieur)\b/.test(t)) return { tir_type: "MISSED", tir_zone: "AUCUNE" };
+    const motsClesTir = ["tir", "tire", "frappe", "direct", "enroul", "enroulé", "trivela"];
+    const contientTir = motsClesTir.some(m => t.includes(m));
 
-    // 2) Trivela/enroulé sans corps décalé → MISS
-    if (/\b(trivela|enroul|enroulé)\b/.test(t) && !/\b(60\s*°|corps\s*décalé|corps.*décalé)\b/.test(t)) {
-      return { tir_type: "MISSED", tir_zone: "AUCUNE" };
-    }
+    const zones = ["ras du sol gauche", "ras du sol droite", "mi-hauteur gauche", "mi-hauteur droite", "lucarne gauche", "lucarne droite"];
+    const contientZone = zones.some(z => t.includes(z));
 
-    // 3) Trivela pied gauche → corps 60° côté droit + courbe obligatoire
-    if (/\btrivela\b/.test(t) && /\bpied\s*gauche\b/.test(t)) {
-      const corpsOk = /\b(60\s*°|corps\s*décalé|corps.*décalé).*côté\s*droit\b/.test(t);
-      const courbeOk = /\b(courbe\s*de\s*1m|<\s*1m)\b/.test(t);
-      if (!corpsOk || !courbeOk) return { tir_type: "MISSED", tir_zone: "AUCUNE" };
-    }
+    if (!contientZone || !contientTir) return { tir_type: "MISSED", tir_zone: "AUCUNE" };
 
-    // 4) Trivela pied droit → corps 60° côté gauche + courbe obligatoire
-    if (/\btrivela\b/.test(t) && /\bpied\s*droit\b/.test(t)) {
-      const corpsOk = /\b(60\s*°|corps\s*décalé|corps.*décalé).*côté\s*gauche\b/.test(t);
-      const courbeOk = /\b(courbe\s*de\s*1m|<\s*1m)\b/.test(t);
-      if (!corpsOk || !courbeOk) return { tir_type: "MISSED", tir_zone: "AUCUNE" };
-    }
-
-    // 5) Phrase trop vague sans détails techniques → MISS
-    if (vagueRegex.test(t) && !detailRegex.test(t)) return { tir_type: "MISSED", tir_zone: "AUCUNE" };
-
-    return null; // Sinon analyse par Gemini
+    return null;
   }
 
   // --- Fonction pour gérer la répétition après 3 tirs différents ---
   function estTirRepeté(tir_info, tir_courant) {
-    // Trouve le dernier tir identique
     const indexDernierIdentique = [...tir_info].reverse().findIndex(
       t => t.tir_type === tir_courant.tir_type && t.tir_zone === tir_courant.tir_zone
     );
-
-    if (indexDernierIdentique === -1) return false; // jamais fait → pas répétition
-
-    // Compte le nombre de tirs différents depuis ce tir identique
+    if (indexDernierIdentique === -1) return false;
     const derniersTirs = tir_info.slice(-(indexDernierIdentique));
     const tirsDifferents = derniersTirs.filter(
       t => t.tir_type !== tir_courant.tir_type || t.tir_zone !== tir_courant.tir_zone
     );
-
-    return tirsDifferents.length < 3; // vrai → répétition interdite
+    return tirsDifferents.length < 3;
   }
 
-  // --- Étape 1 : Vérification locale obligatoire ---
+  // --- Étape 1 : Vérification locale ---
   let analyse = detectMissLocal(texte);
 
   if (analyse && analyse.tir_type === "MISSED") {
@@ -280,7 +196,6 @@ ovlcmd({
 
   if (!analyse || !analyse.tir_type || !analyse.tir_zone) return;
 
-  // --- Étape 3 : GEMINI renvoie MISSED ?
   if (analyse.tir_type === "MISSED") {
     clearTimeout(joueur.timer);
     joueur.en_cours = false;
@@ -292,7 +207,7 @@ ovlcmd({
     return envoyerResultats(ms_org, ovl, joueur);
   }
 
-  // --- Étape 4 : Vérification répétition selon règle des 3 tirs différents ---
+  // --- Étape 3 : Vérification répétition ---
   const tir_courant = { tir_type: analyse.tir_type, tir_zone: analyse.tir_zone };
   const tir_repeté = estTirRepeté(joueur.tir_info, tir_courant);
 
@@ -303,29 +218,8 @@ ovlcmd({
       video: { url: "https://files.catbox.moe/9k5b3v.mp4" },
       gifPlayback: true,
       caption: "❌MISSED! : Tir manqué, vous avez échoué à l'exercice . Fermeture de la session❌"
-    });
-    return envoyerResultats(ms_org, ovl, joueur);
-  }
+    });    
 
-  // --- Étape 5 : Tir valide normal ---
-  joueur.tirs_total++;
-  joueur.but++;
-  joueur.tir_info.push(tir_courant);
-
-  const restants = 15 - joueur.but;
-  await ovl.sendMessage(ms_org, {
-    video: { url: "https://files.catbox.moe/pad98d.mp4" },
-    gifPlayback: true,
-    caption: `✅⚽GOAL : ${joueur.but} but${joueur.but > 1 ? 's' : ''} 🎯\n⚠️ Il vous reste ${restants} tirs ⌛`
-  });
-
-  if (joueur.but >= 15) {
-    clearTimeout(joueur.timer);
-    joueur.en_cours = false;
-    return envoyerResultats(ms_org, ovl, joueur);
-  }
-
-});    
 
 
 ovlcmd({
