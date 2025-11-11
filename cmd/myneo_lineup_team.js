@@ -106,8 +106,7 @@ ovlcmd({
 🌀All Stars: ${data.all_stars}
 ⚽Blue Lock: ${data.blue_lock}
 💠Élysium: ${data.elysium}
-░░░░░░░
-🔷NEO🔷 ════════════`;
+╰───────────────────`;
 
       await ovl.sendMessage(ms_org, {
         video: { url: "https://files.catbox.moe/yimc4o.mp4" },
@@ -193,21 +192,20 @@ ovlcmd({
       const fiche = `░░ *👤PLAYER🥅⚽*: ${data.users}
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
 *🛡️Team:* ${data.team}
-*⬆️Points de jeu:* ${data.points_jeu} XP
-*🎖️Rang:* ${data.rank}
+*⬆️Niveau:* ${data.niveau}▲
 *💰Argent:* ${data.argent} 💶
-*🏆Puissance d'équipe:* ${data.puissance}⏫
-*🎖️Classement d'équipe:* ${data.classement}
+*🎖️Classement:* ${data.classement}
 
 ░░ *📊RECORDS⚽🥅*
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
-⚽Wins: ${data.wins}   ❌Loss: ${data.loss}   🫱🏼‍🫲🏽Draws: ${data.draws}
-🏆Championnats: ${data.championnats}    🏆NEL: ${data.nel}
+✅Wins: ${data.wins}   ❌Loss: ${data.loss}   ⚽Goals: ${data.goals}
+                   🏆Trophies: ${data.Trophies}
 
-🥅 +Lineup⚽: ⚠️pour voir la formation
+🥅+Lineup⚽: ⚠️pour voir la formation
 🌍+player⚽: ⚠️pour voir son Hero
-▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔ 
-         ⚽🔷 *BLUE LOCK NEO🥅*▱▱▱`;
+
+╰───────────────────
+                *BLUE🔷LOCK*`;
 
       return await ovl.sendMessage(ms_org, {
         image: { url: "https://files.catbox.moe/2patx3.jpg" },
@@ -218,8 +216,8 @@ ovlcmd({
     if (!prenium_id) return repondre("⚠️ Seuls les membres de la NS peuvent actualiser une team.");
 
     const modifiables = [
-      "users", "team", "points_jeu", "rank",
-      "argent", "puissance", "classement", "wins", "loss", "draws", "championnats", "nel"
+      "users", "team", "niveau",
+      "argent", "classement", "wins", "loss", "goals", "trophies",
     ];
 
     let updates = {};
@@ -229,8 +227,8 @@ ovlcmd({
       if (!modifiables.includes(field) || !["=", "+", "-"].includes(op)) { i++; continue; }
 
       const isNumeric = [
-        "points_jeu", "argent", "puissance",
-        "wins", "loss", "draws", "championnats", "nel"
+        "niveau", "argent", "classement",
+        "wins", "loss", "goals", "trophies",
       ].includes(field);
 
       let value;
@@ -291,16 +289,16 @@ ovlcmd({
 
     const lineup = `░░ *👥SQUAD⚽🥅*: ${data.nom}
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▱▱▱▱
-1  👤(AG) ${data.joueur1} : ${data.stat1}%🫀
-2  👤(AC) ${data.joueur2} : ${data.stat2}%🫀
-3  👤(AD) ${data.joueur3} : ${data.stat3}%🫀
-4  👤(MG) ${data.joueur4} : ${data.stat4}%🫀
-5  👤(MC) ${data.joueur5} : ${data.stat5}%🫀
-6  👤(MD) ${data.joueur6} : ${data.stat6}%🫀
-7  👤(DG) ${data.joueur7} : ${data.stat7}%🫀
-8  👤(DC) ${data.joueur8} : ${data.stat8}%🫀
-9  👤(DC) ${data.joueur9} : ${data.stat9}%🫀
-10 👤(DD) ${data.joueur10} : ${data.stat10}%🫀
+1  👤(AG) ${data.joueur1} : 
+2  👤(AC) ${data.joueur2} : 
+3  👤(AD) ${data.joueur3} : 
+4  👤(MG) ${data.joueur4} : 
+5  👤(MC) ${data.joueur5} : 
+6  👤(MD) ${data.joueur6} : 
+7  👤(DG) ${data.joueur7} : 
+8  👤(DC) ${data.joueur8} : 
+9  👤(DC) ${data.joueur9} : 
+10 👤(DD) ${data.joueur10}:
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▱▱▱▱
 *🔷BENCH🥅*:
 11 👤${data.joueur11}
@@ -309,7 +307,7 @@ ovlcmd({
 14 👤${data.joueur14}
 15 👤${data.joueur15}
 ╰───────────────────
-                  *🔷BLUE LOCK⚽🥅* `;
+                   *BLUE🔷LOCK* `;
 
     return await ovl.sendMessage(ms_org, {
       image: { url: "https://files.catbox.moe/p94q3m.jpg" },
