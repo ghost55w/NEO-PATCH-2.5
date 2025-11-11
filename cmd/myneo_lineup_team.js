@@ -308,8 +308,8 @@ ovlcmd({
 13 👤${data.joueur13}
 14 👤${data.joueur14}
 15 👤${data.joueur15}
-
-⚽🔷*BLUE LOCK NEO🥅*▱▱▱`;
+╰───────────────────
+                  *🔷BLUE LOCK⚽🥅* `;
 
     return await ovl.sendMessage(ms_org, {
       image: { url: "https://files.catbox.moe/p94q3m.jpg" },
