@@ -27,7 +27,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 ▔▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
 ◇ *Pseudo👤*: ${data.pseudo}
 ◇ *Classement continental🌍:* ${data.classement}
-◇ *Niveau XP⏫*: ${data.niveu_xp} ⏫
+◇ *Niveau XP⏫*: ${data.niveau_xp} ▲
 ◇ *Division🛡️*: ${data.division}
 ◇ *Rank 🎖️*: ${data.rang}
 ◇ *Classe🎖️*: ${data.classe}
@@ -37,6 +37,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 ◇ *Fans👥*: ${data.fans} 👥
 ◇ *Archetype ⚖️*: ${data.archetype}
 ◇ *Commentaire*: ${data.commentaire}
+
 ░▒░░ PALMARÈS🏆
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
 ✅ Victoires: ${data.victoires} - ❌ Défaites: ${data.defaites}
@@ -49,48 +50,47 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 *◇🗿Sigma🏆*: ${data.sigma}
 *◇🎖️Neo Globes*: ${data.neo_globes}
 *◇🏵️Golden Rookie🏆*: ${data.golden_boy}
+
+░▒░▒░ STATS 📊
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
 ✅ Cleans: ${data.cleans}
 ❌ Erreurs: ${data.erreurs}
 📈 Note: ${data.note}/100
-░▒░▒░ STATS 📊
-▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
-⌬ *Talent⭐ :*         ▱▱▱▱▬▬▬ ${data.talent}
-⌬ *Intelligence🧠:* ▱▱▱▱▬▬▬ ${data.intelligence}
-⌬ *Speed💬 :*         ▱▱▱▱▬▬▬  ${data.speed}
-⌬ *Close fight👊🏻:*  ▱▱▱▱▬▬▬ ${data.close_fight}
+⌬ *Talent⭐ :*      ▱▱▱▱▬▬▬ ${data.talent}
+⌬ *Speed💬 :*       ▱▱▱▱▬▬▬  ${data.speed}
+⌬ *Close combat👊🏻:*  ▱▱▱▱▬▬▬ ${data.close_combat}
 ⌬ *Attaques🌀:*     ▱▱▱▱▬▬▬ ${data.attaques}
+
 ░▒░▒░ CARDS 🎴: ${data.total_cards}
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
-᪣ ${data.cards}
-▱▱▱▱ ▱▱▱▱ 
-*⌬𝗡SLPro🏆*
-> NEO SUPER LEAGUE ESPORTS™`;
+🎴 ${data.cards}
+╰───────────────────
+                *⌬𝗡SL PRO ESPORTS™🏆*`;
 
-        await ovl.sendMessage(ms_org, {
-          video: { url: 'https://files.catbox.moe/0qzigf.mp4' },
-          gifPlayback: true,
-          caption: ""
-        }, { quoted: ms });
+ await ovl.sendMessage(ms_org, {
+ video: { url: 'https://files.catbox.moe/0qzigf.mp4' },
+ gifPlayback: true,
+ caption: ""
+  }, { quoted: ms });
 
-        return ovl.sendMessage(ms_org, {
-          image: { url: data.oc_url },
-          caption: fiche
-        }, { quoted: ms });
+  return ovl.sendMessage(ms_org, {
+  image: { url: data.oc_url },
+  caption: fiche
+  }, { quoted: ms });
       }
 
-      if (!prenium_id) return await repondre("⛔ Accès refusé ! Seuls les membres de la NS peuvent faire ça.");
+  if (!prenium_id) return await repondre("⛔ Accès refusé ! Seuls les membres de la NS peuvent faire ça.");
 
-      const updates = await processUpdates(arg, jid);
-      await updatePlayerData(updates, jid);
+  const updates = await processUpdates(arg, jid);
+  await updatePlayerData(updates, jid);
 
-      const message = updates.map(u =>
-        `🛠️ *${u.colonne}* modifié : \`${u.oldValue}\` ➤ \`${u.newValue}\``
-      ).join('\n');
+  const message = updates.map(u =>
+  `🛠️ *${u.colonne}* modifié : \`${u.oldValue}\` ➤ \`${u.newValue}\``
+   ).join('\n');
 
-      await repondre("✅ Fiche mise à jour avec succès !\n\n" + message);
+   await repondre("✅ Fiche mise à jour avec succès !\n\n" + message);
 
-    } catch (err) {
+   } catch (err) {
       console.error("Erreur:", err);
       await repondre("❌ Une erreur est survenue. Vérifie les paramètres.");
     }
