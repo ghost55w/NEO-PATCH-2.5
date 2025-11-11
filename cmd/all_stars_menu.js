@@ -120,8 +120,7 @@ ovlcmd(
     );
     */
 
-    const texte = `
-░▒░ 🎮 CONTROLLER 🪀📱 ░▒░
+    const texte = `░▒░ 🎮 CONTROLLER 🪀📱 ░▒░
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
 🎧 Chat:
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
@@ -129,8 +128,10 @@ ovlcmd(
 
 🌀👊🏽 
 
-▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
-            *🔆ALL STARS JUMP🌀*`;
+╰───────────────────
+ 
+           *🔆AS JUMP🌀BATTLE ARENA*
+`;
 
     await ovl.sendMessage(ms_org, { text: texte }, { quoted: ms });
   }
