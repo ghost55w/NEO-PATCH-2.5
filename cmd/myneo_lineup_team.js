@@ -289,16 +289,16 @@ ovlcmd({
 
     const lineup = `░░ *👥SQUAD⚽🥅*: ${data.nom}
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▱▱▱▱
-1  👤(AG) ${data.joueur1} : 
-2  👤(AC) ${data.joueur2} : 
-3  👤(AD) ${data.joueur3} : 
-4  👤(MG) ${data.joueur4} : 
-5  👤(MC) ${data.joueur5} : 
-6  👤(MD) ${data.joueur6} : 
-7  👤(DG) ${data.joueur7} : 
-8  👤(DC) ${data.joueur8} : 
-9  👤(DC) ${data.joueur9} : 
-10 👤(DD) ${data.joueur10}:
+1  👤(AG) ${data.joueur1} 
+2  👤(AC) ${data.joueur2} 
+3  👤(AD) ${data.joueur3} 
+4  👤(MG) ${data.joueur4} 
+5  👤(MC) ${data.joueur5} 
+6  👤(MD) ${data.joueur6} 
+7  👤(DG) ${data.joueur7}  
+8  👤(DC) ${data.joueur8} 
+9  👤(DC) ${data.joueur9}  
+10 👤(DD) ${data.joueur10}
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▱▱▱▱
 *🔷BENCH🥅*:
 11 👤${data.joueur11}
