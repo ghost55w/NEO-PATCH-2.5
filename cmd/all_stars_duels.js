@@ -51,9 +51,8 @@ function generateFicheDuel(duel) {
 *⚠️ Vous avez 🔟 tours max pour finir votre Adversaire !*
 *Sinon la victoire sera donnée par décision selon l'offensive !*
 
-▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░
-*🔅ALL STARS JUMP BATTLE ARENA🌀*
-> NEOverse🔹 2025 Update 🎮`;
+╰───────────────────
+                 *AS JUMP🌀BATTLE ARENA🔅*`;
 }
 
 ovlcmd({
