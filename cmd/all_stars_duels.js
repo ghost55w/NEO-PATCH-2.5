@@ -81,8 +81,8 @@ ovlcmd({
         await ovl.sendMessage(ms_org, {
           video: { url: 'https://files.catbox.moe/udf9fe.mp4' },
           gifPlayback: true,
-          caption: `*▶️NEO live🎙️ :* \`Direct TV\`
- Préparation de match...`
+          caption: `
+ 🌀Préparation de match...`
         }, { quoted: ms });
         await ovl.sendMessage(ms_org, { image: { url: areneT.image }, caption: fiche }, { quoted: ms });
     } catch (e) {
