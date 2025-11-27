@@ -63,7 +63,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 
 ░▒░▒░ CARDS 🎴: ${data.total_cards}
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
-🎴 ${data.cards}
+🎴 ${data.cards ? data.cards.split("\n").join(" • ") : ""}
 ╰───────────────────
                 *⌬𝗡SL PRO ESPORTS™🏆*`;
 
@@ -118,7 +118,44 @@ async function processUpdates(args, jid) {
     }
 
     const oldValue = data[object];
+    if (object === "cards") {
+    const old = data.cards || "";
+    let list = old.split("\n").filter(x => x.trim() !== "");
+
+    // Texte complet après signe (+ ou -)
+    const fullText = texte.join(" ");
+
+    // Sépare les cards par virgule
+    const items = fullText.split(",").map(x => x.trim()).filter(x => x.length > 0);
+
+    if (signe === "+") {
+        for (const card of items) {
+            if (!list.includes(card)) {
+                list.push(card);
+            }
+        }
+    } 
+    else if (signe === "-") {
+        for (const card of items) {
+            list = list.filter(c => c !== card);
+        }
+    } 
+    else {
+        throw new Error("❌ Le champ 'cards' accepte uniquement '+' et '-'");
+    }
+
+    const newValue = list.join("\n");
+
+    updates.push({
+        colonne: "cards",
+        oldValue: old,
+        newValue
+    });
+
+    continue; // IMPORTANT : empêche le traitement normal
+    }
     let newValue;
+    
 
     if (signe === '+' || signe === '-') {
       const n1 = Number(oldValue) || 0;
