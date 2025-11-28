@@ -171,9 +171,9 @@ const TeamFunctions = {
     const count = await Team.destroy({ where: { id: jid } });
     return count > 0 ? "✅ Joueur supprimé avec succès." : "⚠️ Joueur introuvable.";
   },
-  async updateUser(jid, updates) {
+  async updateUser(id, updates) {
   try {
-    const [updated] = await Team.update(updates, { where: { jid } });
+    const [updated] = await Team.update(updates, { where: { id } });
     return updated ? "✅ Données mises à jour avec succès." : "⚠️ Aucun champ mis à jour.";
   } catch (err) {
     console.error("❌ Erreur mise à jour:", err);
