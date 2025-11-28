@@ -55,11 +55,9 @@ ovlcmd({
 Bienvenue dans la Roulette, choisissez un chiffre parmis les *5️⃣0️⃣*. Si vous choisissez le bon chiffre alors vous gagnez une récompense 🎁. *⚠️Vous avez 2 chances pour choisir le bon numéro*. 
 🎊▔▔🎊▔🎊▔🎊▔▔🎊▔▔🎊▔🎊▔🎊
 ╭──────〔 *🎰CASINO🎰* 〕───────
-*`16, 32, 20, 1, 45, 8, 47, 49, 10, 37, 31, 15, 27, 21, 4, 50, 5, 48, 29, 2, 44, 7, 18, 6, 34, 28, 38, 12, 39, 36, 24, 23, 25, 3, 17, 22, 35, 46, 26, 9, 33, 42, 14, 13, 40, 41, 19, 43, 11, 0`*
-╰───────────────────
+*\`${numbers.join(', ')}\`*.
 🎊▔▔🎊▔🎊▔🎊▔▔🎊▔▔🎊▔🎊▔🎊
              🎁10🔷  🎁25.000 🧭  🎁5🎫  
-⚠️Vous pouvez booster votre récompense x2 pour 5🔷 avant le début du jeu, vous devez donc préciser au maître du jeu que vous voulez utiliser un Boost. 
 
 *🎊Voulez-vous tenter votre chance ?* (1min)
 ✅: `Oui`
