@@ -255,8 +255,7 @@ ovlcmd({
         } else if (op === "=") updates[field] = value;
       }
     }
-console.log("UPDATES :", updates);
-
+    
     if (Object.keys(updates).length > 0) {
       
       const message = await updateTeam(userId, updates);
