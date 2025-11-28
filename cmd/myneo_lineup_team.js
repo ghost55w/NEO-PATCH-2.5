@@ -255,10 +255,10 @@ ovlcmd({
         } else if (op === "=") updates[field] = value;
       }
     }
+console.log("UPDATES :", updates);
 
     if (Object.keys(updates).length > 0) {
-      console.log("UPDATES :", updates);
-
+      
       const message = await updateTeam(userId, updates);
       return repondre(message);
     } else {
