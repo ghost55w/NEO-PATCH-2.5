@@ -175,11 +175,14 @@ const TeamFunctions = {
     return count > 0 ? "✅ Joueur supprimé avec succès." : "⚠️ Joueur introuvable.";
   },
   async updateUser(jid, updates) {
-    const user = await Team.findByPk(jid);
-    if (!user) return "⚠️ Joueur introuvable.";
-    await user.update(updates);
-    return "✅ Données mises à jour avec succès.";
-  },
+  try {
+    const [updated] = await Team.update(updates, { where: { jid } });
+    return updated ? "✅ Données mises à jour avec succès." : "⚠️ Aucun champ mis à jour.";
+  } catch (err) {
+    console.error("❌ Erreur mise à jour:", err);
+    return "❌ Une erreur est survenue lors de la mise à jour.";
+  }
+  }
 };
 
 module.exports = {
