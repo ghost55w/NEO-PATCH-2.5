@@ -36,12 +36,12 @@ Tu as 2 minutes pour écrire le nom d’une carte.
 
         if (!searchName) return repondre("❌ Aucun nom reçu.");
 
-        // Rechercher les cartes
+        // Rechercher les cartes et ajouter placement
         let found = [];
-        for (const placement of Object.values(cards)) {
-            for (const c of placement) {
+        for (const [placementKey, placementCards] of Object.entries(cards)) {
+            for (const c of placementCards) {
                 if (c.name.toLowerCase().includes(searchName)) {
-                    found.push(c);
+                    found.push({ ...c, placement: placementKey });
                 }
             }
         }
@@ -91,22 +91,30 @@ Prix : ${card.price}
 
         // CALCUL DU PRIX
         let prix = parseInt(card.price.replace(/[^\d]/g, ""));
-
-        // Vérif NP
         let np = parseInt(userData.np);
-        if (np < 1) return repondre("❌ Tu n’as pas assez de NP.");
+        let golds = parseInt(fiche.golds || 0);
+        let nc = parseInt(userData.nc || 0);
+
+        console.log(`DEBUG → Prix: ${prix}, NP: ${np}, Golds: ${golds}, NC: ${nc}`);
+
+        // Vérification complète avant débit
+        if (np < 1)
+            return repondre("❌ Tu n’as pas assez de NP.");
+
+        if (card.price.includes("🧭") && golds < prix)
+            return repondre("❌ Pas assez de G🧭.");
+
+        if (card.price.includes("🔷") && nc < prix)
+            return repondre("❌ Pas assez de NC.");
+
+        // Débit des ressources seulement après vérification
         await MyNeoFunctions.updateUser(auteur_Message, { np: np - 1 });
 
-        // Vérif monnaie
         if (card.price.includes("🧭")) {
-            let golds = parseInt(fiche.golds);
-            if (golds < prix) return repondre("❌ Pas assez de G🧭.");
             await setfiche("golds", golds - prix, auteur_Message);
         }
 
         if (card.price.includes("🔷")) {
-            let nc = parseInt(userData.nc);
-            if (nc < prix) return repondre("❌ Pas assez de NC.");
             await MyNeoFunctions.updateUser(auteur_Message, { nc: nc - prix });
         }
 
@@ -143,7 +151,7 @@ Merci pour ton achat !
         }, { quoted: ms });
 
     } catch (e) {
-        console.log(e);
+        console.log("❌ ERREUR BOUTIQUE :", e);
         repondre("❌ Une erreur est survenue dans la boutique.");
     }
 });
