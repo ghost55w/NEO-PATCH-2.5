@@ -1,7 +1,8 @@
 const { ovlcmd } = require('../lib/ovlcmd');
 const { cards } = require('../DataBase/cards');
 const { MyNeoFunctions } = require("../DataBase/myneo_lineup_team");
-const { getData, setfiche, getAllFiches } = require("../DataBase/allstars_divs_fiches");
+const { getData, setfiche } = require("../DataBase/allstars_divs_fiches");
+const config = require("../set");
 
 ovlcmd({
     nom_cmd: "boutique🛍️",
@@ -16,7 +17,7 @@ ovlcmd({
         if (!userData || !fiche)
             return repondre("❌ Impossible de récupérer ta fiche.");
 
-        // 1 — Message d'accueil
+        // MENU SIMPLIFIÉ
         await ovl.sendMessage(ms_org, {
             image: { url: 'https://files.catbox.moe/ye33nv.png' },
             caption: `╭────〔 🛍️ BOUTIQUE NEO🛒 〕
@@ -28,14 +29,14 @@ Tu as 2 minutes pour écrire le nom d’une carte.
                   *🔷NEO🛍️STORE*`
         }, { quoted: ms });
 
-        // 2 — Attente nom (2 min)
+        // RÉCUPERER NOM DE LA CARTE
         const rep1 = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 120000 });
         const texte1 = rep1.message?.extendedTextMessage?.text || rep1.message?.conversation || "";
         const searchName = texte1.toLowerCase().trim();
 
         if (!searchName) return repondre("❌ Aucun nom reçu.");
 
-        // 3 — Recherche des cartes
+        // Rechercher les cartes
         let found = [];
         for (const placement of Object.values(cards)) {
             for (const c of placement) {
@@ -45,19 +46,18 @@ Tu as 2 minutes pour écrire le nom d’une carte.
             }
         }
 
-        // 4 — Aucun résultat
         if (found.length === 0)
             return repondre(`❌ Aucune carte trouvée pour : ${searchName}`);
 
-        // 5 — Affichage liste
-        let list = "📋 Cartes trouvées :\n\n";
+        // Liste des cartes
+        let list = "📋 *Cartes trouvées :*\n\n";
         found.forEach((c, i) => {
             list += `${i + 1}. ${c.name} — Grade: ${c.grade} — Catégorie: ${c.category} — Prix: ${c.price}\n`;
         });
 
-        await repondre(list + "\nTu as 5 minutes pour choisir un numéro.");
+        await repondre(list + "\n🕒 Choisis un numéro (5 minutes)");
 
-        // 6 — Attente numéro (5 min)
+        // Récup numéro
         const rep2 = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 300000 });
         const texte2 = rep2.message?.extendedTextMessage?.text || rep2.message?.conversation || "";
         const choix = parseInt(texte2.trim());
@@ -67,10 +67,10 @@ Tu as 2 minutes pour écrire le nom d’une carte.
 
         const card = found[choix - 1];
 
-        // 7 — Affichage carte + confirmation
+        // FICHE DE LA CARTE
         await ovl.sendMessage(ms_org, {
             image: { url: card.image },
-            caption: `Carte sélectionnée :
+            caption: `🎴 *Carte sélectionnée :*
 
 Nom : ${card.name}
 Grade : ${card.grade}
@@ -78,59 +78,72 @@ Catégorie : ${card.category}
 Placement : ${card.placement}
 Prix : ${card.price}
 
-Confirmer ? (oui / non)`
+✔️ Confirmer l'achat ? (oui / non)`
         }, { quoted: ms });
 
-        // 8 — Confirmation
+        // CONFIRMATION
         const rep3 = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 120000 });
         const texte3 = rep3.message?.extendedTextMessage?.text || rep3.message?.conversation || "";
         const r3 = texte3.toLowerCase().trim();
 
         if (!["oui", "yes", "y"].includes(r3))
-            return repondre("Achat annulé.");
+            return repondre("❌ Achat annulé.");
 
-        // 9 — Débit NP + monnaie
-        let prixText = card.price.replace('🧭', '').replace('🔷', '').replace(/\s/g, '');
-        let prix = parseInt(prixText) || 0;
+        // CALCUL DU PRIX
+        let prix = parseInt(card.price.replace(/[^\d]/g, ""));
 
+        // Vérif NP
         let np = parseInt(userData.np);
-        if (np < 1) return repondre("❌ Pas assez de NP.");
-
+        if (np < 1) return repondre("❌ Tu n’as pas assez de NP.");
         await MyNeoFunctions.updateUser(auteur_Message, { np: np - 1 });
 
-        // Paiement en golds
+        // Vérif monnaie
         if (card.price.includes("🧭")) {
             let golds = parseInt(fiche.golds);
-            if (golds < prix) return repondre("❌ Pas assez de golds.");
+            if (golds < prix) return repondre("❌ Pas assez de G🧭.");
             await setfiche("golds", golds - prix, auteur_Message);
         }
 
-        // Paiement en NC
         if (card.price.includes("🔷")) {
             let nc = parseInt(userData.nc);
             if (nc < prix) return repondre("❌ Pas assez de NC.");
             await MyNeoFunctions.updateUser(auteur_Message, { nc: nc - prix });
         }
 
-        // 10 — Reçu
-        const facture = `
-╭───〔 BOUTIQUE NEO 〕─────── 
-Client : ${fiche.code_fiche}
+        // AJOUTER AUTOMATIQUEMENT LA CARTE DANS LA FICHE
+        let currentCards = fiche.cards || "";
+        let listCards = currentCards.split("\n").filter(x => x.trim() !== "");
 
-Débit :
+        // Vérification limite
+        if (listCards.length >= config.CARDS_NOMBRE)
+            return repondre(`❌ Limite atteinte (${config.CARDS_NOMBRE} cartes max).`);
+
+        if (!listCards.includes(card.name))
+            listCards.push(card.name);
+
+        await setfiche("cards", listCards.join("\n"), auteur_Message);
+
+        // REÇU FINAL
+        const facture = `
+╭───〔 🛍️ *REÇU D’ACHAT* 〕───────
+👤 Client : ${fiche.code_fiche}
+
+🎴 *${card.name}* ajoutée à ta fiche.
+
+💳 Paiement :
 • 1 NP
-• ${prix} ${card.price.includes("🔷") ? "NC" : "G🧭"}
+• ${prix} ${card.price.includes("🔷") ? "🔷" : "🧭"}
+
+Merci pour ton achat !
 ╰───────────────────`;
 
-        await ovl.sendMessage(ms_org, {
+        return ovl.sendMessage(ms_org, {
             image: { url: card.image },
             caption: facture
         }, { quoted: ms });
 
-        await repondre("Achat réussi.");
-
     } catch (e) {
         console.log(e);
-        repondre("❌ Erreur dans la boutique.");
+        repondre("❌ Une erreur est survenue dans la boutique.");
     }
 });
