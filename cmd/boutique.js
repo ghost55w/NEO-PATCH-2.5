@@ -145,10 +145,20 @@ Prix : ${card.price}
 Merci pour ton achat !
 ╰───────────────────`;
 
-        return ovl.sendMessage(ms_org, {
-            image: { url: card.image },
-            caption: facture
-        }, { quoted: ms });
+        await ovl.sendMessage(ms_org, {
+    image: { url: card.image },
+    caption: facture
+}, { quoted: ms });
+
+// ➕ AJOUTER +5👑 NS
+const newNS = (parseInt(userData.ns) || 0) + 5;
+await MyNeoFunctions.updateUser(auteur_Message, { ns: newNS });
+
+// 🎉 MESSAGE DE FÉLICITATION
+await ovl.sendMessage(ms_org, {
+    text: `🎉😎 Félicitations <@${auteur_Message}> tu gagnes **+5👑 royalities xp** 👑🎉🍾💯\n╰───────────────────`
+});
+return;
 
     } catch (e) {
         console.log("❌ ERREUR BOUTIQUE :", e);
