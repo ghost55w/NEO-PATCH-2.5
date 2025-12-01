@@ -92,7 +92,7 @@ const cards = {
   "Fuegoleon_argent_sparking_sm_500k.jpg": "https://files.catbox.moe/2ocv94.jpg",
   "Fujitora_argent_ultra_s_700k.jpg": "https://files.catbox.moe/fslosy.jpg",
   "Fumikage_bronze_sparking_sm_100k.jpg": "https://files.catbox.moe/mucucs.jpg",
-  "Gaara_bronze_ultra_s_400k.jpg": "https://files.catbox.moe/v3nvkj.jpg",
+  "Gaara(4GG)_bronze_ultra_s_400k.jpg": "https://files.catbox.moe/v3nvkj.jpg",
   "Gaara_bronze_ultra_sm_300k.jpg": "https://files.catbox.moe/cto2vg.jpg",
   "Gajeel_bronze_sparking_s_300k.jpg": "https://files.catbox.moe/8j1xus.jpg",
   "Garou_bronze_legend_sp_450k.jpg": "https://files.catbox.moe/hbdp8l.jpg",
