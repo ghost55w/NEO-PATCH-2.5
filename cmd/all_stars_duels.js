@@ -109,7 +109,7 @@ ovlcmd({
     if (isNaN(valeur)) return;
 
     if (joueurId.startsWith("@")) {
-        joueurId = await getJid(joueurId, ms_org, ovl);
+    joueurId = joueurId.replace("@", "");
     }
 
     const duelKey = Object.keys(duelsEnCours).find(k => k.includes(joueurId));
@@ -137,8 +137,8 @@ ovlcmd({
 }, async (ms_org, ovl, { arg, repondre, ms }) => {
     if (arg.length < 1) return repondre('Format: @NomDuJoueur ou "all"');
 
-    const joueurId = arg[0].trim();
-    const duelKey = Object.keys(duelsEnCours).find(k => k.includes(joueurId));
+    const joueurId = arg[0];
+    const duelKey = Object.keys(duelsEnCours).find(k => k.includes(joueurId.replace("@", "")));
     if (!duelKey) return repondre('❌ Joueur non trouvé.');
 
     const duel = duelsEnCours[duelKey];
@@ -147,7 +147,7 @@ ovlcmd({
         duel.equipe1.forEach(j => j.stats = { sta: 100, energie: 100, vie: 100 });
         duel.equipe2.forEach(j => j.stats = { sta: 100, energie: 100, vie: 100 });
     } else {
-        const joueur = duel.equipe1.find(j => j.nom === joueurId) || duel.equipe2.find(j => j.nom === joueurId);
+        const joueur = duel.equipe1.find(j => j.nom === joueurId.replace("@", "")) || duel.equipe2.find(j => j.nom === joueurId.replace("@", ""));
         if (!joueur) return repondre('❌ Joueur non trouvé.');
         joueur.stats = { sta: 100, energie: 100, vie: 100 };
     }
@@ -164,7 +164,7 @@ ovlcmd({
 }, async (ms_org, ovl, { arg, repondre, auteur_Message, ms }) => {
     if (arg.length < 1) return repondre('Format: @NomDuJoueur ou "all"');
 
-    const joueurId = arg[0].trim();
+    const joueurId = arg[0];
     await ovl.sendMessage(ms_org, { text: '❓ Confirmez la suppression avec "oui" ou "non".' }, { quoted: ms });
 
     const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
@@ -179,7 +179,7 @@ ovlcmd({
         return repondre(`✅ Tous les duels (${n}) ont été supprimés.`);
     }
 
-    const duelKey = Object.keys(duelsEnCours).find(k => k.includes(joueurId));
+    const duelKey = Object.keys(duelsEnCours).find(k => k.includes(joueurId.replace("@", "")));
     if (!duelKey) return repondre('❌ Aucun duel trouvé.');
     delete duelsEnCours[duelKey];
     repondre(`✅ Duel "${duelKey}" supprimé.`);
