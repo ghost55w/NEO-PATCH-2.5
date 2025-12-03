@@ -184,6 +184,9 @@ async function fixPrimaryKeys() {
   console.log("🔧 IDs réorganisés proprement et réassignés.");
 }
 
+deleteNullJid();
+fixPrimaryKeys();
+
 module.exports = { 
   getAllFiches, 
   setfiche, 
