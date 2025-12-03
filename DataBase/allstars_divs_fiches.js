@@ -1,4 +1,4 @@
-const { Sequelize, DataTypes } = require('sequelize');
+const { Sequelize, DataTypes, Op } = require('sequelize');
 const config = require('../set');
 const db = config.DATABASE;
 
@@ -23,11 +23,14 @@ if (!db) {
   });
 }
 
+/* -----------------------------------------------------------------------
+   🔥 MODELE AVEC ID SERIAL PRIMARY KEY + jid="aucun"
+------------------------------------------------------------------------*/
 const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   id: {
     type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true
+    primaryKey: true,
+    autoIncrement: true  // SERIAL en Postgres
   },
   pseudo: { type: DataTypes.STRING, defaultValue: 'aucun' },
   classement: { type: DataTypes.STRING, defaultValue: 'aucun' },
@@ -64,112 +67,56 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   cards: { type: DataTypes.TEXT, defaultValue: 'aucune' },
   source: { type: DataTypes.STRING, defaultValue: 'inconnu' },
 
-  // 🔥 valeur par défaut changée : "aucun"
+  // 🔥 Par défaut → "aucun"
   jid: { type: DataTypes.STRING, defaultValue: 'aucun' },
 
   oc_url: { type: DataTypes.STRING, defaultValue: 'https://files.catbox.moe/4quw3r.jpg' },
   code_fiche: { type: DataTypes.STRING, defaultValue: 'aucun' },
-  
+
 }, {
   tableName: 'allstars_divs_fiches',
   timestamps: false,
 });
 
-(async () => {
-  await AllStarsDivsFiche.sync();
-  console.log("✅ Table 'allstars_divs_fiches' synchronisée avec succès.");
-})();
+/* -----------------------------------------------------------------------
+   🔥 FONCTIONS DE RÉPARATION DES IDS DUPLIQUÉS / JID NULL
+------------------------------------------------------------------------*/
 
-/* -------------------------- DÉJÀ EXISTANT ----------------------------- */
-
-async function getAllFiches() {
-  return await AllStarsDivsFiche.findAll();
-}
-
-async function getData(where = {}) {
-  const [fiche, created] = await AllStarsDivsFiche.findOrCreate({
-    where,
-    defaults: {}
-  });
-
-  if (created) {
-    console.log(`✅ Nouvelle fiche créée pour :`, where);
-  }
-
-  return fiche;
-}
-
-async function setfiche(colonne, valeur, jid) {
-  const updateData = {};
-  updateData[colonne] = valeur;
-
-  const [updatedCount] = await AllStarsDivsFiche.update(updateData, {
-    where: { jid },
-  });
-
-  if (updatedCount === 0) {
-    throw new Error(`❌ Aucun joueur trouvé avec l'id : ${jid}`);
-  }
-
-  console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur id ${jid}`);
-}
-
-async function add_id(jid, data = {}) {
-  if (!jid) throw new Error("JID requis");
-
-  const existing = await AllStarsDivsFiche.findOne({ where: { jid } });
-  if (existing) return null;
-
-  const fiches = await AllStarsDivsFiche.findAll({
-    attributes: ['id'],
-    order: [['id', 'ASC']]
-  });
-
-  const ids = fiches.map(f => f.id);
-  let newId = 1;
-  for (let i = 0; i < ids.length; i++) {
-    if (ids[i] !== i + 1) {
-      newId = i + 1;
-      break;
-    }
-    newId = ids.length + 1;
-  }
-
-  const fiche = await AllStarsDivsFiche.create({
-    id: newId,
-    jid,
-    ...data
-  });
-
-  return fiche;
-}
-
-async function del_fiche(code_fiche) {
-  return await AllStarsDivsFiche.destroy({
-    where: { code_fiche }
-  });
-}
-
-/* ---------------------- 🔥 NOUVELLES FONCTIONS ------------------------ */
-
-/**
- * 🔥 Supprimer toutes les fiches où le JID est null ou "null"
- */
+/** 🔥 Supprimer toutes les fiches dont jid est null, "null", "", undefined */
 async function deleteNullJid() {
   const deleted = await AllStarsDivsFiche.destroy({
     where: {
-      jid: ['null', null, '']
+      jid: {
+        [Op.or]: [null, "null", "", " ", "aucun"]
+      }
     }
   });
 
-  console.log(`🗑️ ${deleted} fiches supprimées (jid null).`);
-  return deleted;
+  console.log(`🗑️ ${deleted} fiches avec jid null supprimées.`);
 }
 
-/**
- * 🔥 Fixer les IDs pour que ce soit vraiment clean
- * Recalcule les IDs en continu (1,2,3,...)
- */
+/** 🔥 Corrige les ID dupliqués en réassignant un ID libre */
+async function fixDuplicateIds() {
+  const fiches = await AllStarsDivsFiche.findAll({ order: [['id', 'ASC']] });
+
+  const usedIds = new Set();
+  let maxId = 0;
+
+  for (const fiche of fiches) {
+    if (usedIds.has(fiche.id)) {
+      maxId++;
+      await fiche.update({ id: maxId });
+      console.log(`⚠️ ID dupliqué corrigé : nouvel id = ${maxId}`);
+    } else {
+      usedIds.add(fiche.id);
+      if (fiche.id > maxId) maxId = fiche.id;
+    }
+  }
+
+  console.log("🔧 Tous les IDs dupliqués ont été réparés.");
+}
+
+/** 🔥 Réorganise les ID en 1,2,3,4,... */
 async function fixPrimaryKeys() {
   const fiches = await AllStarsDivsFiche.findAll({ order: [['id', 'ASC']] });
 
@@ -181,18 +128,71 @@ async function fixPrimaryKeys() {
     newId++;
   }
 
-  console.log("🔧 IDs réorganisés proprement et réassignés.");
+  console.log("🔧 IDs réorganisés proprement.");
 }
 
-deleteNullJid();
-fixPrimaryKeys();
+/* -----------------------------------------------------------------------
+   🔥 SYNCHRO + AUTO-FIX AU DÉMARRAGE
+------------------------------------------------------------------------*/
+(async () => {
+  await AllStarsDivsFiche.sync();
 
-module.exports = { 
-  getAllFiches, 
-  setfiche, 
-  getData, 
-  add_id, 
+  await deleteNullJid();      // supprime les jids nuls
+  await fixDuplicateIds();    // corrige les ids dupliqués
+  await fixPrimaryKeys();     // range les ids proprement
+
+  console.log("✅ Base AllStarsDivsFiche 100% réparée et synchronisée.");
+})();
+
+/* -----------------------------------------------------------------------
+   🔥 FONCTIONS UTILISATEUR
+------------------------------------------------------------------------*/
+async function getAllFiches() {
+  return await AllStarsDivsFiche.findAll();
+}
+
+async function getData(where = {}) {
+  const [fiche, created] = await AllStarsDivsFiche.findOrCreate({
+    where,
+    defaults: {}
+  });
+
+  if (created) console.log(`➕ Fiche créée :`, where);
+  return fiche;
+}
+
+async function setfiche(colonne, valeur, jid) {
+  const updateData = {};
+  updateData[colonne] = valeur;
+
+  const [updated] = await AllStarsDivsFiche.update(updateData, { where: { jid } });
+
+  if (!updated) throw new Error(`❌ Aucun joueur trouvé pour jid : ${jid}`);
+  console.log(`✔ ${colonne} mis à jour → ${valeur}`);
+}
+
+async function add_id(jid, data = {}) {
+  if (!jid) throw new Error("JID requis");
+
+  const exists = await AllStarsDivsFiche.findOne({ where: { jid } });
+  if (exists) return null;
+
+  return await AllStarsDivsFiche.create({ jid, ...data });
+}
+
+async function del_fiche(code_fiche) {
+  return await AllStarsDivsFiche.destroy({
+    where: { code_fiche }
+  });
+}
+
+module.exports = {
+  getAllFiches,
+  setfiche,
+  getData,
+  add_id,
   del_fiche,
-  deleteNullJid,   // 🔥 ajouté
-  fixPrimaryKeys   // 🔥 ajouté
+  deleteNullJid,
+  fixDuplicateIds,
+  fixPrimaryKeys
 };
