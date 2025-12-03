@@ -408,3 +408,6 @@ ovlcmd({
       console.error(e);
     }
   };
+
+  await tirageHandler();
+}); 
