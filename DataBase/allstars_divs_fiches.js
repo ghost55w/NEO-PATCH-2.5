@@ -131,12 +131,27 @@ async function fixPrimaryKeys() {
   console.log("🔧 IDs réorganisés proprement.");
 }
 
+async function deleteInvalidCodeFiche() {
+  const { Op } = require("sequelize");
+
+  const deleted = await AllStarsDivsFiche.destroy({
+    where: {
+      code_fiche: {
+        [Op.or]: [null, "null", "aucun", "pas de fiche", " ", "AUCUN"]
+      }
+    }
+  });
+
+  console.log(`🗑️ ${deleted} fiches avec un code_fiche invalide supprimées.`);
+}
+
 /* -----------------------------------------------------------------------
    🔥 SYNCHRO + AUTO-FIX AU DÉMARRAGE
 ------------------------------------------------------------------------*/
 (async () => {
   await AllStarsDivsFiche.sync();
 
+  await deleteInvalidCodeFiche();
   await deleteNullJid();      // supprime les jids nuls
   await fixDuplicateIds();    // corrige les ids dupliqués
   await fixPrimaryKeys();     // range les ids proprement
