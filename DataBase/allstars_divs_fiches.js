@@ -25,9 +25,9 @@ if (!db) {
 
 const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   id: {
-  type: DataTypes.INTEGER,
-  autoIncrement: true,
-  primaryKey: true
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
   },
   pseudo: { type: DataTypes.STRING, defaultValue: 'aucun' },
   classement: { type: DataTypes.STRING, defaultValue: 'aucun' },
@@ -63,7 +63,10 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   total_cards: { type: DataTypes.INTEGER, defaultValue: 0 },
   cards: { type: DataTypes.TEXT, defaultValue: 'aucune' },
   source: { type: DataTypes.STRING, defaultValue: 'inconnu' },
-  jid: { type: DataTypes.STRING, defaultValue: 'null' },
+
+  // 🔥 valeur par défaut changée : "aucun"
+  jid: { type: DataTypes.STRING, defaultValue: 'aucun' },
+
   oc_url: { type: DataTypes.STRING, defaultValue: 'https://files.catbox.moe/4quw3r.jpg' },
   code_fiche: { type: DataTypes.STRING, defaultValue: 'aucun' },
   
@@ -76,6 +79,8 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   await AllStarsDivsFiche.sync();
   console.log("✅ Table 'allstars_divs_fiches' synchronisée avec succès.");
 })();
+
+/* -------------------------- DÉJÀ EXISTANT ----------------------------- */
 
 async function getAllFiches() {
   return await AllStarsDivsFiche.findAll();
@@ -95,18 +100,18 @@ async function getData(where = {}) {
 }
 
 async function setfiche(colonne, valeur, jid) {
-  const updateData = {};
-  updateData[colonne] = valeur;
+  const updateData = {};
+  updateData[colonne] = valeur;
 
-  const [updatedCount] = await AllStarsDivsFiche.update(updateData, {
-    where: { jid },
-  });
+  const [updatedCount] = await AllStarsDivsFiche.update(updateData, {
+    where: { jid },
+  });
 
-  if (updatedCount === 0) {
-    throw new Error(`❌ Aucun joueur trouvé avec l'id : ${jid}`);
-  }
+  if (updatedCount === 0) {
+    throw new Error(`❌ Aucun joueur trouvé avec l'id : ${jid}`);
+  }
 
-  console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur id ${jid}`);
+  console.log(`✅ ${colonne} mis à jour à '${valeur}' pour le joueur id ${jid}`);
 }
 
 async function add_id(jid, data = {}) {
@@ -145,4 +150,46 @@ async function del_fiche(code_fiche) {
   });
 }
 
-module.exports = { getAllFiches, setfiche, getData, add_id, del_fiche};
+/* ---------------------- 🔥 NOUVELLES FONCTIONS ------------------------ */
+
+/**
+ * 🔥 Supprimer toutes les fiches où le JID est null ou "null"
+ */
+async function deleteNullJid() {
+  const deleted = await AllStarsDivsFiche.destroy({
+    where: {
+      jid: ['null', null, '']
+    }
+  });
+
+  console.log(`🗑️ ${deleted} fiches supprimées (jid null).`);
+  return deleted;
+}
+
+/**
+ * 🔥 Fixer les IDs pour que ce soit vraiment clean
+ * Recalcule les IDs en continu (1,2,3,...)
+ */
+async function fixPrimaryKeys() {
+  const fiches = await AllStarsDivsFiche.findAll({ order: [['id', 'ASC']] });
+
+  let newId = 1;
+  for (const fiche of fiches) {
+    if (fiche.id !== newId) {
+      await fiche.update({ id: newId });
+    }
+    newId++;
+  }
+
+  console.log("🔧 IDs réorganisés proprement et réassignés.");
+}
+
+module.exports = { 
+  getAllFiches, 
+  setfiche, 
+  getData, 
+  add_id, 
+  del_fiche,
+  deleteNullJid,   // 🔥 ajouté
+  fixPrimaryKeys   // 🔥 ajouté
+};
