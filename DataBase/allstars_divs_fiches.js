@@ -23,14 +23,11 @@ if (!db) {
   });
 }
 
-/* -----------------------------------------------------------------------
-   🔥 MODELE AVEC ID SERIAL PRIMARY KEY + jid="aucun"
-------------------------------------------------------------------------*/
 const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    autoIncrement: true  // SERIAL en Postgres
+    autoIncrement: true
   },
   pseudo: { type: DataTypes.STRING, defaultValue: 'aucun' },
   classement: { type: DataTypes.STRING, defaultValue: 'aucun' },
@@ -66,10 +63,7 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   total_cards: { type: DataTypes.INTEGER, defaultValue: 0 },
   cards: { type: DataTypes.TEXT, defaultValue: 'aucune' },
   source: { type: DataTypes.STRING, defaultValue: 'inconnu' },
-
-  // 🔥 Par défaut → "aucun"
   jid: { type: DataTypes.STRING, defaultValue: 'aucun' },
-
   oc_url: { type: DataTypes.STRING, defaultValue: 'https://files.catbox.moe/4quw3r.jpg' },
   code_fiche: { type: DataTypes.STRING, defaultValue: 'aucun' },
 
@@ -78,90 +72,6 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   timestamps: false,
 });
 
-/* -----------------------------------------------------------------------
-   🔥 FONCTIONS DE RÉPARATION DES IDS DUPLIQUÉS / JID NULL
-------------------------------------------------------------------------*/
-
-/** 🔥 Supprimer toutes les fiches dont jid est null, "null", "", undefined */
-async function deleteNullJid() {
-  const deleted = await AllStarsDivsFiche.destroy({
-    where: {
-      jid: {
-        [Op.or]: [null, "null", "", " ", "aucun"]
-      }
-    }
-  });
-
-  console.log(`🗑️ ${deleted} fiches avec jid null supprimées.`);
-}
-
-/** 🔥 Corrige les ID dupliqués en réassignant un ID libre */
-async function fixDuplicateIds() {
-  const fiches = await AllStarsDivsFiche.findAll({ order: [['id', 'ASC']] });
-
-  const usedIds = new Set();
-  let maxId = 0;
-
-  for (const fiche of fiches) {
-    if (usedIds.has(fiche.id)) {
-      maxId++;
-      await fiche.update({ id: maxId });
-      console.log(`⚠️ ID dupliqué corrigé : nouvel id = ${maxId}`);
-    } else {
-      usedIds.add(fiche.id);
-      if (fiche.id > maxId) maxId = fiche.id;
-    }
-  }
-
-  console.log("🔧 Tous les IDs dupliqués ont été réparés.");
-}
-
-/** 🔥 Réorganise les ID en 1,2,3,4,... */
-async function fixPrimaryKeys() {
-  const fiches = await AllStarsDivsFiche.findAll({ order: [['id', 'ASC']] });
-
-  let newId = 1;
-  for (const fiche of fiches) {
-    if (fiche.id !== newId) {
-      await fiche.update({ id: newId });
-    }
-    newId++;
-  }
-
-  console.log("🔧 IDs réorganisés proprement.");
-}
-
-async function deleteInvalidCodeFiche() {
-  const { Op } = require("sequelize");
-
-  const deleted = await AllStarsDivsFiche.destroy({
-    where: {
-      code_fiche: {
-        [Op.or]: [null, "null", "aucun", "pas de fiche", " ", "AUCUN"]
-      }
-    }
-  });
-
-  console.log(`🗑️ ${deleted} fiches avec un code_fiche invalide supprimées.`);
-}
-
-/* -----------------------------------------------------------------------
-   🔥 SYNCHRO + AUTO-FIX AU DÉMARRAGE
-------------------------------------------------------------------------*/
-(async () => {
-  await AllStarsDivsFiche.sync();
-
-  await deleteInvalidCodeFiche();
-  await deleteNullJid();      // supprime les jids nuls
-  await fixDuplicateIds();    // corrige les ids dupliqués
-  await fixPrimaryKeys();     // range les ids proprement
-
-  console.log("✅ Base AllStarsDivsFiche 100% réparée et synchronisée.");
-})();
-
-/* -----------------------------------------------------------------------
-   🔥 FONCTIONS UTILISATEUR
-------------------------------------------------------------------------*/
 async function getAllFiches() {
   return await AllStarsDivsFiche.findAll();
 }
@@ -171,8 +81,6 @@ async function getData(where = {}) {
     where,
     defaults: {}
   });
-
-  if (created) console.log(`➕ Fiche créée :`, where);
   return fiche;
 }
 
@@ -206,8 +114,5 @@ module.exports = {
   setfiche,
   getData,
   add_id,
-  del_fiche,
-  deleteNullJid,
-  fixDuplicateIds,
-  fixPrimaryKeys
+  del_fiche
 };
