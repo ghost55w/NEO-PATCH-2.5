@@ -1,3 +1,4 @@
+// cards All stars 
 const cards = {
   "3rdRaikage_argent_ultra_s_800k.jpg": "https://files.catbox.moe/7c3pgw.jpg",
   "A_argent_ultra_sm_600k.jpg": "https://files.catbox.moe/amfh8w.jpg",
@@ -514,3 +515,4 @@ function generateCardsFromObject(cardsObject) {
 
 const cardData = generateCardsFromObject(cards);
 module.exports = { cards: cardData };
+
