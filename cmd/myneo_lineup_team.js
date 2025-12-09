@@ -1,9 +1,27 @@
 const { ovlcmd } = require('../lib/ovlcmd');
 const { MyNeoFunctions, TeamFunctions, BlueLockFunctions } = require("../DataBase/myneo_lineup_team");
+const { getData, setfiche } = require("../DataBase/allstars_divs_fiches");
+
+// Déstructuration unique pour MyNeo
 const { saveUser: saveMyNeo, deleteUser: delMyNeo, getUserData: getNeo, updateUser: updateMyNeo } = MyNeoFunctions;
+
+// Team
 const { saveUser: saveTeam, deleteUser: delTeam, getUserData: getTeam, updateUser: updateTeam } = TeamFunctions;
+
+// BlueLock
 const { saveUser: saveLineup, deleteUser: delLineup, getUserData: getLineup, updatePlayers, updateStats } = BlueLockFunctions;
 
+// --- Helper ---
+function normalizeJid(input) {
+  if (!input) return null;
+  if (input.endsWith("@s.whatsapp.net")) return input;
+  if (/^\d+$/.test(input)) return input + "@s.whatsapp.net";
+  return String(input);
+}
+
+// ------------------- Commandes -------------------
+
+// SAVE
 ovlcmd({
   nom_cmd: "save",
   classe: "Other",
@@ -12,13 +30,23 @@ ovlcmd({
 }, async (ms_org, ovl, cmd) => {
   const { arg, repondre, prenium_id } = cmd;
   if (!prenium_id) return repondre("⚠️ Seuls les membres de la NS peuvent enregistrer un joueur.");
-  const mention = arg[0];
-  if (!mention) return repondre("⚠️ Mentionne un utilisateur.");
+  const rawMention = arg[0];
+  if (!rawMention) return repondre("⚠️ Mentionne un utilisateur.");
 
+  const mention = normalizeJid(rawMention);
   const type = arg[1]?.toLowerCase();
+
   const baseMyNeo = {
-    users: "aucun", tel: mention.replace("@s.whatsapp.net", ""), points_jeu: 0, nc: 0, np: 0,
-    coupons: 0, gift_box: 0, all_stars: "", blue_lock: "+Team⚽", elysium: "+ElysiumMe💠"
+    users: "aucun",
+    tel: mention.replace("@s.whatsapp.net", ""),
+    ns: 0,
+    nc: 0,
+    np: 0,
+    coupons: 0,
+    gift_box: 0,
+    all_stars: "",
+    blue_lock: "+Team⚽",
+    elysium: "+ElysiumMe💠"
   };
   const baseTeam = {
     users: "aucun", team: "aucun", argent: 0, classement: "aucun", wins: 0, loss: 0, niveau: 0, trophies: 0, goals: 0
@@ -54,6 +82,7 @@ ovlcmd({
   return repondre(msg);
 });
 
+// DELETE
 ovlcmd({
   nom_cmd: "delete",
   classe: "Other",
@@ -62,9 +91,9 @@ ovlcmd({
 }, async (ms_org, ovl, cmd) => {
   const { arg, repondre, prenium_id } = cmd;
   if (!prenium_id) return repondre("⚠️ Seuls les membres de la NS peuvent supprimer un joueur.");
-
-  const mention = arg[0];
-  if (!mention) return repondre("⚠️ Mentionne un utilisateur.");
+  const rawMention = arg[0];
+  if (!rawMention) return repondre("⚠️ Mentionne un utilisateur.");
+  const mention = normalizeJid(rawMention);
   const type = arg[1]?.toLowerCase();
   const dels = { myneo: delMyNeo, team: delTeam, lineup: delLineup };
   if (!dels[type]) return repondre("⚠️ Type invalide. Utilise : myneo, team ou lineup.");
@@ -73,6 +102,7 @@ ovlcmd({
   return repondre(msg);
 });
 
+// MYNEO🔷
 ovlcmd({
   nom_cmd: "myneo🔷",
   classe: "Other",
@@ -80,98 +110,108 @@ ovlcmd({
   desc: "Afficher ou modifier les données NEO d'un joueur.",
 }, async (ms_org, ovl, cmd_options) => {
   const { arg, auteur_Message, prenium_id, repondre } = cmd_options;
-  let userId = auteur_Message;
-  if (arg.length >= 1) {
-    userId = arg[0];
-    if (!userId) return repondre("⚠️ Mentionne un utilisateur.");
-  }
+  let userId = normalizeJid(auteur_Message);
+  if (arg.length >= 1) userId = normalizeJid(arg[0]);
 
   try {
-    let data = await getNeo(userId);
+    const data = await getNeo(userId);
     if (!data) return repondre("⚠️ Aucune donnée trouvée pour cet utilisateur.");
 
+    // Affichage
     if (arg.length <= 1) {
       const myn = `╭───〔 *🪀COMPTE NEO🔷* 〕
-      
 👤User: ${data.users}
 📳Téléphone: ${data.tel}
-🎮Points de jeux: ${data.points_jeu}
+👑NEOscore: ${data.ns}👑
 🔷NEOcoins: ${data.nc}🔷
 🔶NEOpoints: ${data.np}🔶
 🎫Coupons: ${data.coupons}🎫
 
 *🎮MY GAMES🪀*
- ░▒▒▒▒░░▒░
-▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░               
 🌀All Stars: ${data.all_stars}
 ⚽Blue Lock: ${data.blue_lock}
 💠Élysium: ${data.elysium}
 ╰───────────────────
-                   *🔷NEOVERSE🎮*`;
+           *🔷NEOVERSE🎮*`;
 
-      await ovl.sendMessage(ms_org, {
-        video: { url: "https://files.catbox.moe/yimc4o.mp4" },
-        gifPlayback: true,
-        caption: ""
-      }, { quoted: cmd_options.ms });
-      
-      return await ovl.sendMessage(ms_org, {
-        image: { url: "https://files.catbox.moe/nyy6fb.jpg" },
-        caption: myn
-      }, { quoted: cmd_options.ms });
+      await ovl.sendMessage(ms_org, { video: { url: "https://files.catbox.moe/yimc4o.mp4" }, gifPlayback: true }, { quoted: cmd_options.ms });
+      return await ovl.sendMessage(ms_org, { image: { url: "https://files.catbox.moe/nyy6fb.jpg" }, caption: myn }, { quoted: cmd_options.ms });
     }
 
+    // Modification
     if (!prenium_id) return repondre("⚠️ Seuls les membres Premium peuvent actualiser un joueur.");
+    const modifiables = ["users","tel","ns","nc","np","coupons","gift_box","all_stars","blue_lock","elysium"];
+    const updates = {};
 
-    const modifiables = [
-      "users", "tel", "points_jeu", "nc", "np", "coupons", "gift_box",
-      "all_stars", "blue_lock", "elysium"
-    ];
-
-    let updates = {};
     for (let i = 1; i < arg.length;) {
       const field = arg[i]?.toLowerCase();
       const op = arg[i + 1];
-      if (!modifiables.includes(field) || !["=", "+", "-"].includes(op)) {
-        i++;
-        continue;
-      }
-      const isNumeric = ["points_jeu", "nc", "np", "coupons", "gift_box"].includes(field);
+      if (!modifiables.includes(field) || !["=","+","-"].includes(op)) { i++; continue; }
+      const isNumeric = ["ns","nc","np","coupons","gift_box"].includes(field);
       let value;
-
       if (op === "=" && !isNumeric) {
-        let valParts = [], j = i + 2;
-        while (j < arg.length && !modifiables.includes(arg[j].toLowerCase())) valParts.push(arg[j++]);
-        value = valParts.join(" "); i = j;
-      } else {
-        value = arg[i + 2]; i += 3;
-      }
+        let valParts=[], j=i+2; while(j<arg.length && !modifiables.includes(arg[j]?.toLowerCase())) valParts.push(arg[j++]);
+        value = valParts.join(" "); i=j;
+      } else { value = arg[i+2]; i+=3; }
 
       if (value !== undefined) {
         if (isNumeric) {
           const val = parseInt(value);
           if (!isNaN(val)) {
-            if (op === "=") updates[field] = val;
-            else if (op === "+") updates[field] = data[field] + val;
-            else if (op === "-") updates[field] = data[field] - val;
+            if (op==="=") updates[field]=val;
+            if (op==="+") updates[field]=data[field]+val;
+            if (op==="-") updates[field]=data[field]-val;
           }
-        } else if (op === "=") updates[field] = value;
+        } else if(op==="=") updates[field]=value;
       }
     }
 
-    if (Object.keys(updates).length > 0) {
-      const message = await updateMyNeo(userId, updates);
-      return repondre(message);
-    } else {
-      return repondre("⚠️ Format incorrect ou champ non valide. Exemple : +myNeo @user nc + 200 user = Damian KÏNGS⚜️");
-    }
+    if(Object.keys(updates).length===0) return repondre("⚠️ Format incorrect. Exemple : +myNeo @user nc + 200");
+    const message = await updateMyNeo(userId, updates);
+    return repondre(message);
 
-  } catch (err) {
+  } catch(err) {
     console.error("❌ Erreur ligne myNeo:", err);
     return repondre("❌ Une erreur est survenue.");
   }
 });
- 
+
+// --- Fonction Auto Récompenses NEO SCORE ---
+async function checkNeoScoreRewards(userId, ovl, ms_org) {
+  try {
+    const myneoData = await getNeo(userId);
+    if(!myneoData) return;
+
+    const nsActuel = myneoData.ns || 0;
+    const lastPalier = myneoData.lastRewardNS || 0;
+    const palierActuel = Math.floor(nsActuel/100);
+    const dernierPalier = Math.floor(lastPalier/100);
+
+    if(palierActuel>dernierPalier){
+      const paliersGagnes = palierActuel - dernierPalier;
+      const recompenses = { golds: 500_000*paliersGagnes, nc:50*paliersGagnes, coupons:25*paliersGagnes };
+
+      // Update MyNeo NC & coupons + lastRewardNS
+      await updateMyNeo(userId, { nc:(myneoData.nc||0)+recompenses.nc, coupons:(myneoData.coupons||0)+recompenses.coupons, lastRewardNS:nsActuel });
+
+      // Update All Stars golds
+      const allStarsFiche = await getData({ jid:userId });
+      await setfiche("golds", (allStarsFiche.golds||0)+recompenses.golds, userId);
+
+      const mention = myneoData.users || "@player";
+      const message = `🎉👑LEVEL UP ROYALITY XP👑! Félicitations ${mention} tu viens de franchir les ${palierActuel*100}👑 royalities, les récompenses +${recompenses.golds} golds +${recompenses.nc} NC et +${recompenses.coupons} coupons ajoutées à ta fiche💯! Royalities👑🎉🎉
+╰───────────────────`;
+
+      await ovl.sendMessage(ms_org, { text: message });
+    }
+
+  } catch(err){
+    console.error("❌ Erreur Auto Récompenses NEO SCORE:", err);
+  }
+}
+
+module.exports = { checkNeoScoreRewards };
+
 ovlcmd({
   nom_cmd: "team⚽",
   classe: "Other",
