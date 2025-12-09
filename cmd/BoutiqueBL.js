@@ -10,22 +10,14 @@ const formatNumber = n => {
     catch { return n; }
 };
 
-function toNumber(n) {
-    if (!n) return 0;
-    return parseInt(n.toString().replace(/[^0-9\-]/g, ""));
-}
-
-// --- CALCUL DU PRIX (PLACÉ AU BON ENDROIT) ---
+// --- CALCUL DU PRIX ---
 function calculPrix(card) {
-
     let baseRankPrice = {
         "S": 1_000_000,
         "SS": 3_000_000
     }[card.rank] || 100_000;
 
-    let ovr = parseInt(card.ovr || 0);
-
-    // Ajout de l'OVR au prix : chaque point d'OVR = 1000
+    let ovr = Number(card.ovr || 0);
     let bonusOvr = ovr * 1000;
 
     return baseRankPrice + bonusOvr;
@@ -40,17 +32,13 @@ const allCards = Object.entries(cardsBlueLock).map(([key, c]) => {
     };
 });
 
-// --- Fonction utilitaire pour insérer dans le lineup ---
+// --- Fonction pour insérer dans le lineup ---
 async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
     const ficheLineup = await getData({ jid: auteur_Message });
     if (!ficheLineup) return;
 
-    // Crée le lineup si n'existe pas
-    if (!ficheLineup.lineup) {
-        ficheLineup.lineup = Array(15).fill(null);
-    }
+    if (!ficheLineup.lineup) ficheLineup.lineup = Array(15).fill(null);
 
-    // Vérifie si il y a de la place
     const freePositions = ficheLineup.lineup.map((p, i) => p === null ? i : -1).filter(i => i !== -1);
 
     if (freePositions.length === 0) {
@@ -58,17 +46,11 @@ async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
         return false;
     }
 
-    // Envoie le message pour choisir une position
     await repondre(`✅ Carte achetée : ${card.name} (${card.ovr})\nChoisis la position où la placer dans ton lineup (1-15). Positions libres : ${freePositions.map(i => `J${i+1}`).join(", ")}`);
 
-    // Attend la réponse de l’utilisateur
     const waitFor = async (timeout = 60000) => {
         try {
-            const r = await ovl.recup_msg({
-                auteur: auteur_Message,
-                ms_org,
-                temps: timeout
-            });
+            const r = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: timeout });
             const txt = r?.message?.extendedTextMessage?.text || r?.message?.conversation || "";
             return txt.trim();
         } catch {
@@ -82,7 +64,6 @@ async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
         return false;
     }
 
-    // Convertit en index
     positionChoisie = parseInt(positionChoisie.replace(/[^\d]/g, "")) - 1;
 
     if (positionChoisie < 0 || positionChoisie > 14) {
@@ -95,18 +76,15 @@ async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
         return false;
     }
 
-    // Ajoute la carte dans le lineup
     ficheLineup.lineup[positionChoisie] = {
         name: card.name,
         overall: card.ovr,
         country: card.country,
-        flag: card.flag || "", // drapeau
+        flag: card.flag || "",
         poste: card.poste || "Non défini"
     };
 
-    // Sauvegarde le lineup
     await setfiche("lineup", ficheLineup.lineup, auteur_Message);
-
     await repondre(`✅ ${card.name} placé en position J${positionChoisie+1} dans ton lineup !`);
     return true;
 }
@@ -124,7 +102,6 @@ ovlcmd({
 
         if (!userData || !fiche) return repondre("❌ Impossible de récupérer ta fiche.");
 
-        // --- TEXTE D'ACCUEIL ---
         await ovl.sendMessage(ms_org, {
             image: { url: 'https://files.catbox.moe/s5pyu9.jpg' },
             caption: `╭───〔 *⚽BOUTIQUE BLUE LOCK🔷* 〕  
@@ -142,16 +119,10 @@ pour fermer la session de boutique 👉🏽 close.
 
         const waitFor = async (timeout = 120000) => {
             try {
-                const r = await ovl.recup_msg({
-                    auteur: auteur_Message,
-                    ms_org,
-                    temps: timeout
-                });
+                const r = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: timeout });
                 const txt = r?.message?.extendedTextMessage?.text || r?.message?.conversation || "";
                 return txt.trim();
-            } catch {
-                return "";
-            }
+            } catch { return ""; }
         };
 
         let userInput = await waitFor();
@@ -161,7 +132,6 @@ pour fermer la session de boutique 👉🏽 close.
 
         while (sessionOpen) {
             try {
-
                 if (userInput.toLowerCase() === "close") {
                     await repondre("✅ Boutique fermée.");
                     break;
@@ -178,7 +148,6 @@ pour fermer la session de boutique 👉🏽 close.
                     continue;
                 }
 
-                // --- EXTRACTION DU NOM ---
                 const parts = userInput.split(":");
                 if (parts.length < 2) { userInput = await waitFor(); continue; }
 
@@ -190,13 +159,8 @@ pour fermer la session de boutique 👉🏽 close.
                 }
 
                 const q = query.replace(/[\s\-\_]/g, "");
-
-                // --- RECHERCHE DE CARTE ---
-                let card = allCards.find(c =>
-                    c.name.toLowerCase().replace(/[\s\-\_]/g, "") === q
-                ) || allCards.find(c =>
-                    c.name.toLowerCase().replace(/[\s\-\_]/g, "").includes(q)
-                );
+                let card = allCards.find(c => c.name.toLowerCase().replace(/[\s\-\_]/g, "") === q)
+                        || allCards.find(c => c.name.toLowerCase().replace(/[\s\-\_]/g, "").includes(q));
 
                 if (!card) {
                     await repondre(`❌ Aucune carte trouvée pour : ${query}`);
@@ -204,9 +168,8 @@ pour fermer la session de boutique 👉🏽 close.
                     continue;
                 }
 
-                let basePrix = toNumber(card.price);
-                let argent = toNumber(fiche.argent);
-                let nc = toNumber(userData.nc);
+                let basePrix = card.price;
+                let argent = Number(fiche.argent || 0);  // <-- conversion correcte
 
                 // --- MESSAGE CARTE ---
                 await ovl.sendMessage(ms_org, {
@@ -220,7 +183,7 @@ pour fermer la session de boutique 👉🏽 close.
 🔹 Taille : ${card.taille}
 🔹 Pied : ${card.pieds}
 
-💳 Prix : ${(basePrix)} 💶
+💳 Prix : ${basePrix} 💶
 
 Confirmer ${mode} ? (oui / non / +coupon)
 ╰───────────────────
@@ -241,87 +204,61 @@ Confirmer ${mode} ? (oui / non / +coupon)
                     continue;
                 }
 
-                // --- COUPON ---
-                let couponUsed = false;
-                let finalPrice = basePrix;
+                // --- ACHAT ---
+                if (mode === "achat") {
+                    let np = userData.np || 0;
+                    let finalPrice = basePrix;
+                    let couponUsed = false;
 
-                if (conf.includes("+coupon") && mode === "achat") {
-                    const coupons = parseInt(userData.coupons || 0);
-                    if (coupons < 100) {
-                        await repondre("❌ Pas assez de coupons !");
+                    if (conf.includes("+coupon")) {
+                        const coupons = userData.coupons || 0;
+                        if (coupons < 100) {
+                            await repondre("❌ Pas assez de coupons !");
+                            userInput = await waitFor();
+                            continue;
+                        }
+                        finalPrice = Math.floor(basePrix / 2);
+                        couponUsed = true;
+                        await MyNeoFunctions.updateUser(auteur_Message, { coupons: coupons - 100 });
+                    }
+
+                    if (np < 1) {
+                        await repondre("❌ Pas assez de NP !");
                         userInput = await waitFor();
                         continue;
                     }
-                    finalPrice = Math.floor(basePrix / 2);
-                    couponUsed = true;
-                    await MyNeoFunctions.updateUser(auteur_Message, { coupons: coupons - 100 });
-                }
 
-                // --- ACHAT ---
-if (mode === "achat") {
-    let np = userData.np || 0;                // NP du joueur
-    let argent = fiche.argent || 0;           // Argent du joueur
+                    if (argent < finalPrice) {
+                        await repondre("❌ Pas assez d'argent !");
+                        userInput = await waitFor();
+                        continue;
+                    }
 
-    if (np < 1) {
-        await repondre("❌ Pas assez de NP !");
-        userInput = await waitFor();
-        continue;
-    }
+                    await MyNeoFunctions.updateUser(auteur_Message, { np: np - 1 });
+                    await setfiche("argent", argent - finalPrice, auteur_Message);
 
-    // Détermine le prix final avec coupon si utilisé
-    let couponUsed = false;
-    let finalPrice = basePrix;
+                    let cardsOwned = (fiche.cards || "").split("\n").filter(Boolean);
+                    if (!cardsOwned.includes(card.name)) cardsOwned.push(card.name);
+                    await setfiche("cards", cardsOwned.join("\n"), auteur_Message);
 
-    if (conf.includes("+coupon")) {
-        const coupons = userData.coupons || 0;
-        if (coupons < 100) {
-            await repondre("❌ Pas assez de coupons !");
-            userInput = await waitFor();
-            continue;
-        }
-        finalPrice = Math.floor(basePrix / 2);
-        couponUsed = true;
-        await MyNeoFunctions.updateUser(auteur_Message, { coupons: coupons - 100 });
-    }
+                    await MyNeoFunctions.updateUser(auteur_Message, { ns: (userData.ns + 5) });
 
-    // Vérifie si l'argent est suffisant
-    if (argent < finalPrice) {
-        await repondre("❌ Pas assez d'argent !");
-        userInput = await waitFor();
-        continue;
-    }
+                    await addToLineup(auteur_Message, card, ovl, ms_org, repondre);
 
-    // Retire NP et argent
-    await MyNeoFunctions.updateUser(auteur_Message, { np: np - 1 });
-    await setfiche("argent", argent - finalPrice, auteur_Message);
-
-    // Ajoute la carte
-    let cardsOwned = (fiche.cards || "").split("\n").filter(Boolean);
-    if (!cardsOwned.includes(card.name)) cardsOwned.push(card.name);
-    await setfiche("cards", cardsOwned.join("\n"), auteur_Message);
-
-    // Ajoute NS
-    await MyNeoFunctions.updateUser(auteur_Message, { ns: (userData.ns + 5) });
-
-    // --- PLACE DANS LE LINEUP ---
-    await addToLineup(auteur_Message, card, ovl, ms_org, repondre);
-
-    // --- ENVOI DU REÇU ---
-    await repondre(`
+                    await repondre(`
 ╭───〔 ⚽ REÇU D’ACHAT 🔷 〕──  
 🔥 ${card.name} ajouté !
-💳 Paiement : 1 NP + ${(finalPrice)} 💶
+💳 Paiement : 1 NP + ${finalPrice} 💶
 ${couponUsed ? "🎟️ Coupon utilisé (-50%)" : ""}
 👑 +5 NS ajoutés !
 
 Merci pour ton achat !
 ╰───────────────────
                   *BLUE🔷LOCK*`);
-}
-   
-  // --- VENTE ---
-                else if (mode === "vente") {
+                }
 
+                // --- VENTE ---
+                else if (mode === "vente") {
                     let cardsOwned = (fiche.cards || "").split("\n").filter(Boolean);
                     const idx = cardsOwned.findIndex(c => c.toLowerCase() === card.name.toLowerCase());
 
@@ -336,15 +273,12 @@ Merci pour ton achat !
 
                     let salePrice = Math.floor(basePrix / 2);
 
-                    await setfiche("argent",
-                        parseInt(fiche.argent || 0) + salePrice,
-                        auteur_Message
-                    );
+                    await setfiche("argent", argent + salePrice, auteur_Message);
 
                     await repondre(`
 ╭───〔 ⚽ REÇU DE VENTE 🔷 〕── 
 🔹 Carte vendue : ${card.name}
-💶 Gain : ${(salePrice)}
+💶 Gain : ${salePrice}
 
 ╰───────────────────
                   *BLUE🔷LOCK*`);
@@ -356,14 +290,13 @@ Merci pour ton achat !
 
             } catch (err) {
                 console.log("Erreur interne BL:", err);
-                await repondre("⚽ Boutique en attente… tape \`close\` pour quitter.");
+                await repondre("⚽ Boutique en attente… tape `close` pour quitter.");
                 userInput = await waitFor();
             }
         }
 
     } catch (err) {
         console.log("Erreur critique BL:", err);
-        return repondre("⚽Erreur inattendue. Tape \`close\` pour quitter.");
+        return repondre("⚽Erreur inattendue. Tape `close` pour quitter.");
     }
-});                    
-                
+});
