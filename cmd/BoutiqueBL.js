@@ -220,7 +220,7 @@ pour fermer la session de boutique 👉🏽 close.
 🔹 Taille : ${card.taille}
 🔹 Pied : ${card.pieds}
 
-💳 Prix : ${formatNumber(basePrix)} 💶
+💳 Prix : ${(basePrix)} 💶
 
 Confirmer ${mode} ? (oui / non / +coupon)
 ╰───────────────────
@@ -310,7 +310,7 @@ if (mode === "achat") {
     await repondre(`
 ╭───〔 ⚽ REÇU D’ACHAT 🔷 〕──  
 🔥 ${card.name} ajouté !
-💳 Paiement : 1 NP + ${formatNumber(finalPrice)} 💶
+💳 Paiement : 1 NP + ${(finalPrice)} 💶
 ${couponUsed ? "🎟️ Coupon utilisé (-50%)" : ""}
 👑 +5 NS ajoutés !
 
@@ -319,10 +319,35 @@ Merci pour ton achat !
                   *BLUE🔷LOCK*`);
 }
    
-                    
-                // --- VENTE ---
+  // --- VENTE ---
                 else if (mode === "vente") {
-                    // ... reste inchangé
+
+                    let cardsOwned = (fiche.cards || "").split("\n").filter(Boolean);
+                    const idx = cardsOwned.findIndex(c => c.toLowerCase() === card.name.toLowerCase());
+
+                    if (idx === -1) {
+                        await repondre("❌ Tu ne possèdes pas cette carte !");
+                        userInput = await waitFor();
+                        continue;
+                    }
+
+                    cardsOwned.splice(idx, 1);
+                    await setfiche("cards", cardsOwned.join("\n"), auteur_Message);
+
+                    let salePrice = Math.floor(basePrix / 2);
+
+                    await setfiche("argent",
+                        parseInt(fiche.argent || 0) + salePrice,
+                        auteur_Message
+                    );
+
+                    await repondre(`
+╭───〔 ⚽ REÇU DE VENTE 🔷 〕── 
+🔹 Carte vendue : ${card.name}
+💶 Gain : ${(salePrice)}
+
+╰───────────────────
+                  *BLUE🔷LOCK*`);
                 }
 
                 userData = await MyNeoFunctions.getUserData(auteur_Message);
@@ -331,13 +356,14 @@ Merci pour ton achat !
 
             } catch (err) {
                 console.log("Erreur interne BL:", err);
-                await repondre("⚽ Boutique en attente… tape `close` pour quitter.");
+                await repondre("⚽ Boutique en attente… tape \`close\` pour quitter.");
                 userInput = await waitFor();
             }
         }
 
     } catch (err) {
         console.log("Erreur critique BL:", err);
-        return repondre("⚽Erreur inattendue. Tape `close` pour quitter.");
+        return repondre("⚽Erreur inattendue. Tape \`close\` pour quitter.");
     }
-});
+});                    
+                
