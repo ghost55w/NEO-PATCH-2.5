@@ -10,6 +10,11 @@ const formatNumber = n => {
     catch { return n; }
 };
 
+function toNumber(n) {
+    if (!n) return 0;
+    return parseInt(n.toString().replace(/[^0-9\-]/g, ""));
+}
+
 // --- CALCUL DU PRIX (PLACÉ AU BON ENDROIT) ---
 function calculPrix(card) {
 
@@ -127,9 +132,9 @@ pour fermer la session de boutique 👉🏽 close.
                     continue;
                 }
 
-                let basePrix = parseInt(card.price);
-                let argent = parseInt(fiche.argent || 0);
-                let nc = parseInt(userData.nc || 0);
+                let basePrix = toNumber(card.price);
+let argent = toNumber(fiche.argent);
+let nc = toNumber(userData.nc);
 
                 // --- MESSAGE CARTE ---
                 await ovl.sendMessage(ms_org, {
@@ -183,7 +188,7 @@ Confirmer ${mode} ? (oui / non / +coupon)
                 // --- ACHAT ---
                 if (mode === "achat") {
 
-                    let np = parseInt(userData.np || 0);
+                    let np = toNumber(userData.np);
                     if (np < 1) {
                         await repondre("❌ Pas assez de NP !");
                         userInput = await waitFor();
@@ -240,9 +245,9 @@ Merci pour ton achat !
                     let salePrice = Math.floor(basePrix / 2);
 
                     await setfiche("argent",
-                        parseInt(fiche.argent || 0) + salePrice,
-                        auteur_Message
-                    );
+    toNumber(fiche.argent) + salePrice,
+    auteur_Message
+);
 
                     await repondre(`
 ╭───〔 ⚽ REÇU DE VENTE 🔷 〕── 
