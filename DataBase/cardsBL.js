@@ -1191,27 +1191,26 @@ const cardsBlueLock = {
 };
 
 // --------------------
-// 🔵 FONCTIONS PRIX
+// 🔵 FONCTION PRIX
 // --------------------
 function determinePrice(rank) {
   const rankPrices = {
-    "SS": "3000000 💶",
-    "S": "1000000 💶",
-    "A": "500000 💶",
-    "B": "100000 💶",
+    "SS": 3000000,
+    "S": 1000000,
+    "A": 500000,
+    "B": 100000,
   };
-  return rankPrices[rank] || "inconnu";
+  return rankPrices[rank] || 0;
 }
 
 // --------------------
 // 🔵 CATÉGORIE SELON OVR
 // --------------------
 function determineCategory(ovr) {
-  if (ovr >= 100) return "SS";
-  if (ovr >= 90) return "S";
-  if (ovr >= 80) return "A";
-  if (ovr >= 75) return "B";
-  return "inconnu";
+  if (ovr >= 100) return "world_class";
+  if (ovr >= 90) return "next_gen";
+  if (ovr >= 80) return "rare";
+  return "normal";
 }
 
 // --------------------
@@ -1234,7 +1233,7 @@ function createCardFromBlueLock(name, data) {
     taille: data.taille,
     pieds: data.pieds,
     category: determineCategory(data.ovr),
-    price: determinePrice(data.rank),
+    price: determinePrice(data.rank) + (data.ovr * 1000),
     placement:
       data.rank === "SS"
         ? "elite"
