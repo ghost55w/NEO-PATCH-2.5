@@ -258,39 +258,54 @@ Confirmer ${mode} ? (oui / non / +coupon)
                 }
 
                 // --- ACHAT ---
-                if (mode === "achat") {
+if (mode === "achat") {
+    let np = toNumber(userData.np);
+    let argent = toNumber(fiche.argent);
 
-                    let np = toNumber(userData.np);
-                    if (np < 1) {
-                        await repondre("❌ Pas assez de NP !");
-                        userInput = await waitFor();
-                        continue;
-                    }
+    if (np < 1) {
+        await repondre("❌ Pas assez de NP !");
+        userInput = await waitFor();
+        continue;
+    }
 
-                    if (argent < finalPrice && nc < finalPrice) {
-                        await repondre("❌ Fonds insuffisants !");
-                        userInput = await waitFor();
-                        continue;
-                    }
+    // Détermine le prix final avec coupon si utilisé
+    let couponUsed = false;
+    let finalPrice = basePrix;
 
-                    await MyNeoFunctions.updateUser(auteur_Message, { np: np - 1 });
+    if (conf.includes("+coupon")) {
+        const coupons = parseInt(userData.coupons || 0);
+        if (coupons < 100) {
+            await repondre("❌ Pas assez de coupons !");
+            userInput = await waitFor();
+            continue;
+        }
+        finalPrice = Math.floor(basePrix / 2);
+        couponUsed = true;
+        await MyNeoFunctions.updateUser(auteur_Message, { coupons: coupons - 100 });
+    }
 
-                    if (argent >= finalPrice)
-                        await setfiche("argent", argent - finalPrice, auteur_Message);
-                    else
-                        await MyNeoFunctions.updateUser(auteur_Message, { nc: nc - finalPrice });
+    if (argent < finalPrice) {
+        await repondre("❌ Pas assez d'argent !");
+        userInput = await waitFor();
+        continue;
+    }
 
-                    let cardsOwned = (fiche.cards || "").split("\n").filter(Boolean);
-                    if (!cardsOwned.includes(card.name)) cardsOwned.push(card.name);
-                    await setfiche("cards", cardsOwned.join("\n"), auteur_Message);
+    // Retire NP et argent
+    await MyNeoFunctions.updateUser(auteur_Message, { np: np - 1 });
+    await setfiche("argent", argent - finalPrice, auteur_Message);
 
-                    await MyNeoFunctions.updateUser(auteur_Message, { ns: (userData.ns + 5) });
+    // Ajoute la carte
+    let cardsOwned = (fiche.cards || "").split("\n").filter(Boolean);
+    if (!cardsOwned.includes(card.name)) cardsOwned.push(card.name);
+    await setfiche("cards", cardsOwned.join("\n"), auteur_Message);
 
-                    // --- PLACE DANS LE LINEUP ---
-                    await addToLineup(auteur_Message, card, ovl, ms_org, repondre);
+    await MyNeoFunctions.updateUser(auteur_Message, { ns: (userData.ns + 5) });
 
-                    // --- ENVOI DU REÇU ---
-                    await repondre(`
+    // --- PLACE DANS LE LINEUP ---
+    await addToLineup(auteur_Message, card, ovl, ms_org, repondre);
+
+    // --- ENVOI DU REÇU ---
+    await repondre(`
 ╭───〔 ⚽ REÇU D’ACHAT 🔷 〕──  
 🔥 ${card.name} ajouté !
 💳 Paiement : 1 NP + ${formatNumber(finalPrice)} 💶
@@ -300,8 +315,8 @@ ${couponUsed ? "🎟️ Coupon utilisé (-50%)" : ""}
 Merci pour ton achat !
 ╰───────────────────
                   *BLUE🔷LOCK*`);
-                }
-
+}
+                    
                 // --- VENTE ---
                 else if (mode === "vente") {
                     // ... reste inchangé
