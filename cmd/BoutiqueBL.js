@@ -169,7 +169,7 @@ pour fermer la session de boutique 👉🏽 close.
                 }
 
                 let basePrix = card.price;
-                let argent = Number(fiche.argent || 0);  // <-- conversion correcte
+                let argent = Number(String(fiche.argent).replace(/[^\d]/g, "")) || 0;  // <-- conversion correcte
 
                 // --- MESSAGE CARTE ---
                 await ovl.sendMessage(ms_org, {
