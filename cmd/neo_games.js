@@ -14,7 +14,7 @@ const generateRandomNumbers = (min, max, count) => {
 };
 
 const generateRewards = () => {
-  const rewards = ['50🔷', '100.000 G🧭', '25🎟'];
+  const rewards = ['50🔷', '100.000 G🧭', '25🎟','100.000💶' ];
   return rewards.sort(() => 0.5 - Math.random()).slice(0, 3);
 };
 
@@ -126,11 +126,17 @@ ovlcmd({
       if (!authorizedChats.includes(ms_org)) return repondre("Commande non autorisée pour ce chat.");
 
       const userData = await MyNeoFunctions.getUserData(auteur_Message);
-      if (!userData) return repondre("❌ Joueur introuvable dans MyNeo.");
+if (!userData) return repondre("❌ Joueur introuvable dans MyNeo.");
 
-      const fiche = await getData({ jid: auteur_Message });
-      if (!fiche) return repondre("❌ Fiche All Stars introuvable pour ce joueur.");
+const fiche = await getData({ jid: auteur_Message });
+if (!fiche) return repondre("❌ Fiche All Stars introuvable pour ce joueur.");
 
+// -----------------------------------------
+// 🔥 AJOUT ICI : compteur de roulettes d'affilée
+// -----------------------------------------
+let plays_in_row = parseInt(userData.plays_in_row) || 0;
+
+      
       let valeur_np = parseInt(userData.np) || 0;
       if (valeur_np < 1) return repondre("❌ Tu n’as pas assez de np (au moins 1 requis).");
 
@@ -150,9 +156,9 @@ Bienvenue dans la Roulette, choisissez un chiffre parmis les 5️⃣0️⃣. Si 
 ╭─────〔 🎰CASINO🎰 〕───
 *\ ${numbers.join(', ')}\ *.
  🎊▔▔🎊▔🎊▔🎊▔▔🎊▔▔🎊▔🎊▔🎊 
- $Gains:  🎁50🔷  🎁100.000 🧭  🎁25🎟️
+ $Gains:  🎁50🔷  🎁100.000 🧭  🎁25🎟️  🎁100.000💵
 
-☞ *🎰JACKPOT:* si vous réussissez à gagner 3x de suite c'est la récompense max +1.000.000🧭+100🔷+50🎟️ 🎊🎉🎉🍾🍾🎇🎇
+☞ *🎰JACKPOT:* si vous réussissez à gagner 3x de suite c'est la récompense max +1.000.000🧭+1.000.000💶+100🔷+50🎟️ 🎊🎉🎉🍾🍾🎇🎇
 ╰───────────────────
 
 🎊Voulez-vous tenter votre chance ? (1min)
@@ -213,6 +219,10 @@ Bienvenue dans la Roulette, choisissez un chiffre parmis les 5️⃣0️⃣. Si 
               valeur_coupons += 25;
               await MyNeoFunctions.updateUser(auteur_Message, { coupons: valeur_coupons });
               break;
+              case '100.000💶':
+  valeur_money = parseInt(userData.money || 0) + 100000;
+  await MyNeoFunctions.updateUser(auteur_Message, { argent: valeur_argent });
+  break;
           }
           await ovl.sendMessage(ms_org, {
             video: { url: 'https://files.catbox.moe/vfv2hk.mp4' },
@@ -259,7 +269,27 @@ Bienvenue dans la Roulette, choisissez un chiffre parmis les 5️⃣0️⃣. Si 
           await MyNeoFunctions.updateUser(auteur_Message, { wins_roulette: 0 });
         }
       }
+// Le joueur a joué une roulette → on augmente le compteur
+plays_in_row++;
 
+// Si le joueur joue 2 fois de suite, il gagne la récompense
+if (plays_in_row >= 2) {
+    let valeur_royalties = parseInt(userData.royalties || 0) + 5;
+
+    await MyNeoFunctions.updateUser(auteur_Message, {
+        royalties: valeur_royalties,
+        plays_in_row: 0 // reset
+    });
+
+    await repondre(`🎉👑 *Bonus fidélité !*  
+Tu as joué *2 roulettes d’affilée* → tu gagnes **+5 NP Royalities 👑** !`);
+} else {
+    // Sinon on sauvegarde le compteur normal
+    await MyNeoFunctions.updateUser(auteur_Message, {
+        plays_in_row
+    });
+}
+      
     } catch (e) {
       console.error('Erreur roulette:', e);
       repondre("❌ Une erreur est survenue.");
@@ -398,7 +428,7 @@ ovlcmd({
         }
       }
 
-      await setfiche("cards", allStarsArray.join(","), auteur_Message);
+      await setfiche("all_stars", allStarsArray.join(","), auteur_Message);
       await repondre(`🎉 Cartes ajoutées à ta fiche All Stars : ${tirees.map(c => c + "🎰").join(", ")}`);
 
     } catch (e) {
