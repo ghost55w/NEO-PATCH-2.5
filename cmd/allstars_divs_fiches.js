@@ -158,7 +158,7 @@ async function processUpdates(args, jid) {
   });
 
   continue;
-    }
+    } 
 
     // --- Gestion classique pour les autres colonnes ---
     if (signe === "+" || signe === "-") {
