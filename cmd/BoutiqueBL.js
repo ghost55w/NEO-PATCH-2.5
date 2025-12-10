@@ -34,10 +34,11 @@ const allCards = Object.entries(cardsBlueLock).map(([key, c]) => {
 });
 
 // --- ADD TO LINEUP (factorisée) ---
-async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
-    try {
-        let ficheLineup = await getLineup(auteur_Message);
-        if (!ficheLineup) return;
+async function main() {
+    await addToLineup(auteur_Message, card, ovl, ms_org, repondre);
+}
+
+main();
 
         // Initialisation positions vides
         for (let i = 1; i <= 15; i++) {
