@@ -102,6 +102,9 @@ ovlcmd({
 
         if (!userData || !fiche) return repondre("❌ Impossible de récupérer ta fiche.");
 
+        // 🔥 CONVERSION INITIALE DE L'ARGENT
+        fiche.argent = Number(String(fiche.argent).replace(/[^\d]/g, "")) || 0;
+        
         await ovl.sendMessage(ms_org, {
             image: { url: 'https://files.catbox.moe/s5pyu9.jpg' },
             caption: `╭───〔 *⚽BOUTIQUE BLUE LOCK🔷* 〕  
@@ -285,9 +288,13 @@ Merci pour ton achat !
                 }
 
                 userData = await MyNeoFunctions.getUserData(auteur_Message);
-                fiche = await getData({ jid: auteur_Message });
-                userInput = await waitFor();
+fiche = await getData({ jid: auteur_Message });
 
+// 🔥 IMPORTANT : Reconvertir proprement l’argent actualisé
+fiche.argent = Number(String(fiche.argent).replace(/[^\d]/g, "")) || 0;
+
+userInput = await waitFor();
+                
             } catch (err) {
                 console.log("Erreur interne BL:", err);
                 await repondre("⚽ Boutique en attente… tape `close` pour quitter.");
