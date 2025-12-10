@@ -13,6 +13,40 @@ const formatNumber = n => {
   catch { return n; }
 };
 
+// --- NOM PUR pour comparaison ---
+// Version robuste, compatible Node, retire drapeaux/emojis/parenthèses/overalls
+const pureName = str => {
+    if (!str) return "";
+    let s = String(str);
+
+    // Retirer parenthèses et contenu
+    s = s.replace(/\(.+?\)/g, " ");
+
+    // Retirer drapeaux
+    s = s.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, " ");
+
+    // Retirer emojis courants
+    s = s.replace(/[\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, " ");
+
+    // Retirer variation selectors + ZWJ
+    s = s.replace(/[\uFE00-\uFE0F\u200D]/g, " ");
+
+    // Normalisation → suppression accents
+    s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+
+    // Garder lettres / chiffres / espaces
+    s = s.replace(/[^0-9a-zA-ZÀ-ÿ\s]/g, " ");
+
+    // Nettoyer espaces
+    s = s.replace(/\s+/g, " ").trim().toLowerCase();
+
+    return s;
+};
+
+// Version compacte (retire aussi tous les espaces)
+const compact = s => pureName(s).replace(/\s+/g, "");
+
+
 // --- EMOJI PAYS SÉCURISÉS ---
 const countryEmojis = {
   "Japan": "\u{1F1EF}\u{1F1F5}",    // 🇯🇵
@@ -29,22 +63,6 @@ const rankLimits = {
   "SS": { niveau: 10, goals: 30 },
   "S": { niveau: 5, goals: 15 },
   "A": { niveau: 3, goals: 5 }
-};
-
-// --- NOM PUR pour comparaison (très robuste) ---
-const pureName = str => {
-  if (!str) return "";
-  return String(str)
-    .replace(/\(.+?\)/g, "")                        // supprime tout entre parenthèses
-    .replace(/[\u{1F1E6}-\u{1F1FF}]/gu, "")         // supprime les drapeaux (regional indicators)
-    // supprime la plupart des emojis (utilise \p{Emoji} si ton Node le supporte)
-    .replace(/\p{Emoji}/gu, "")                     // <-- si ton Node supporte \p{Emoji}
-    // Si ton Node ne supporte pas \p{Emoji}, remplace la ligne ci-dessus par la suivante :
-    // .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "")
-    .replace(/[^0-9a-zA-ZÀ-ÿ\s]/g, " ")             // remplace tout caractère spécial par espace
-    .replace(/\s+/g, " ")                           // collapse espaces
-    .trim()
-    .toLowerCase();
 };
 
 // --- CALCUL DU PRIX ---
@@ -267,48 +285,73 @@ Merci pour l'achat ⚽🔷 !
                    *BLUE🔷LOCK⚽*`);
       }
       
-//------------- VENTE (recherche tolérante) ------------
+//------------- VENTE (comparaison intelligente) ------------
 if (mode === "vente") {
 
-  let cardsOwned = (userData.cards || "")
-      .split("\n")
-      .map(c => c.trim())
-      .filter(Boolean);
+    let cardsOwned = (userData.cards || "")
+        .split("\n")
+        .map(c => c.trim())
+        .filter(Boolean);
 
-  // fonctions de normalisation
-  const norm = s => pureName(s).replace(/\s+/g, "");        // supprime espaces pour comparaison compacte
-  const qNorm = norm(query);                                // query = ce que l'utilisateur a tapé (ex: "isagi")
+    const qNorm = compact(query);
 
-  const idx = cardsOwned.findIndex(c => {
-    const cNorm = norm(c);
-    return cNorm === qNorm || cNorm.includes(qNorm) || qNorm.includes(cNorm);
-  });
+    // DEBUG (à enlever plus tard)
+    console.log("DEBUG vente - user cards:", cardsOwned);
+    console.log("DEBUG vente - normalized:", cardsOwned.map(c => compact(c)));
+    console.log("DEBUG vente - query:", qNorm);
 
-  if (idx === -1) {
-      await repondre("❌ Tu ne possèdes pas cette carte !");
-      userInput = await waitFor();
-      continue;
-  }
+    // 1) comparaison stricte normalisée
+    let idx = cardsOwned.findIndex(c => compact(c) === qNorm);
 
-  // suppression de la carte possédée
-  cardsOwned.splice(idx, 1);
-  await MyNeoFunctions.updateUser(auteur_Message, { cards: cardsOwned.join("\n") });
+    // 2) comparaison inclusive
+    if (idx === -1) {
+        idx = cardsOwned.findIndex(c =>
+            compact(c).includes(qNorm) ||
+            qNorm.includes(compact(c))
+        );
+    }
 
-  const salePrice = Math.floor(basePrix / 2);
-  await TeamFunctions.updateUser(auteur_Message, { argent: ficheTeam.argent + salePrice });
+    // 3) correspondance par segments (ex: « isagi nel » → « isagi »)
+    if (idx === -1) {
+        const qSimple = pureName(query);
+        idx = cardsOwned.findIndex(c => {
+            const parts = pureName(c).split(" ");
+            return parts.includes(qSimple);
+        });
+    }
 
-  await repondre(`
-╭───〔 ⚽ REÇU DE VENTE 🔷 〕──
+    if (idx === -1) {
+        await repondre("❌ Tu ne possèdes pas cette carte !");
+        userInput = await waitFor();
+        continue;
+    }
+
+    // Suppression de la carte
+    const removedCard = cardsOwned.splice(idx, 1)[0];
+
+    await MyNeoFunctions.updateUser(auteur_Message, {
+        cards: cardsOwned.join("\n")
+    });
+
+    const salePrice = Math.floor(basePrix / 2);
+
+    await TeamFunctions.updateUser(auteur_Message, {
+        argent: ficheTeam.argent + salePrice
+    });
+
+    await repondre(`
+╭───〔 🧾 REÇU DE VENTE 🔷 〕──
 🔹 Carte vendue : ${card.name}
 💶 Gain : ${salePrice}
 💰 Argent actuel : ${ficheTeam.argent + salePrice}
-╰───────────────────
-                  *BLUE🔷LOCK⚽*`);
-}
-      
-      userInput = await waitFor();  
-    }
 
+╰───────────────────
+                *BLUE🔷LOCK⚽*`);
+
+    userInput = await waitFor();
+    continue;
+}
+          
   } catch (err) {  
     console.log("Erreur critique BL:", err);  
     return repondre("⚽Erreur inattendue. Tape `close` pour quitter.");  
