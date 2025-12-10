@@ -89,7 +89,7 @@ async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
 🔷Choisis la position où la placer dans ton lineup (1-15).
 Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
 ╰───────────────────
-                       *BLUE🔷LOCK⚽*`);
+                            *BLUE🔷LOCK⚽*`);
 
     const waitFor = async (timeout = 60000) => {  
       try {  
@@ -148,7 +148,7 @@ pour fermer la session de boutique 👉🏽 close.
 
 #Happy202️⃣6️⃣🎊🎄🎁
 ╰───────────────────
-                *🔷BLUE LOCK🛍️ STORE*`
+             *🔷BLUE LOCK🛍️ STORE*`
     }, { quoted: ms });
 
     const waitFor = async (timeout = 120000) => {  
@@ -211,7 +211,7 @@ Ton niveau : ${ficheTeam.niveau}▲ | Tes goals : ${ficheTeam.goals}`);
 
 Confirmer ${mode} ? (oui / non / +coupon)
 ╰───────────────────
-                  *BLUE🔷LOCK*`
+                     *BLUE🔷LOCK⚽*`
       }, { quoted: ms });
 
       let conf = (await waitFor(60000)).toLowerCase();  
@@ -258,13 +258,17 @@ ${couponUsed ? "🎟️ Coupon utilisé (-50%)" : ""}
 
 Merci pour l'achat ⚽🔷 !
 ╰───────────────────
-                 *BLUE🔷LOCK*`);
+                   *BLUE🔷LOCK⚽*`);
       }
-
-      else if (mode === "vente") {  
-        let cardsOwned = (userData.cards || "").split("\n").filter(Boolean);  
-        const idx = cardsOwned.findIndex(c => pureName(c) === pureName(card.name));
-        if (idx === -1) { await repondre("❌ Tu ne possèdes pas cette carte !"); userInput = await waitFor(); continue; }  
+//-------------VENTE----------------- 
+      else if (mode === "vente") {        
+let cardsOwned = (userData.cards || "").split("\n").filter(Boolean);  
+const idx = cardsOwned.findIndex(c => pureName(c) === pureName(card.name)); // <- Normalisé des deux côtés
+if (idx === -1) { 
+    await repondre("❌ Tu ne possèdes pas cette carte !");
+    userInput = await waitFor(); 
+    continue; 
+}   
 
         cardsOwned.splice(idx, 1);  
         await MyNeoFunctions.updateUser(auteur_Message, { cards: cardsOwned.join("\n") });  
@@ -280,7 +284,7 @@ Merci pour l'achat ⚽🔷 !
 💰 Argent actuel : ${ficheTeam.argent + salePrice}
 
 ╰───────────────────
-                *BLUE🔷LOCK*`);
+                  *BLUE🔷LOCK⚽*`);
       }
 
       userInput = await waitFor();  
@@ -328,8 +332,9 @@ ovlcmd({
     if (!carte) return repondre(`❌ Carte introuvable : ${nouveauNom}`);
 
     const cardsOwned = (userData.cards || "").split("\n").filter(Boolean);
-    if (!cardsOwned.some(c => pureName(c) === pureName(carte.name))) return repondre(`❌ Tu ne possèdes pas ${carte.name} pour la remplacer.`);
-
+if (!cardsOwned.some(c => pureName(c) === pureName(carte.name))) 
+    return repondre(`❌ Tu ne possèdes pas ${carte.name} pour la remplacer.`);
+    
     ficheLineup[`joueur${posAncien}`] = `${carte.name} (${carte.ovr})${carte.countryEmoji || getCountryEmoji(carte.country)}`;
     await updatePlayers(auteur_Message, ficheLineup);
 
