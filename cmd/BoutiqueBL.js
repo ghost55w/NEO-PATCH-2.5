@@ -83,8 +83,9 @@ Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
             return false;
         }
 
-// Récupération
-let ficheLineup = await getLineup(auteur_Message);
+
+// Récupération & conversion
+ficheLineup = ficheLineup.toJSON(); // <-- très important;
 if (!ficheLineup) return false;
 ficheLineup = ficheLineup.toJSON(); // <-- très important
 
