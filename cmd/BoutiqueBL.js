@@ -86,11 +86,11 @@ Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
         // ENREGISTREMENT
         ficheLineup[`joueur${numPos}`] = card.name;
 
-        // --- 🔑 CORRECTION : appeler updatePlayers correctement ---
-        // Selon BlueLockFunctions, updatePlayers attend (userId, lineup)
-        await BlueLockFunctions.updatePlayers(auteur_Message, ficheLineup);
+// Mise à jour correcte dans la DB
+await updatePlayers(auteur_Message, ficheLineup);
 
-        console.log("DEBUG-ficheLineup après update:", await getLineup(auteur_Message));
+// Debug
+console.log("DEBUG-ficheLineup après update:", await getLineup(auteur_Message));
 
         await repondre(`✅ ${card.name} placé en position J${numPos} ✔️`);
         return true;
@@ -100,7 +100,7 @@ Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
         await repondre("❌ Erreur interne lors du placement de la carte.");
         return false;
     }
-}
+} 
 
 // --- COMMANDE BOUTIQUE BLUE LOCK ---
 ovlcmd({
