@@ -59,8 +59,12 @@ async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
             return false;
         }
 
-        await repondre(`✅ Carte achetée : ${card.name} (${card.ovr})\nChoisis la position où la placer dans ton lineup (1-15). Positions libres : ${freePositions.map(i => `J${i+1}`).join(", ")}`);
+        await repondre(`⚽✅ Carte achetée : ${card.name} (${card.ovr})
 
+🔷Choisis la position où la placer dans ton lineup (1-15). Positions libres : ${freePositions.map(i => `J${i+1}`).join(", ")}
+
+╰───────────────────
+                      *BLUE🔷LOCK⚽*`);
         // 🔄 Fonction pour récupérer la réponse de l’utilisateur
         const waitFor = async (timeout = 60000) => {
             try {
