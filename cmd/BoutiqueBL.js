@@ -83,15 +83,18 @@ Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
             return false;
         }
 
-        // ENREGISTREMENT
-        ficheLineup[`joueur${numPos}`] = card.name;
+// Récupération
+let ficheLineup = await getLineup(auteur_Message);
+if (!ficheLineup) return false;
+ficheLineup = ficheLineup.toJSON(); // <-- très important
 
-// Mise à jour correcte dans la DB
+// Mise à jour
+ficheLineup[`joueur${numPos}`] = card.name;
 await updatePlayers(auteur_Message, ficheLineup);
 
 // Debug
-console.log("DEBUG-ficheLineup après update:", await getLineup(auteur_Message));
-
+console.log(await getLineup(auteur_Message));
+        
         await repondre(`✅ ${card.name} placé en position J${numPos} ✔️`);
         return true;
 
