@@ -34,60 +34,89 @@ const allCards = Object.entries(cardsBlueLock).map(([key, c]) => {
 });
 
 // --- Fonction pour insérer dans le lineup ---
+// --- Fonction sécurisée pour insérer dans le lineup ---
 async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
-    const ficheLineup = await getData({ jid: auteur_Message });
-    if (!ficheLineup) return;
-
-    if (!ficheLineup.lineup) ficheLineup.lineup = Array(15).fill(null);
-
-    const freePositions = ficheLineup.lineup.map((p, i) => p === null ? i : -1).filter(i => i !== -1);
-
-    if (freePositions.length === 0) {
-        await repondre("❌ Tu n’as plus de place dans ton lineup ! (1 à 15)");
-        return false;
-    }
-
-    await repondre(`✅ Carte achetée : ${card.name} (${card.ovr})\nChoisis la position où la placer dans ton lineup (1-15). Positions libres : ${freePositions.map(i => `J${i+1}`).join(", ")}`);
-
-    const waitFor = async (timeout = 60000) => {
-        try {
-            const r = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: timeout });
-            const txt = r?.message?.extendedTextMessage?.text || r?.message?.conversation || "";
-            return txt.trim();
-        } catch {
-            return "";
+    try {
+        // 🔄 Récupération de la fiche lineup
+        const ficheLineup = await getData({ jid: auteur_Message });
+        if (!ficheLineup) {
+            await repondre("❌ Impossible de récupérer ton lineup.");
+            return false;
         }
-    };
 
-    let positionChoisie = await waitFor();
-    if (!positionChoisie) {
-        await repondre("❌ Temps écoulé. Carte non placée dans le lineup.");
+        // 🔄 Initialisation si lineup n'existe pas
+        if (!ficheLineup.lineup || !Array.isArray(ficheLineup.lineup)) {
+            ficheLineup.lineup = Array(15).fill(null);
+        }
+
+        // 🔄 Positions libres
+        const freePositions = ficheLineup.lineup
+            .map((p, i) => (p === null ? i : -1))
+            .filter(i => i !== -1);
+
+        if (freePositions.length === 0) {
+            await repondre("❌ Tu n’as plus de place dans ton lineup ! (1 à 15)");
+            return false;
+        }
+
+        await repondre(`✅ Carte achetée : ${card.name} (${card.ovr})\nChoisis la position où la placer dans ton lineup (1-15). Positions libres : ${freePositions.map(i => `J${i+1}`).join(", ")}`);
+
+        // 🔄 Fonction pour récupérer la réponse de l’utilisateur
+        const waitFor = async (timeout = 60000) => {
+            try {
+                const r = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: timeout });
+                const txt = r?.message?.extendedTextMessage?.text || r?.message?.conversation || "";
+                return txt.trim().toLowerCase();
+            } catch {
+                return "";
+            }
+        };
+
+        let positionChoisie = await waitFor();
+        if (!positionChoisie) {
+            await repondre("❌ Temps écoulé. Carte non placée dans le lineup.");
+            return false;
+        }
+
+        // 🔢 Extraire uniquement le chiffre (J6 → 6, 6 → 6)
+        const match = positionChoisie.match(/\d+/);
+        if (!match) {
+            await repondre("❌ Position invalide ! Doit être entre 1 et 15.");
+            return false;
+        }
+
+        positionChoisie = parseInt(match[0], 10) - 1;
+
+        // 🔄 Vérification des limites
+        if (positionChoisie < 0 || positionChoisie > 14) {
+            await repondre("❌ Position invalide ! Doit être entre 1 et 15.");
+            return false;
+        }
+
+        // 🔄 Vérification si la position est déjà occupée
+        if (ficheLineup.lineup[positionChoisie] !== null) {
+            await repondre("❌ Cette position est déjà occupée !");
+            return false;
+        }
+
+        // ✅ Placement de la carte
+        ficheLineup.lineup[positionChoisie] = {
+            name: card.name,
+            overall: card.ovr,
+            country: card.country,
+            flag: card.flag || "",
+            poste: card.poste || "Non défini"
+        };
+
+        await setfiche("lineup", ficheLineup.lineup, auteur_Message);
+        await repondre(`✅ ${card.name} placé en position J${positionChoisie+1} dans ton lineup !`);
+        return true;
+
+    } catch (err) {
+        console.log("Erreur addToLineup:", err);
+        await repondre("❌ Erreur interne lors du placement de la carte.");
         return false;
     }
-
-    positionChoisie = parseInt(positionChoisie.replace(/[^\d]/g, "")) - 1;
-
-    if (positionChoisie < 0 || positionChoisie > 14) {
-        await repondre("❌ Position invalide ! Doit être entre 1 et 15.");
-        return false;
-    }
-
-    if (ficheLineup.lineup[positionChoisie] !== null) {
-        await repondre("❌ Cette position est déjà occupée !");
-        return false;
-    }
-
-    ficheLineup.lineup[positionChoisie] = {
-        name: card.name,
-        overall: card.ovr,
-        country: card.country,
-        flag: card.flag || "",
-        poste: card.poste || "Non défini"
-    };
-
-    await setfiche("lineup", ficheLineup.lineup, auteur_Message);
-    await repondre(`✅ ${card.name} placé en position J${positionChoisie+1} dans ton lineup !`);
-    return true;
 }
 
 // --- COMMANDE BOUTIQUE BLUE LOCK ---
