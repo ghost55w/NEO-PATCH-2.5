@@ -207,93 +207,103 @@ Confirmer ${mode} ? (oui / non / +coupon)
                     continue;
                 }
 
-                // --- ACHAT ---
-                if (mode === "achat") {
-                    let np = userData.np || 0;
-                    let finalPrice = basePrix;
-                    let couponUsed = false;
+                // --- ACHAT / VENTE SOLIDE ---
+if (mode === "achat") {
+    // 🔄 Récupération à jour de la fiche
+    fiche = await getData({ jid: auteur_Message });
+    fiche.argent = Number(fiche.argent) || 0;  // nombre pur
+    userData = await MyNeoFunctions.getUserData(auteur_Message);
 
-                    if (conf.includes("+coupon")) {
-                        const coupons = userData.coupons || 0;
-                        if (coupons < 100) {
-                            await repondre("❌ Pas assez de coupons !");
-                            userInput = await waitFor();
-                            continue;
-                        }
-                        finalPrice = Math.floor(basePrix / 2);
-                        couponUsed = true;
-                        await MyNeoFunctions.updateUser(auteur_Message, { coupons: coupons - 100 });
-                    }
+    let np = userData.np || 0;
+    let finalPrice = card.price; // nombre pur
+    let couponUsed = false;
 
-                    if (np < 1) {
-                        await repondre("❌ Pas assez de NP !");
-                        userInput = await waitFor();
-                        continue;
-                    }
+    if (conf.includes("+coupon")) {
+        const coupons = userData.coupons || 0;
+        if (coupons < 100) {
+            await repondre("❌ Pas assez de coupons !");
+            userInput = await waitFor();
+            continue;
+        }
+        finalPrice = Math.floor(card.price / 2);
+        couponUsed = true;
+        await MyNeoFunctions.updateUser(auteur_Message, { coupons: coupons - 100 });
+    }
 
-                    if (argent < finalPrice) {
-                        await repondre("❌ Pas assez d'argent !");
-                        userInput = await waitFor();
-                        continue;
-                    }
+    if (np < 1) {
+        await repondre("❌ Pas assez de NP !");
+        userInput = await waitFor();
+        continue;
+    }
 
-                    await MyNeoFunctions.updateUser(auteur_Message, { np: np - 1 });
-                    await setfiche("argent", argent - finalPrice, auteur_Message);
+    if (fiche.argent < finalPrice) {
+        await repondre(`❌ Pas assez d'argent ! 💶 Argent actuel : ${fiche.argent} | Prix : ${finalPrice}`);
+        userInput = await waitFor();
+        continue;
+    }
 
-                    let cardsOwned = (fiche.cards || "").split("\n").filter(Boolean);
-                    if (!cardsOwned.includes(card.name)) cardsOwned.push(card.name);
-                    await setfiche("cards", cardsOwned.join("\n"), auteur_Message);
+    // ✅ Déduction argent et NP
+    await setfiche("argent", fiche.argent - finalPrice, auteur_Message);
+    await MyNeoFunctions.updateUser(auteur_Message, { np: np - 1 });
 
-                    await MyNeoFunctions.updateUser(auteur_Message, { ns: (userData.ns + 5) });
+    // ✅ Ajout de la carte
+    let cardsOwned = (fiche.cards || "").split("\n").filter(Boolean);
+    if (!cardsOwned.includes(card.name)) cardsOwned.push(card.name);
+    await setfiche("cards", cardsOwned.join("\n"), auteur_Message);
 
-                    await addToLineup(auteur_Message, card, ovl, ms_org, repondre);
+    // ✅ Ajout NS
+    await MyNeoFunctions.updateUser(auteur_Message, { ns: (userData.ns + 5) });
 
-                    await repondre(`
+    // ✅ Ajout dans le lineup
+    await addToLineup(auteur_Message, card, ovl, ms_org, repondre);
+
+    await repondre(`
 ╭───〔 ⚽ REÇU D’ACHAT 🔷 〕──  
 🔥 ${card.name} ajouté !
 💳 Paiement : 1 NP + ${finalPrice} 💶
 ${couponUsed ? "🎟️ Coupon utilisé (-50%)" : ""}
-👑 +5 NS ajoutés !
+👑 +5 Royalities 🎉 ajoutés !
 
 Merci pour ton achat !
 ╰───────────────────
                   *BLUE🔷LOCK*`);
-                }
 
-                // --- VENTE ---
-                else if (mode === "vente") {
-                    let cardsOwned = (fiche.cards || "").split("\n").filter(Boolean);
-                    const idx = cardsOwned.findIndex(c => c.toLowerCase() === card.name.toLowerCase());
+} else if (mode === "vente") {
+    // 🔄 Récupération à jour
+    fiche = await getData({ jid: auteur_Message });
+    fiche.argent = Number(fiche.argent) || 0;  // nombre pur
 
-                    if (idx === -1) {
-                        await repondre("❌ Tu ne possèdes pas cette carte !");
-                        userInput = await waitFor();
-                        continue;
-                    }
+    let cardsOwned = (fiche.cards || "").split("\n").filter(Boolean);
+    const idx = cardsOwned.findIndex(c => c.toLowerCase() === card.name.toLowerCase());
 
-                    cardsOwned.splice(idx, 1);
-                    await setfiche("cards", cardsOwned.join("\n"), auteur_Message);
+    if (idx === -1) {
+        await repondre("❌ Tu ne possèdes pas cette carte !");
+        userInput = await waitFor();
+        continue;
+    }
 
-                    let salePrice = Math.floor(basePrix / 2);
+    cardsOwned.splice(idx, 1);
+    await setfiche("cards", cardsOwned.join("\n"), auteur_Message);
 
-                    await setfiche("argent", argent + salePrice, auteur_Message);
+    let salePrice = Math.floor(card.price / 2); // nombre pur
+    await setfiche("argent", fiche.argent + salePrice, auteur_Message);
 
-                    await repondre(`
+    await repondre(`
 ╭───〔 ⚽ REÇU DE VENTE 🔷 〕── 
 🔹 Carte vendue : ${card.name}
 💶 Gain : ${salePrice}
 
+💰 Argent actuel : ${fiche.argent + salePrice}
 ╰───────────────────
                   *BLUE🔷LOCK*`);
-                }
+}
 
-                userData = await MyNeoFunctions.getUserData(auteur_Message);
+// 🔄 Réactualisation finale
 fiche = await getData({ jid: auteur_Message });
-
-// 🔥 IMPORTANT : Reconvertir proprement l’argent actualisé
-fiche.argent = Number(String(fiche.argent).replace(/[^\d]/g, "")) || 0;
-
-userInput = await waitFor();
+fiche.argent = Number(fiche.argent) || 0;
+userData = await MyNeoFunctions.getUserData(auteur_Message);
+                
+                
                 
             } catch (err) {
                 console.log("Erreur interne BL:", err);
