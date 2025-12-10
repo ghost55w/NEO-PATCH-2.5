@@ -260,7 +260,8 @@ Merci pour l'achat ⚽🔷 !
 ╰───────────────────
                    *BLUE🔷LOCK⚽*`);
       }
-// Vente
+      
+//------------- VENTE------------
 let cardsOwned = (userData.cards || "")
     .split("\n")
     .map(c => c.trim())
