@@ -38,11 +38,17 @@ const allCards = Object.entries(cardsBlueLock).map(([key, c]) => {
 // --- ADD TO LINEUP (factorisée) ---
 async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
     try {
+        async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
+    try {
+
+        // --- DEBUG ---
         console.log("DEBUG-getLineup:", getLineup);
-let ficheLineup = await getLineup(auteur_Message);
-console.log("DEBUG-ficheLineup:", ficheLineup);
-        
+
         let ficheLineup = await getLineup(auteur_Message);
+
+        console.log("DEBUG-ficheLineup:", ficheLineup);
+        // --- FIN DEBUG ---
+
         if (!ficheLineup) return false;
 
         const freePositions = [];
