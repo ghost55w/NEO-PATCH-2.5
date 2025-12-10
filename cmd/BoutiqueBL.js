@@ -3,7 +3,8 @@ const { MyNeoFunctions } = require("../DataBase/myneo_lineup_team");
 const { getData, setfiche } = require("../DataBase/allstars_divs_fiches");
 const { cardsBlueLock } = require("../DataBase/cardsBL");
 const { TeamFunctions } = require("../DataBase/myneo_lineup_team");
-const { getLineup, updatePlayers } = require("../DataBase/myneo_lineup_team");  // <--- CORRECTION ICI
+const { BlueLockFunctions } = require("../DataBase/myneo_lineup_team");
+const { getUserData: getLineup, updatePlayers } = BlueLockFunctions;
 const config = require("../set");
 
 // --- UTILITAIRES ---
@@ -37,6 +38,10 @@ const allCards = Object.entries(cardsBlueLock).map(([key, c]) => {
 // --- ADD TO LINEUP (factorisée) ---
 async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
     try {
+        console.log("DEBUG-getLineup:", getLineup);
+let ficheLineup = await getLineup(auteur_Message);
+console.log("DEBUG-ficheLineup:", ficheLineup);
+        
         let ficheLineup = await getLineup(auteur_Message);
         if (!ficheLineup) return false;
 
