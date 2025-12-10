@@ -35,19 +35,15 @@ const allCards = Object.entries(cardsBlueLock).map(([key, c]) => {
     };
 });
 
-// --- ADD TO LINEUP (factorisée) ---
+// --- ADD TO LINEUP (version correcte) ---
 async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
     try {
-        async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
-    try {
 
-        // --- DEBUG ---
+        // DEBUG
         console.log("DEBUG-getLineup:", getLineup);
 
         let ficheLineup = await getLineup(auteur_Message);
-
         console.log("DEBUG-ficheLineup:", ficheLineup);
-        // --- FIN DEBUG ---
 
         if (!ficheLineup) return false;
 
@@ -64,9 +60,9 @@ async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
             return false;
         }
 
-        // --- LE MESSAGE TEXTE COMPLET ---
+        // MESSAGE
         await repondre(`⚽✅ Carte achetée : ${card.name} (${card.ovr})
-🔷Choisis la position où la placer dans ton lineup (1-15). 
+🔷Choisis la position où la placer dans ton lineup (1-15).
 Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
 ╰───────────────────
                   *BLUE🔷LOCK⚽*`);
@@ -83,15 +79,17 @@ Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
 
         const match = posMsg.match(/j(\d+)/i);
         const numPos = match ? parseInt(match[1], 10) : null;
+
         if (!numPos || !freePositions.includes(numPos)) {
-            await repondre("❌ Position invalide ou déjà occupée ! Carte non placée.");
+            await repondre("❌ Position invalide ou déjà occupée !");
             return false;
         }
 
+        // ENREGISTREMENT
         ficheLineup[`joueur${numPos}`] = card.name;
         await updatePlayers(auteur_Message, ficheLineup);
 
-        await repondre(`✅ ${card.name} placé en position J${numPos} dans ton lineup !`);
+        await repondre(`✅ ${card.name} placé en position J${numPos} ✔️`);
         return true;
 
     } catch (err) {
@@ -99,7 +97,7 @@ Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
         await repondre("❌ Erreur interne lors du placement de la carte.");
         return false;
     }
-}
+} 
 
 // --- COMMANDE BOUTIQUE BLUE LOCK ---
 ovlcmd({
