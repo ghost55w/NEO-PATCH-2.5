@@ -4,7 +4,11 @@ const { getData, setfiche, getAllFiches, add_id, del_fiche } = require('../DataB
 const registeredFiches = new Set();
 
 function normalizeText(text) {
-  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
 }
 
 function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
@@ -22,7 +26,6 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
     try {
       const data = await getData({ jid: jid });
 
-      // Valeurs par défaut si undefined
       data.niveu_xp = data.niveu_xp ?? 0;
       data.close_fight = data.close_fight ?? 0;
       data.cards = data.cards ?? "";
@@ -61,10 +64,10 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 ✅ Cleans: ${data.cleans}
 ❌ Erreurs: ${data.erreurs}
 📈 Note: ${data.note}/100
-⌬ *Talent⭐ :*      ▱▱▱▱▬▬▬ ${data.talent}
-⌬ *Speed💬 :*       ▱▱▱▱▬▬▬  ${data.speed}
-⌬ *Close combat👊🏻:*  ▱▱▱▱▬▬▬ ${data.close_fight}
-⌬ *Attaques🌀:*     ▱▱▱▱▬▬▬ ${data.attaques}
+⌬ *Talent⭐:*      ▱▱▱▱▬▬▬ ${data.talent}
+⌬ *Speed💬:*       ▱▱▱▱▬▬▬  ${data.speed}
+⌬ *Close combat👊🏻:* ▱▱▱▱▬▬▬ ${data.close_fight}
+⌬ *Attaques🌀:*    ▱▱▱▱▬▬▬ ${data.attaques}
 
 ░▒░▒░ CARDS 🎴: ${data.cards.split("\n").length}
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
@@ -89,9 +92,9 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
       const updates = await processUpdates(arg, jid);
       await updatePlayerData(updates, jid);
 
-      const message = updates.map(u =>
-        `🛠️ *${u.colonne}* modifié : \`${u.oldValue}\` ➤ \`${u.newValue}\``
-      ).join('\n');
+      const message = updates
+        .map(u => `🛠️ *${u.colonne}* modifié : \`${u.oldValue}\` ➤ \`${u.newValue}\``)
+        .join('\n');
 
       await repondre("✅ Fiche mise à jour avec succès !\n\n" + message);
 
@@ -104,17 +107,20 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 
 async function processUpdates(args, jid) {
   const updates = [];
-  const data = await getData({ jid: jid });
+  const data = await getData({ jid });
   const columns = Object.keys(data.dataValues);
-  let i = 0;
 
+  let i = 0;
   while (i < args.length) {
     const object = args[i++];
     const signe = args[i++];
 
-    // On récupère tous les mots suivants comme valeur jusqu'au prochain signe ou colonne
     let texte = [];
-    while (i < args.length && !['+', '-', '=', 'add', 'supp'].includes(args[i]) && !columns.includes(args[i])) {
+    while (
+      i < args.length &&
+      !['+', '-', '=', 'add', 'supp'].includes(args[i]) &&
+      !columns.includes(args[i])
+    ) {
       texte.push(args[i++]);
     }
 
@@ -125,54 +131,66 @@ async function processUpdates(args, jid) {
     const oldValue = data[object];
     let newValue;
 
-    // --- Gestion spéciale pour les cards ---
+    // --- Cards Fix : suppression fiable ---
     if (object === "cards") {
-  const old = oldValue || "";
-  let list = old.split("\n").filter(x => x.trim() !== "");
+      const old = oldValue || "";
+      let list = old.split("\n").filter(x => x.trim() !== "");
 
-  const fullText = texte.join(" "); // tout le texte après le signe
-  // si '=' et rien après -> on veut vider
-  const items = fullText.length ? fullText.split(",").map(x => x.trim()).filter(x => x.length > 0) : [];
+      const fullText = texte.join(" ");
+      const items = fullText.length
+        ? fullText.split(",").map(x => x.trim()).filter(x => x.length > 0)
+        : [];
 
-  if (signe === "+") {
-    for (const card of items) {
-      if (!list.includes(card)) list.push(card);
+      if (signe === "+") {
+        for (const card of items) {
+          const normCard = normalizeText(card);
+          if (!list.some(c => normalizeText(c) === normCard)) {
+            list.push(card);
+          }
+        }
+      }
+
+      else if (signe === "-") {
+        const removeList = items.map(normalizeText);
+        list = list.filter(c => !removeList.includes(normalizeText(c)));
+      }
+
+      else if (signe === "=") {
+        list = items;
+      }
+
+      else {
+        throw new Error("❌ Le champ 'cards' accepte uniquement '+', '-' ou '='");
+      }
+
+      newValue = list.join("\n");
+
+      updates.push({
+        colonne: "cards",
+        oldValue: old,
+        newValue
+      });
+
+      continue;
     }
-  } else if (signe === "-") {
-    for (const card of items) {
-      list = list.filter(c => c !== card);
-    }
-  } else if (signe === "=") {
-    // remplace complètement : si items est vide => vide
-    list = items;
-  } else {
-    throw new Error("❌ Le champ 'cards' accepte uniquement '+', '-' ou '='");
-  }
 
-  newValue = list.join("\n");
-
-  updates.push({
-    colonne: "cards",
-    oldValue: old,
-    newValue
-  });
-
-  continue;
-    } 
-
-    // --- Gestion classique pour les autres colonnes ---
+    // --- Colonnes normales ---
     if (signe === "+" || signe === "-") {
       const n1 = Number(oldValue) || 0;
-      const n2 = Number(texte.join(" ")) || 0; // fusionner texte pour les nombres
+      const n2 = Number(texte.join(" ")) || 0;
       newValue = signe === "+" ? n1 + n2 : n1 - n2;
-    } else if (signe === "=") {
+    } 
+    else if (signe === "=") {
       newValue = texte.join(" ");
-    } else if (signe === "add") {
+    }
+    else if (signe === "add") {
       newValue = (oldValue + " " + texte.join(" ")).trim();
-    } else if (signe === "supp") {
+    } 
+    else if (signe === "supp") {
       const regex = new RegExp(`\\b${normalizeText(texte.join(" "))}\\b`, "gi");
-      newValue = oldValue.replace(regex, "").trim();
-    } else {
+      newValue = normalizeText(oldValue).replace(regex, "").trim();
+    } 
+    else {
       throw new Error(`❌ Signe non reconnu : ${signe}`);
     }
 
@@ -186,7 +204,6 @@ async function processUpdates(args, jid) {
   return updates;
 }
 
-
 async function updatePlayerData(updates, jid) {
   for (const update of updates) {
     await setfiche(update.colonne, update.newValue, jid);
@@ -198,14 +215,14 @@ async function initFichesAuto() {
     const all = await getAllFiches();
 
     for (const player of all) {
-      if (!player.code_fiche || player.code_fiche == "pas de fiche" || !player.division || !player.oc_url || !player.id) continue;
+      if (!player.code_fiche || player.code_fiche == "pas de fiche" || !player.division || !player.oc_url || !player.id)
+        continue;
 
       const nom = player.code_fiche;
       const jid = player.jid;
-      const image = player.oc_url;
       const division = player.division.replace(/\*/g, '');
 
-      add_fiche(nom, jid, image, division);
+      add_fiche(nom, jid, player.oc_url, division);
     }
   } catch (e) {
     console.error("Erreur d'initFichesAuto:", e);
@@ -214,12 +231,11 @@ async function initFichesAuto() {
 
 initFichesAuto();
 
-// Commandes add_fiche et del_fiche (inchangées)
+// --- add_fiche command ---
 ovlcmd({
   nom_cmd: "add_fiche",
-  alias: [],
   classe: "Other",
-  react: "➕",
+  react: "➕"
 }, async (ms_org, ovl, { repondre, arg, prenium_id }) => {
   if (!prenium_id) return await repondre("⛔ Accès refusé !");
   if (arg.length < 3) return await repondre("❌ Syntaxe : add_fiche <jid> <code_fiche> <division>");
@@ -240,24 +256,28 @@ ovlcmd({
     );
   } catch (err) {
     console.error("❌ Erreur lors de l'ajout de la fiche :", err);
-    await repondre("❌ Erreur lors de l'ajout de la fiche. Vérifie la console pour plus de détails.");
+    await repondre("❌ Erreur lors de l'ajout de la fiche.");
   }
 });
 
+// --- del_fiche command ---
 ovlcmd({
   nom_cmd: "del_fiche",
   classe: "Other",
-  react: "🗑️",
+  react: "🗑️"
 }, async (ms_org, ovl, { repondre, arg, prenium_id }) => {
   if (!prenium_id) return await repondre("⛔ Accès refusé !");
   if (!arg.length) return await repondre("❌ Syntaxe : del_fiche <code_fiche>");
 
-  const code_fiche = arg.join(' ');
+  const code_fiche = arg.join(" ");
+
   try {
     const deleted = await del_fiche(code_fiche);
     if (deleted === 0) return await repondre("❌ Aucune fiche trouvée.");
+
     registeredFiches.delete(code_fiche);
     await repondre(`✅ Fiche supprimée : \`${code_fiche}\``);
+
     await initFichesAuto();
   } catch (err) {
     console.error(err);
