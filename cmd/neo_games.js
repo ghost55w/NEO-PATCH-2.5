@@ -428,7 +428,7 @@ ovlcmd({
         }
       }
 
-      await setfiche("all_stars", allStarsArray.join(","), auteur_Message);
+      await setfiche("cards", allStarsArray.join(","), auteur_Message);
       await repondre(`🎉 Cartes ajoutées à ta fiche All Stars : ${tirees.map(c => c + "🎰").join(", ")}`);
 
     } catch (e) {
