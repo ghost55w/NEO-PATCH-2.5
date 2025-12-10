@@ -21,7 +21,7 @@ function calculPrix(card) {
     }[card.rank] || 100_000;
 
     let ovr = Number(card.ovr || 0);
-    let bonusOvr = ovr * 1000;
+   let bonusOvr = ovr * 1000;
 
     return baseRankPrice + bonusOvr;
 }
@@ -34,16 +34,14 @@ const allCards = Object.entries(cardsBlueLock).map(([key, c]) => {
         price: calculPrix(fullCard)
     };
 });
-
-// --- ADD TO LINEUP (version correcte) ---
+// --- ADD TO LINEUP (version corrigée) ---
 async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
     try {
-
         // DEBUG
         console.log("DEBUG-getLineup:", getLineup);
 
         let ficheLineup = await getLineup(auteur_Message);
-        console.log("DEBUG-ficheLineup:", ficheLineup);
+        console.log("DEBUG-ficheLineup avant placement:", ficheLineup);
 
         if (!ficheLineup) return false;
 
@@ -87,7 +85,12 @@ Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
 
         // ENREGISTREMENT
         ficheLineup[`joueur${numPos}`] = card.name;
-        await updatePlayers(auteur_Message, ficheLineup);
+
+        // --- 🔑 CORRECTION : appeler updatePlayers correctement ---
+        // Selon BlueLockFunctions, updatePlayers attend (userId, lineup)
+        await BlueLockFunctions.updatePlayers(auteur_Message, ficheLineup);
+
+        console.log("DEBUG-ficheLineup après update:", await getLineup(auteur_Message));
 
         await repondre(`✅ ${card.name} placé en position J${numPos} ✔️`);
         return true;
@@ -97,7 +100,7 @@ Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
         await repondre("❌ Erreur interne lors du placement de la carte.");
         return false;
     }
-} 
+}
 
 // --- COMMANDE BOUTIQUE BLUE LOCK ---
 ovlcmd({
