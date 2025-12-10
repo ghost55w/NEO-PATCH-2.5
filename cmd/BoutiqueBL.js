@@ -13,6 +13,24 @@ const formatNumber = n => {
   catch { return n; }
 };
 
+// --- EMOJI PAYS SÉCURISÉS ---
+const countryEmojis = {
+  "Japan": "\u{1F1EF}\u{1F1F5}",    // 🇯🇵
+  "France": "\u{1F1EB}\u{1F1F7}",   // 🇫🇷
+  "Brazil": "\u{1F1E7}\u{1F1F7}",   // 🇧🇷
+  "Germany": "\u{1F1E9}\u{1F1EA}",  // 🇩🇪
+  "Malta": "\u{1F1F2}\u{1F1F9}",    // 🇲🇹
+  // ajoute tous les pays nécessaires
+};
+const getCountryEmoji = country => countryEmojis[country] || "";
+
+// --- RANK LIMITS ---
+const rankLimits = {
+  "SS": { niveau: 10, goals: 30 },
+  "S": { niveau: 5, goals: 15 },
+  "A": { niveau: 3, goals: 5 }
+};
+
 // --- CALCUL DU PRIX ---
 function calculPrix(card) {
   let baseRankPrice = {
@@ -31,22 +49,18 @@ const allCards = Object.entries(cardsBlueLock).map(([key, c]) => {
   const fullCard = { id: key, ...c };
   return {
     ...fullCard,
-    price: calculPrix(fullCard)
+    price: calculPrix(fullCard),
+    countryEmoji: getCountryEmoji(c.country)
   };
 });
 
-// --- ADD TO LINEUP (version correcte) ---
+// --- ADD TO LINEUP ---
 async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
   try {
-    // DEBUG  
-    console.log("DEBUG-getLineup:", getLineup);  
-
     let ficheLineup = await getLineup(auteur_Message);  
     if (!ficheLineup) return false;  
 
-    // <-- Transformation Sequelize en objet JS pur
     ficheLineup = ficheLineup.toJSON ? ficheLineup.toJSON() : ficheLineup;
-    console.log("DEBUG-ficheLineup après toJSON:", ficheLineup);
 
     const freePositions = [];  
     for (let i = 1; i <= 15; i++) {  
@@ -61,12 +75,11 @@ async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
       return false;  
     }  
 
-    // MESSAGE  
-    await repondre(`⚽✅ Carte achetée : ${card.name} (${card.ovr})
+    await repondre(`⚽✅ Carte achetée : ${card.name} (${card.ovr})${card.countryEmoji}
 🔷Choisis la position où la placer dans ton lineup (1-15).
 Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
 ╰───────────────────
-BLUE🔷LOCK⚽`);
+                        *BLUE🔷LOCK⚽*`);
 
     const waitFor = async (timeout = 60000) => {  
       try {  
@@ -86,8 +99,7 @@ BLUE🔷LOCK⚽`);
       return false;  
     }  
 
-    // ENREGISTREMENT  
-    ficheLineup[`joueur${numPos}`] = card.name;  
+    ficheLineup[`joueur${numPos}`] = `${card.name} (${card.ovr})${card.countryEmoji}`;
     await updatePlayers(auteur_Message, ficheLineup);  
 
     await repondre(`✅ ${card.name} placé en position J${numPos} ✔️`);  
@@ -114,7 +126,6 @@ ovlcmd({
     let ficheTeam = await TeamFunctions.getUserData(auteur_Message);  
     ficheTeam.argent = Number(ficheTeam.argent) || 0;  
 
-    // Message d'accueil boutique  
     await ovl.sendMessage(ms_org, {  
       image: { url: 'https://files.catbox.moe/s5pyu9.jpg' },  
       caption: `╭───〔 *⚽BOUTIQUE BLUE LOCK🔷* 〕
@@ -127,7 +138,7 @@ pour fermer la session de boutique 👉🏽 close.
 
 #Happy202️⃣6️⃣🎊🎄🎁
 ╰───────────────────
-🔷BLUE LOCK🛍️ STORE`
+                *🔷BLUE LOCK🛍️ STORE*`
     }, { quoted: ms });
 
     const waitFor = async (timeout = 120000) => {  
@@ -163,6 +174,15 @@ pour fermer la session de boutique 👉🏽 close.
 
       if (!card) { await repondre(`❌ Aucune carte trouvée pour : ${query}`); userInput = await waitFor(); continue; }  
 
+      const limite = rankLimits[card.rank];
+      if (limite && (ficheTeam.niveau < limite.niveau || ficheTeam.goals < limite.goals)) {
+        await repondre(`❌ Impossible d'acheter ${card.name} (Rank ${card.rank}) !  
+Niveau requis : ${limite.niveau}▲ | Goals requis : ${limite.goals}  
+Ton niveau : ${ficheTeam.niveau}▲ | Tes goals : ${ficheTeam.goals}`);
+        userInput = await waitFor();
+        continue;
+      }
+
       const basePrix = card.price;  
 
       await ovl.sendMessage(ms_org, {  
@@ -181,7 +201,7 @@ pour fermer la session de boutique 👉🏽 close.
 
 Confirmer ${mode} ? (oui / non / +coupon)
 ╰───────────────────
-BLUE🔷LOCK`
+                        *BLUE🔷LOCK*`
       }, { quoted: ms });
 
       let conf = (await waitFor(60000)).toLowerCase();  
@@ -216,10 +236,8 @@ BLUE🔷LOCK`
         await MyNeoFunctions.updateUser(auteur_Message, { cards: cardsOwned.join("\n") });  
         await MyNeoFunctions.updateUser(auteur_Message, { ns: (userData.ns + 5) });  
 
-        // --- PLACEMENT DANS LE LINEUP FACTORISÉ ---  
         await addToLineup(auteur_Message, card, ovl, ms_org, repondre);  
 
-        // --- REÇU ---  
         await repondre(`
 
 ╭───〔 ⚽ REÇU D’ACHAT 🔷 〕──
@@ -230,7 +248,7 @@ ${couponUsed ? "🎟️ Coupon utilisé (-50%)" : ""}
 
 Merci pour l'achat ⚽🔷 !
 ╰───────────────────
-BLUE🔷LOCK`);
+                     *BLUE🔷LOCK*`);
       }
 
       else if (mode === "vente") {  
@@ -252,7 +270,7 @@ BLUE🔷LOCK`);
 💰 Argent actuel : ${ficheTeam.argent + salePrice}
 
 ╰───────────────────
-BLUE🔷LOCK`);
+                  *BLUE🔷LOCK*`);
       }
 
       userInput = await waitFor();  
@@ -263,4 +281,53 @@ BLUE🔷LOCK`);
     return repondre("⚽Erreur inattendue. Tape `close` pour quitter.");  
   }
 
+});
+
+// --- COMMANDE SUBSTITUTION LINEUP ---
+ovlcmd({
+  nom_cmd: "sub",
+  react: "🔁",
+  classe: "NEO_GAMES⚽"
+}, async (ms_org, ovl, { ms, auteur_Message, repondre }) => {
+  try {
+    let userData = await MyNeoFunctions.getUserData(auteur_Message);
+    if (!userData) return repondre("❌ Impossible de récupérer tes données.");
+
+    let ficheLineup = await getLineup(auteur_Message);
+    if (!ficheLineup) return repondre("❌ Impossible de récupérer ton lineup.");
+
+    ficheLineup = ficheLineup.toJSON ? ficheLineup.toJSON() : ficheLineup;
+
+    const regex = /\+sub\s+(.+?)\s+par\s+(.+)/i;
+    const match = ms?.message?.conversation?.match(regex);
+    if (!match) return repondre("❌ Format invalide. Utilise : +sub [Joueur à remplacer] par [Nouvelle carte]");
+
+    const ancienNom = match[1].trim();
+    const nouveauNom = match[2].trim();
+
+    let posAncien = null;
+    for (let i = 1; i <= 15; i++) {
+      const j = ficheLineup[`joueur${i}`] || "";
+      if (j.toLowerCase().includes(ancienNom.toLowerCase())) {
+        posAncien = i;
+        break;
+      }
+    }
+    if (!posAncien) return repondre(`❌ Aucun joueur trouvé avec le nom "${ancienNom}" dans ton lineup.`);
+
+    const carte = allCards.find(c => c.name.toLowerCase() === nouveauNom.toLowerCase());
+    if (!carte) return repondre(`❌ Carte introuvable : ${nouveauNom}`);
+
+    const cardsOwned = (userData.cards || "").split("\n").filter(Boolean);
+    if (!cardsOwned.includes(carte.name)) return repondre(`❌ Tu ne possèdes pas ${carte.name} pour la remplacer.`);
+
+    ficheLineup[`joueur${posAncien}`] = `${carte.name} (${carte.ovr})${carte.countryEmoji || getCountryEmoji(carte.country)}`;
+    await updatePlayers(auteur_Message, ficheLineup);
+
+    await repondre(`✅ ${carte.name} a remplacé ${ancienNom} en position J${posAncien} ✔️`);
+
+  } catch (err) {
+    console.error("Erreur commande sub:", err);
+    return repondre("❌ Erreur interne lors de la substitution.");
+  }
 });
