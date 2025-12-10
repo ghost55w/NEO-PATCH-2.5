@@ -2,7 +2,8 @@ const { ovlcmd } = require('../lib/ovlcmd');
 const { MyNeoFunctions } = require("../DataBase/myneo_lineup_team");
 const { getData, setfiche } = require("../DataBase/allstars_divs_fiches");
 const { cardsBlueLock } = require("../DataBase/cardsBL");
-const { TeamFunctions } = require("../DataBase/myneo_lineup_team"); // <--- utiliser TeamFunctions pour l'argent
+const { TeamFunctions } = require("../DataBase/myneo_lineup_team");
+const { getLineup, updatePlayers } = require("../DataBase/myneo_lineup_team");  // <--- CORRECTION ICI
 const config = require("../set");
 
 // --- UTILITAIRES ---
