@@ -34,22 +34,16 @@ const allCards = Object.entries(cardsBlueLock).map(([key, c]) => {
 });
 
 // --- ADD TO LINEUP (factorisée) ---
-async function main() {
-    await addToLineup(auteur_Message, card, ovl, ms_org, repondre);
-}
+async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
+    try {
+        let ficheLineup = await getLineup(auteur_Message);
+        if (!ficheLineup) return false;
 
-main();
-
-        // Initialisation positions vides
+        const freePositions = [];
         for (let i = 1; i <= 15; i++) {
             if (!ficheLineup[`joueur${i}`] || ficheLineup[`joueur${i}`].trim() === "") {
                 ficheLineup[`joueur${i}`] = "aucun";
             }
-        }
-
-        // Détecter positions libres
-        const freePositions = [];
-        for (let i = 1; i <= 15; i++) {
             if (ficheLineup[`joueur${i}`] === "aucun") freePositions.push(i);
         }
 
@@ -58,10 +52,12 @@ main();
             return false;
         }
 
+        // --- LE MESSAGE TEXTE COMPLET ---
         await repondre(`⚽✅ Carte achetée : ${card.name} (${card.ovr})
-🔷Choisis la position où la placer dans ton lineup (1-15). Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
+🔷Choisis la position où la placer dans ton lineup (1-15). 
+Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
 ╰───────────────────
-                      *BLUE🔷LOCK⚽*`);
+                  *BLUE🔷LOCK⚽*`);
 
         const waitFor = async (timeout = 60000) => {
             try {
@@ -71,20 +67,15 @@ main();
         };
 
         const posMsg = await waitFor();
-        if (!posMsg) {
-            await repondre("❌ Temps écoulé. Carte non placée.");
-            return false;
-        }
+        if (!posMsg) return false;
 
         const match = posMsg.match(/j(\d+)/i);
         const numPos = match ? parseInt(match[1], 10) : null;
-
         if (!numPos || !freePositions.includes(numPos)) {
             await repondre("❌ Position invalide ou déjà occupée ! Carte non placée.");
             return false;
         }
 
-        // Mise à jour de toute la lineup
         ficheLineup[`joueur${numPos}`] = card.name;
         await updatePlayers(auteur_Message, ficheLineup);
 
@@ -92,22 +83,7 @@ main();
         return true;
 
     } catch (err) {
-        console.error("❌ Erreur interne lors du placement de la carte:", err);
-        await repondre("❌ Erreur interne lors du placement de la carte.");
-        return false;
-    }
-}
-
-        // Synchroniser J6 et joueur6
-        if (numPos === 6) updates['J6'] = card.name;
-
-        await updatePlayers(auteur_Message, updates);
-
-        await repondre(`✅ ${card.name} placé en position J${numPos} dans ton lineup !`);
-        return true;
-
-    } catch (err) {
-        console.error("❌ Erreur interne addToLineup:", err);
+        console.error("❌ Erreur addToLineup:", err);
         await repondre("❌ Erreur interne lors du placement de la carte.");
         return false;
     }
