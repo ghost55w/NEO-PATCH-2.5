@@ -269,7 +269,9 @@ if (mode === "vente") {
       .map(c => c.trim())
       .filter(Boolean);
 
-  const idx = cardsOwned.findIndex(c => pureName(c) === pureName(card.name));
+  // 🔥 Correction ICI : on compare au nom donné par l’utilisateur (query)
+  const idx = cardsOwned.findIndex(c => pureName(c) === pureName(query));
+
   if (idx === -1) { 
       await repondre("❌ Tu ne possèdes pas cette carte !");
       userInput = await waitFor(); 
@@ -289,8 +291,7 @@ if (mode === "vente") {
 💰 Argent actuel : ${ficheTeam.argent + salePrice}
 ╰───────────────────
                   *BLUE🔷LOCK⚽*`);
-
-} 
+}
 
       userInput = await waitFor();  
     }
