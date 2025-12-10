@@ -262,36 +262,35 @@ Merci pour l'achat ⚽🔷 !
       }
       
 //------------- VENTE------------
-let cardsOwned = (userData.cards || "")
-    .split("\n")
-    .map(c => c.trim())
-    .filter(Boolean);  
+if (mode === "vente") {
 
-// Recherche avec pureName() normalisé
-const idx = cardsOwned.findIndex(c => pureName(c) === pureName(card.name));
-if (idx === -1) { 
-    await repondre("❌ Tu ne possèdes pas cette carte !");
-    userInput = await waitFor(); 
-    continue; 
-}   
+  let cardsOwned = (userData.cards || "")
+      .split("\n")
+      .map(c => c.trim())
+      .filter(Boolean);
 
-// Supprimer la carte du compte
-cardsOwned.splice(idx, 1);  
-await MyNeoFunctions.updateUser(auteur_Message, { cards: cardsOwned.join("\n") });  
+  const idx = cardsOwned.findIndex(c => pureName(c) === pureName(card.name));
+  if (idx === -1) { 
+      await repondre("❌ Tu ne possèdes pas cette carte !");
+      userInput = await waitFor(); 
+      continue; 
+  }
 
-const salePrice = Math.floor(basePrix / 2);  
-await TeamFunctions.updateUser(auteur_Message, { argent: ficheTeam.argent + salePrice });  
+  cardsOwned.splice(idx, 1);  
+  await MyNeoFunctions.updateUser(auteur_Message, { cards: cardsOwned.join("\n") });
 
-await repondre(`
+  const salePrice = Math.floor(basePrix / 2);  
+  await TeamFunctions.updateUser(auteur_Message, { argent: ficheTeam.argent + salePrice });
 
+  await repondre(`
 ╭───〔 ⚽ REÇU DE VENTE 🔷 〕──
 🔹 Carte vendue : ${card.name}
 💶 Gain : ${salePrice}
 💰 Argent actuel : ${ficheTeam.argent + salePrice}
-
 ╰───────────────────
                   *BLUE🔷LOCK⚽*`);
-      }
+
+} 
 
       userInput = await waitFor();  
     }
