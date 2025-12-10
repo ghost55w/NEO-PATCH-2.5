@@ -31,12 +31,18 @@ const rankLimits = {
   "A": { niveau: 3, goals: 5 }
 };
 
-// --- NOM PUR pour comparaison ---
+// --- NOM PUR pour comparaison (très robuste) ---
 const pureName = str => {
   if (!str) return "";
-  return str
-    .replace(/\(.+?\)/g, "")                 // supprime tout ce qui est entre parenthèses
-    .replace(/[\u{1F1E6}-\u{1F1FF}]/gu, "") // supprime les drapeaux
+  return String(str)
+    .replace(/\(.+?\)/g, "")                        // supprime tout entre parenthèses
+    .replace(/[\u{1F1E6}-\u{1F1FF}]/gu, "")         // supprime les drapeaux (regional indicators)
+    // supprime la plupart des emojis (utilise \p{Emoji} si ton Node le supporte)
+    .replace(/\p{Emoji}/gu, "")                     // <-- si ton Node supporte \p{Emoji}
+    // Si ton Node ne supporte pas \p{Emoji}, remplace la ligne ci-dessus par la suivante :
+    // .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, "")
+    .replace(/[^0-9a-zA-ZÀ-ÿ\s]/g, " ")             // remplace tout caractère spécial par espace
+    .replace(/\s+/g, " ")                           // collapse espaces
     .trim()
     .toLowerCase();
 };
@@ -261,7 +267,7 @@ Merci pour l'achat ⚽🔷 !
                    *BLUE🔷LOCK⚽*`);
       }
       
-//------------- VENTE------------
+//------------- VENTE (recherche tolérante) ------------
 if (mode === "vente") {
 
   let cardsOwned = (userData.cards || "")
@@ -269,19 +275,26 @@ if (mode === "vente") {
       .map(c => c.trim())
       .filter(Boolean);
 
-  // 🔥 Correction ICI : on compare au nom donné par l’utilisateur (query)
-  const idx = cardsOwned.findIndex(c => pureName(c) === pureName(query));
+  // fonctions de normalisation
+  const norm = s => pureName(s).replace(/\s+/g, "");        // supprime espaces pour comparaison compacte
+  const qNorm = norm(query);                                // query = ce que l'utilisateur a tapé (ex: "isagi")
 
-  if (idx === -1) { 
+  const idx = cardsOwned.findIndex(c => {
+    const cNorm = norm(c);
+    return cNorm === qNorm || cNorm.includes(qNorm) || qNorm.includes(cNorm);
+  });
+
+  if (idx === -1) {
       await repondre("❌ Tu ne possèdes pas cette carte !");
-      userInput = await waitFor(); 
-      continue; 
+      userInput = await waitFor();
+      continue;
   }
 
-  cardsOwned.splice(idx, 1);  
+  // suppression de la carte possédée
+  cardsOwned.splice(idx, 1);
   await MyNeoFunctions.updateUser(auteur_Message, { cards: cardsOwned.join("\n") });
 
-  const salePrice = Math.floor(basePrix / 2);  
+  const salePrice = Math.floor(basePrix / 2);
   await TeamFunctions.updateUser(auteur_Message, { argent: ficheTeam.argent + salePrice });
 
   await repondre(`
@@ -292,7 +305,7 @@ if (mode === "vente") {
 ╰───────────────────
                   *BLUE🔷LOCK⚽*`);
 }
-
+      
       userInput = await waitFor();  
     }
 
