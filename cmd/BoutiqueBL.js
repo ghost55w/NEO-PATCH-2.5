@@ -31,6 +31,16 @@ const rankLimits = {
   "A": { niveau: 3, goals: 5 }
 };
 
+// --- NOM PUR pour comparaison ---
+const pureName = str => {
+  if (!str) return "";
+  return str
+    .replace(/\(.+?\)/g, "")                 // supprime tout ce qui est entre parenthèses
+    .replace(/[\u{1F1E6}-\u{1F1FF}]/gu, "") // supprime les drapeaux
+    .trim()
+    .toLowerCase();
+};
+
 // --- CALCUL DU PRIX ---
 function calculPrix(card) {
   let baseRankPrice = {
@@ -79,7 +89,7 @@ async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
 🔷Choisis la position où la placer dans ton lineup (1-15).
 Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
 ╰───────────────────
-                        *BLUE🔷LOCK⚽*`);
+                       *BLUE🔷LOCK⚽*`);
 
     const waitFor = async (timeout = 60000) => {  
       try {  
@@ -112,7 +122,7 @@ Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
   }
 }
 
-// --- COMMANDE BOUTIQUE BLUE LOCK ---
+// --- BOUTIQUE BLUE LOCK ---
 ovlcmd({
   nom_cmd: "boutiquebl",
   react: "⚽",
@@ -201,7 +211,7 @@ Ton niveau : ${ficheTeam.niveau}▲ | Tes goals : ${ficheTeam.goals}`);
 
 Confirmer ${mode} ? (oui / non / +coupon)
 ╰───────────────────
-                        *BLUE🔷LOCK*`
+                  *BLUE🔷LOCK*`
       }, { quoted: ms });
 
       let conf = (await waitFor(60000)).toLowerCase();  
@@ -248,12 +258,12 @@ ${couponUsed ? "🎟️ Coupon utilisé (-50%)" : ""}
 
 Merci pour l'achat ⚽🔷 !
 ╰───────────────────
-                     *BLUE🔷LOCK*`);
+                 *BLUE🔷LOCK*`);
       }
 
       else if (mode === "vente") {  
         let cardsOwned = (userData.cards || "").split("\n").filter(Boolean);  
-        const idx = cardsOwned.findIndex(c => c.toLowerCase() === card.name.toLowerCase());  
+        const idx = cardsOwned.findIndex(c => pureName(c) === pureName(card.name));
         if (idx === -1) { await repondre("❌ Tu ne possèdes pas cette carte !"); userInput = await waitFor(); continue; }  
 
         cardsOwned.splice(idx, 1);  
@@ -270,7 +280,7 @@ Merci pour l'achat ⚽🔷 !
 💰 Argent actuel : ${ficheTeam.argent + salePrice}
 
 ╰───────────────────
-                  *BLUE🔷LOCK*`);
+                *BLUE🔷LOCK*`);
       }
 
       userInput = await waitFor();  
@@ -283,7 +293,7 @@ Merci pour l'achat ⚽🔷 !
 
 });
 
-// --- COMMANDE SUBSTITUTION LINEUP ---
+// --- SUBSTITUTION LINEUP ---
 ovlcmd({
   nom_cmd: "sub",
   react: "🔁",
@@ -295,7 +305,6 @@ ovlcmd({
 
     let ficheLineup = await getLineup(auteur_Message);
     if (!ficheLineup) return repondre("❌ Impossible de récupérer ton lineup.");
-
     ficheLineup = ficheLineup.toJSON ? ficheLineup.toJSON() : ficheLineup;
 
     const regex = /\+sub\s+(.+?)\s+par\s+(.+)/i;
@@ -308,18 +317,18 @@ ovlcmd({
     let posAncien = null;
     for (let i = 1; i <= 15; i++) {
       const j = ficheLineup[`joueur${i}`] || "";
-      if (j.toLowerCase().includes(ancienNom.toLowerCase())) {
+      if (pureName(j).includes(pureName(ancienNom))) {
         posAncien = i;
         break;
       }
     }
     if (!posAncien) return repondre(`❌ Aucun joueur trouvé avec le nom "${ancienNom}" dans ton lineup.`);
 
-    const carte = allCards.find(c => c.name.toLowerCase() === nouveauNom.toLowerCase());
+    const carte = allCards.find(c => pureName(c.name) === pureName(nouveauNom));
     if (!carte) return repondre(`❌ Carte introuvable : ${nouveauNom}`);
 
     const cardsOwned = (userData.cards || "").split("\n").filter(Boolean);
-    if (!cardsOwned.includes(carte.name)) return repondre(`❌ Tu ne possèdes pas ${carte.name} pour la remplacer.`);
+    if (!cardsOwned.some(c => pureName(c) === pureName(carte.name))) return repondre(`❌ Tu ne possèdes pas ${carte.name} pour la remplacer.`);
 
     ficheLineup[`joueur${posAncien}`] = `${carte.name} (${carte.ovr})${carte.countryEmoji || getCountryEmoji(carte.country)}`;
     await updatePlayers(auteur_Message, ficheLineup);
@@ -329,5 +338,33 @@ ovlcmd({
   } catch (err) {
     console.error("Erreur commande sub:", err);
     return repondre("❌ Erreur interne lors de la substitution.");
+  }
+});
+
+// --- DELETE UN JOUEUR +DEL J# ---
+ovlcmd({
+  nom_cmd: "del",
+  react: "❌",
+  classe: "NEO_GAMES⚽"
+}, async (ms_org, ovl, { ms, auteur_Message, repondre }) => {
+  try {
+    let ficheLineup = await getLineup(auteur_Message);
+    if (!ficheLineup) return repondre("❌ Impossible de récupérer ton lineup.");
+    ficheLineup = ficheLineup.toJSON ? ficheLineup.toJSON() : ficheLineup;
+
+    const regex = /\+del\s+J(\d{1,2})/i;
+    const match = ms?.message?.conversation?.match(regex);
+    if (!match) return repondre("❌ Format invalide. Utilise : +del J2");
+
+    const pos = parseInt(match[1], 10);
+    if (pos < 1 || pos > 15) return repondre("❌ Position invalide (1-15).");
+
+    ficheLineup[`joueur${pos}`] = "aucun";
+    await updatePlayers(auteur_Message, ficheLineup);
+
+    await repondre(`✅ Joueur en position J${pos} supprimé avec succès !`);
+  } catch (err) {
+    console.error("Erreur commande del:", err);
+    return repondre("❌ Erreur interne lors de la suppression du joueur.");
   }
 });
