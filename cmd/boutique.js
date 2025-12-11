@@ -164,31 +164,56 @@ Merci pour ton achat !
 ╰───────────────────`
     }, { quoted: ms });
    }             
-
-                              
+                                           
                 // --- VENTE ---
-                else if (mode === "vente") {
-                    let currentCards = (fiche.cards || "").split("\n").map(x => x.trim()).filter(Boolean);
-                    let idx = currentCards.findIndex(c => c.toLowerCase() === card.name.toLowerCase());
-                    if (idx === -1) { await repondre("❌ Tu ne possèdes pas cette carte"); userInput = await waitFor(120000); continue; }
-                    currentCards.splice(idx,1);
-                    await setfiche("cards", currentCards.join("\n"), auteur_Message);
+else if (mode === "vente") {
 
-                    let finalSalePrice = Math.floor(basePrix / 2);
-                    if(card.name.includes("🎰")) finalSalePrice = basePrix;
+    // Fonction de nettoyage universel
+    function cleanName(name) {
+        return name
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]/gi, "")
+            .trim();
+    }
 
-                    await setfiche("golds", parseInt(fiche.golds || 0) + finalSalePrice, auteur_Message);
+    // Liste actuelle des cartes
+    let currentCards = (fiche.cards || "").split("\n").map(x => x.trim()).filter(Boolean);
 
-                    await ovl.sendMessage(ms_org, {
-                        image: { url: card.image },
-                        caption: `╭───〔 🛍️ REÇU DE VENTE 〕───────  
+    // Nettoyage du nom recherché
+    let cleanedTarget = cleanName(card.name);
+
+    // Recherche fiable
+    let idx = currentCards.findIndex(c => cleanName(c) === cleanedTarget);
+
+    if (idx === -1) {
+        await repondre("❌ Tu ne possèdes pas cette carte");
+        userInput = await waitFor(120000);
+        continue;
+    }
+
+    // Suppression de la carte
+    currentCards.splice(idx, 1);
+    await setfiche("cards", currentCards.join("\n"), auteur_Message);
+
+    // Prix de vente
+    let finalSalePrice = Math.floor(basePrix / 2);
+    if(card.name.includes("🎰")) finalSalePrice = basePrix;
+
+    await setfiche("golds", parseInt(fiche.golds || 0) + finalSalePrice, auteur_Message);
+
+    // Reçu
+    await ovl.sendMessage(ms_org, {
+        image: { url: card.image },
+        caption: `╭───〔 🛍️ REÇU DE VENTE 〕───────  
 
 👤 Client: ${fiche.code_fiche}
 🎴 Carte retirée: ${card.name}
 💳 Tu as reçu: ${formatNumber(finalSalePrice)} 🧭
 ╰───────────────────`
-                    }, { quoted: ms });
-                }
+    }, { quoted: ms });
+}
 
                 userData = await MyNeoFunctions.getUserData(auteur_Message);
                 fiche = await getData({ jid: auteur_Message });
