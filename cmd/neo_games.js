@@ -119,6 +119,7 @@ ovlcmd({
     try {
       const authorizedChats = [
         '120363024647909493@g.us',
+        '120363307444088356@g.us', 
         '120363307444088356@g.us',
         '22651463203@s.whatsapp.net',
         '22605463559@s.whatsapp.net'
