@@ -403,13 +403,13 @@ ovlcmd({
       // -------------------------
       //   Vérification All Stars
       // -------------------------
-      const ficheAllStars = await getData({ jid: auteur_Message });
-      if (!ficheAllStars) 
-        return repondre("❌ Fiche All Stars introuvable pour ce joueur.");
+      const allStarsData = await getData("cards", auteur_Message) || { cards: [] };
 
-      let allStarsArray = ficheAllStars.all_stars
-        ? ficheAllStars.all_stars.split(",")
-        : [];
+// Ajouter une nouvelle carte sans effacer l'existant :
+allStarsData.cards.push(newCard);
+
+// Sauvegarde propre :
+await setfiche("cards", allStarData, auteur_Message);
 
       if (allStarsArray.length >= 9) {
         return repondre("❌ Impossible de tirer de nouvelles cartes : tu dois avoir moins de 9 cartes pour pouvoir tirer 2 cartes (10 max au total).");
@@ -442,7 +442,7 @@ ovlcmd({
         }
       }
 
-      await setfiche("all_stars", allStarsArray.join("."), auteur_Message);
+      await setfiche("cards", allStarsArray.join("."), auteur_Message);
       await repondre(`🎉 Cartes ajoutées à ta fiche All Stars : ${tirees.map(c => c + "🎰").join(". ")}`);
 
     } catch (e) {
