@@ -240,56 +240,48 @@ Bienvenue dans la Roulette, choisissez un chiffre parmis les 5️⃣0️⃣. Si 
         }
         return false;
       };
+      
+// --- Roulette main ---
+// Le joueur paie 1 NP pour jouer → il aura 3 roulettes
+for (let tour = 1; tour <= 3; tour++) {
 
-      // --- Roulette main ---
-      const chosen1 = await getChosenNumber();
-      const win1 = await checkNumber(chosen1);
-      if (win1) {
+    await repondre(`🎰 *Roulette ${tour}/3* — Bonne chance !`);
+
+    const chosen1 = await getChosenNumber();
+    const win1 = await checkNumber(chosen1);
+
+    if (win1) {
         await MyNeoFunctions.updateUser(auteur_Message, {
-          wins_roulette: (parseInt(userData.wins_roulette) || 0) + 1,
-          ns: (parseInt(userData.ns) || 0) + 5
+            wins_roulette: (parseInt(userData.wins_roulette) || 0) + 1,
+            ns: (parseInt(userData.ns) || 0) + 5
         });
+
         await ovl.send(ms_org, `
 🎉😎 Félicitations <@${auteur_Message}> tu gagnes **+5👑 royalities xp** 🍾🎉
         `);
+
         await checkJackpot(auteur_Message, ovl, ms_org, ms);
-      } else {
-        const chosen2 = await getChosenNumber(true);
-        const win2 = await checkNumber(chosen2, true);
-        if (win2) {
-          await MyNeoFunctions.updateUser(auteur_Message, {
+        continue;
+    }
+
+    const chosen2 = await getChosenNumber(true);
+    const win2 = await checkNumber(chosen2, true);
+
+    if (win2) {
+        await MyNeoFunctions.updateUser(auteur_Message, {
             wins_roulette: (parseInt(userData.wins_roulette) || 0) + 1,
             ns: (parseInt(userData.ns) || 0) + 5
-          });
-          await ovl.send(ms_org, `
+        });
+
+        await ovl.send(ms_org, `
 🎉😎 Félicitations <@${auteur_Message}> tu gagnes **+5👑 royalities xp** 🍾🎉
-          `);
-          await checkJackpot(auteur_Message, ovl, ms_org, ms);
-        } else {
-          await MyNeoFunctions.updateUser(auteur_Message, { wins_roulette: 0 });
-        }
-      }
-// Le joueur a joué une roulette → on augmente le compteur
-plays_in_row++;
+        `);
 
-// Si le joueur joue 2 fois de suite, il gagne la récompense
-if (plays_in_row >= 2) {
-    let valeur_royalties = parseInt(userData.royalties || 0) + 5;
-
-    await MyNeoFunctions.updateUser(auteur_Message, {
-        royalties: valeur_royalties,
-        plays_in_row: 0 // reset
-    });
-
-    await repondre(`🎉👑 *Bonus fidélité !*  
-Tu as joué *2 roulettes d’affilée* → tu gagnes **+5 NP Royalities 👑** !`);
-} else {
-    // Sinon on sauvegarde le compteur normal
-    await MyNeoFunctions.updateUser(auteur_Message, {
-        plays_in_row
-    });
-}
-      
+        await checkJackpot(auteur_Message, ovl, ms_org, ms);
+    } else {
+        await MyNeoFunctions.updateUser(auteur_Message, { wins_roulette: 0 });
+    }
+}            
     } catch (e) {
       console.error('Erreur roulette:', e);
       repondre("❌ Une erreur est survenue.");
