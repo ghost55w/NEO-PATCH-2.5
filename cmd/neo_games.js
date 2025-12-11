@@ -243,9 +243,9 @@ Bienvenue dans la Roulette, choisissez un chiffre parmis les 5️⃣0️⃣. Si 
       
 // --- Roulette main ---
 // Le joueur paie 1 NP pour jouer → il aura 3 roulettes
-for (let tour = 1; tour <= 3; tour++) {
+for (let tour = 1; tour <= 2; tour++) {
 
-    await repondre(`🎰 *Roulette ${tour}/3* — Bonne chance !`);
+    await repondre(`🎰 *Roulette ${tour}/2* — Bonne chance !`);
 
     const chosen1 = await getChosenNumber();
     const win1 = await checkNumber(chosen1);
