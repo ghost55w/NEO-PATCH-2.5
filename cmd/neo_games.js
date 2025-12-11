@@ -203,43 +203,65 @@ Bienvenue dans la Roulette, choisissez un chiffre parmis les 5️⃣0️⃣. Si 
       };
 
       const checkNumber = async (num, isSecond = false) => {
-        if (winningNumbers.includes(num)) {
-          const idx = winningNumbers.indexOf(num);
-          let reward = rewards[idx];
-          switch (reward) {
+    if (winningNumbers.includes(num)) {
+        const idx = winningNumbers.indexOf(num);
+        let reward = rewards[idx];
+
+        switch (reward) {
+
+            // ---- 50 NC 🔷 → MyNeo ----
             case '50🔷':
-              valeur_nc += 50;
-              await MyNeoFunctions.updateUser(auteur_Message, { nc: valeur_nc });
-              break;
+                valeur_nc += 50;
+                await MyNeoFunctions.updateUser(auteur_Message, { nc: valeur_nc });
+                break;
+
+            // ---- 100.000 Golds 🧭 → AllStars ----
             case '100.000 G🧭':
-              valeur_golds += 100000;
-              await setfiche("golds", valeur_golds, auteur_Message);
-              break;
+                valeur_golds += 100000;
+                await setfiche("golds", valeur_golds, auteur_Message);
+                break;
+
+            // ---- 25 Coupons 🎟 → MyNeo ----
             case '25🎟':
-              valeur_coupons += 25;
-              await MyNeoFunctions.updateUser(auteur_Message, { coupons: valeur_coupons });
-              break;
-              case '100.000💶':
-  valeur_money = parseInt(userData.money || 0) + 100000;
-  await MyNeoFunctions.updateUser(auteur_Message, { argent: valeur_argent });
-  break;
-          }
-          await ovl.sendMessage(ms_org, {
+                valeur_coupons += 25;
+                await MyNeoFunctions.updateUser(auteur_Message, { coupons: valeur_coupons });
+                break;
+
+            // ---- 100.000 Argent 💶 → MyNeo + Fiche Team ⚽ ----
+            case '100.000💶':
+                let argentActuel = parseInt(userData.argent || 0);
+                let argentTeamActuel = parseInt(userData.team_argent || 0);
+                argentActuel += 100000;
+                argentTeamActuel += 100000;
+
+                await MyNeoFunctions.updateUser(auteur_Message, { 
+                    argent: argentActuel,
+                    team_argent: argentTeamActuel
+                });
+                break;
+        }
+
+        await ovl.sendMessage(ms_org, {
             video: { url: 'https://files.catbox.moe/vfv2hk.mp4' },
             caption: `🎰FÉLICITATIONS ! 🥳🥳 vous avez gagné +${reward} 🎁🎊
 ══░▒▒▒▒░░▒░`,
             gifPlayback: true
-          }, { quoted: ms });
-          return true;
-        } else if (isSecond) {
-          await ovl.sendMessage(ms_org, {
+        }, { quoted: ms });
+
+        return true;
+    }
+
+    // Si 2e tentative et encore perdu
+    if (isSecond) {
+        await ovl.sendMessage(ms_org, {
             video: { url: 'https://files.catbox.moe/hmhs29.mp4' },
-            caption: `😫😖💔 ▭▬▭▬▭▬▭▬▭▬▭▬▭▬▭▬❌NON ! C'était le mauvais numéro ! Dommage tu y étais presque💔▭▬▭▬▭▬▭▬▭▬▭▬▭▬😫😖💔`,
+            caption: `😫😖💔 Mauvais numéro ! Dommage…`,
             gifPlayback: true
-          }, { quoted: ms });
-        }
-        return false;
-      };
+        }, { quoted: ms });
+    }
+
+    return false;
+};
       
 // --- Roulette main ---
 // Le joueur paie 1 NP pour jouer → il aura 3 roulettes
