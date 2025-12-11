@@ -203,65 +203,43 @@ Bienvenue dans la Roulette, choisissez un chiffre parmis les 5️⃣0️⃣. Si 
       };
 
       const checkNumber = async (num, isSecond = false) => {
-    if (winningNumbers.includes(num)) {
-        const idx = winningNumbers.indexOf(num);
-        let reward = rewards[idx];
-
-        switch (reward) {
-
-            // ---- 50 NC 🔷 → MyNeo ----
+        if (winningNumbers.includes(num)) {
+          const idx = winningNumbers.indexOf(num);
+          let reward = rewards[idx];
+          switch (reward) {
             case '50🔷':
-                valeur_nc += 50;
-                await MyNeoFunctions.updateUser(auteur_Message, { nc: valeur_nc });
-                break;
-
-            // ---- 100.000 Golds 🧭 → AllStars ----
+              valeur_nc += 50;
+              await MyNeoFunctions.updateUser(auteur_Message, { nc: valeur_nc });
+              break;
             case '100.000 G🧭':
-                valeur_golds += 100000;
-                await setfiche("golds", valeur_golds, auteur_Message);
-                break;
-
-            // ---- 25 Coupons 🎟 → MyNeo ----
+              valeur_golds += 100000;
+              await setfiche("golds", valeur_golds, auteur_Message);
+              break;
             case '25🎟':
-                valeur_coupons += 25;
-                await MyNeoFunctions.updateUser(auteur_Message, { coupons: valeur_coupons });
-                break;
-
-            // ---- 100.000 Argent 💶 → MyNeo + Fiche Team ⚽ ----
-            case '100.000💶':
-                let argentActuel = parseInt(userData.argent || 0);
-                let argentTeamActuel = parseInt(userData.team_argent || 0);
-                argentActuel += 100000;
-                argentTeamActuel += 100000;
-
-                await MyNeoFunctions.updateUser(auteur_Message, { 
-                    argent: argentActuel,
-                    team_argent: argentTeamActuel
-                });
-                break;
-        }
-
-        await ovl.sendMessage(ms_org, {
+              valeur_coupons += 25;
+              await MyNeoFunctions.updateUser(auteur_Message, { coupons: valeur_coupons });
+              break;
+              case '100.000💶':
+  valeur_money = parseInt(userData.money || 0) + 100000;
+  await MyNeoFunctions.updateUser(auteur_Message, { argent: valeur_argent });
+  break;
+          }
+          await ovl.sendMessage(ms_org, {
             video: { url: 'https://files.catbox.moe/vfv2hk.mp4' },
             caption: `🎰FÉLICITATIONS ! 🥳🥳 vous avez gagné +${reward} 🎁🎊
 ══░▒▒▒▒░░▒░`,
             gifPlayback: true
-        }, { quoted: ms });
-
-        return true;
-    }
-
-    // Si 2e tentative et encore perdu
-    if (isSecond) {
-        await ovl.sendMessage(ms_org, {
+          }, { quoted: ms });
+          return true;
+        } else if (isSecond) {
+          await ovl.sendMessage(ms_org, {
             video: { url: 'https://files.catbox.moe/hmhs29.mp4' },
-            caption: `😫😖💔 Mauvais numéro ! Dommage…`,
+            caption: `😫😖💔 ▭▬▭▬▭▬▭▬▭▬▭▬▭▬▭▬❌NON ! C'était le mauvais numéro ! Dommage tu y étais presque💔▭▬▭▬▭▬▭▬▭▬▭▬▭▬😫😖💔`,
             gifPlayback: true
-        }, { quoted: ms });
-    }
-
-    return false;
-};
+          }, { quoted: ms });
+        }
+        return false;
+      };
       
 // --- Roulette main ---
 // Le joueur paie 1 NP pour jouer → il aura 3 roulettes
@@ -403,13 +381,13 @@ ovlcmd({
       // -------------------------
       //   Vérification All Stars
       // -------------------------
-      const allStarsData = await getData("cards", auteur_Message) || { cards: [] };
+      const ficheAllStars = await getData({ jid: auteur_Message });
+      if (!ficheAllStars) 
+        return repondre("❌ Fiche All Stars introuvable pour ce joueur.");
 
-// Ajouter une nouvelle carte sans effacer l'existant :
-allStarsData.cards.push(newCard);
-
-// Sauvegarde propre :
-await setfiche("cards", allStarData, auteur_Message);
+      let allStarsArray = ficheAllStars.all_stars
+        ? ficheAllStars.all_stars.split(". ")
+        : [];
 
       if (allStarsArray.length >= 9) {
         return repondre("❌ Impossible de tirer de nouvelles cartes : tu dois avoir moins de 9 cartes pour pouvoir tirer 2 cartes (10 max au total).");
@@ -432,19 +410,32 @@ await setfiche("cards", allStarData, auteur_Message);
       await MyNeoFunctions.updateUser(auteur_Message, { ns: newNS });
       await repondre(`🎉 Félicitations +5👑 Royalities ajoutés à ta fiche 🎉🎉🥳🥳🍾`);
 
-      // -------------------------
-      //   AJOUT DES CARTES DANS ALL STARS
-      // -------------------------
-      for (let card of tirees) {
-        if (allStarsArray.length < 10) {
-          const cardAvecEmoji = card + "🎰";
-          allStarsArray.push(cardAvecEmoji);
-        }
-      }
+ // -------------------------
+//   AJOUT DES CARTES DANS ALL STARS
+// -------------------------
 
-      await setfiche("cards", allStarsArray.join("."), auteur_Message);
-      await repondre(`🎉 Cartes ajoutées à ta fiche All Stars : ${tirees.map(c => c + "🎰").join(". ")}`);
+// Récupérer l'existant proprement
+let allStarsData = await getData("cards", auteur_Message);
+if (!allStarsData || typeof allStarsData.cards !== "string") {
+    allStarsData = { cards: "" };
+}
 
+// Transformer en tableau avec .
+let allStarsArray = allStarsData.cards.length > 0
+    ? allStarsData.cards.split(".")
+    : [];
+
+// Ajouter les nouvelles cartes
+for (let card of tirees) {
+    if (allStarsArray.length < 10) {
+        allStarsArray.push(card + "🎰");
+    }
+}
+
+// Sauvegarde propre avec des points
+await setfiche("all_stars", { cards: allStarsArray.join(".") }, auteur_Message);
+await repondre(`🎉 Cartes ajoutées à ta fiche All Stars : ${tirees.map(c => c + "🎰").join(", ")}`);
+      
     } catch (e) {
       if (e.message === "Timeout") return repondre("*⏱️ Temps écoulé sans réponse.*");
       if (e.message === "MaxAttempts") return repondre("*❌ Trop de tentatives échouées.*");
