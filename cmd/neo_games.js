@@ -203,26 +203,35 @@ Bienvenue dans la Roulette, choisissez un chiffre parmis les 5️⃣0️⃣. Si 
       };
 
       const checkNumber = async (num, isSecond = false) => {
-        if (winningNumbers.includes(num)) {
-          const idx = winningNumbers.indexOf(num);
-          let reward = rewards[idx];
-          switch (reward) {
+    if (winningNumbers.includes(num)) {
+        const idx = winningNumbers.indexOf(num);
+        let reward = rewards[idx];
+
+        switch (reward) {
             case '50🔷':
-              valeur_nc += 50;
-              await MyNeoFunctions.updateUser(auteur_Message, { nc: valeur_nc });
-              break;
+                let ficheUserNC = await MyNeoFunctions.getUserData(auteur_Message);
+                let newNC = (parseInt(ficheUserNC.nc) || 0) + 50;
+                await MyNeoFunctions.updateUser(auteur_Message, { nc: newNC });
+                break;
+
             case '100.000 G🧭':
-              valeur_golds += 100000;
-              await setfiche("golds", valeur_golds, auteur_Message);
-              break;
+                let ficheGolds = await getData("golds", auteur_Message);
+                let newGolds = (parseInt(ficheGolds) || 0) + 100000;
+                await setfiche("golds", newGolds, auteur_Message);
+                break;
+
             case '25🎟':
-              valeur_coupons += 25;
-              await MyNeoFunctions.updateUser(auteur_Message, { coupons: valeur_coupons });
-              break;
-              case '100.000💶':
-  valeur_money = parseInt(userData.money || 0) + 100000;
-  await MyNeoFunctions.updateUser(auteur_Message, { argent: valeur_argent });
-  break;
+                let ficheUserCoupons = await MyNeoFunctions.getUserData(auteur_Message);
+                let newCoupons = (parseInt(ficheUserCoupons.coupons) || 0) + 25;
+                await MyNeoFunctions.updateUser(auteur_Message, { coupons: newCoupons });
+                break;
+
+            case '100.000💶':
+                let ficheArgent = await MyNeoFunctions.getUserData(auteur_Message);
+                let newArgent = (parseInt(ficheArgent.argent) || 0) + 100000;
+                await MyNeoFunctions.updateUser(auteur_Message, { argent: newArgent });
+                break;
+        } 
           }
           await ovl.sendMessage(ms_org, {
             video: { url: 'https://files.catbox.moe/vfv2hk.mp4' },
