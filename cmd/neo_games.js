@@ -423,28 +423,32 @@ ovlcmd({
 //   AJOUT DES CARTES DANS ALL STARS
 // -------------------------
 
-// Récupérer l'existant proprement
-let allStarsData = await getData("cards", auteur_Message);
-if (!allStarsData || typeof allStarsData.cards !== "string") {
-    allStarsData = { cards: "" };
-}
+// Récupération de la fiche All Stars correctement
+const ficheAllStars2 = await getData({ jid: auteur_Message });
 
-// Transformer en tableau avec .
-let allStarsCardsArray = allStarsData.cards.length > 0
-    ? allStarsData.cards.split(".")
-    : [];
+let allStarsCardsArray = [];
+
+if (ficheAllStars2 && typeof ficheAllStars2.all_stars === "string") {
+    allStarsCardsArray = ficheAllStars2.all_stars.length > 0
+        ? ficheAllStars2.all_stars.split(".")
+        : [];
+}
 
 // Ajouter les nouvelles cartes
 for (let card of tirees) {
-    if (allStarsArray.length < 10) {
-        allStarsArray.push(card + "🎰");
+    if (allStarsCardsArray.length < 10) {
+        allStarsCardsArray.push(card + "🎰");
     }
 }
 
-// Sauvegarde propre avec des points
-await setfiche("all_stars", { cards: allStarsArray.join(".") }, auteur_Message);
-await repondre(`🎉 Cartes ajoutées à ta fiche All Stars : ${tirees.map(c => c + "🎰").join(", ")}`);
-      
+// Sauvegarde propre
+await setfiche("all_stars", allStarsCardsArray.join("."), auteur_Message);
+
+await repondre(
+  `🎉 Cartes ajoutées à ta fiche All Stars : ${tirees
+    .map(c => c + "🎰")
+    .join(", ")}`
+);
     } catch (e) {
       if (e.message === "Timeout") return repondre("*⏱️ Temps écoulé sans réponse.*");
       if (e.message === "MaxAttempts") return repondre("*❌ Trop de tentatives échouées.*");
