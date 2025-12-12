@@ -428,9 +428,9 @@ const ficheAllStars2 = await getData({ jid: auteur_Message });
 
 let allStarsCardsArray = [];
 
-if (ficheAllStars2 && typeof ficheAllStars2.all_stars === "string") {
-    allStarsCardsArray = ficheAllStars2.all_stars.length > 0
-        ? ficheAllStars2.all_stars.split(".")
+if (ficheAllStars2 && typeof ficheAllStars2.cards === "string") {
+    allStarsCardsArray = ficheAllStars2.cards.length > 0
+        ? ficheAllStars2.cards.split(".")
         : [];
 }
 
@@ -442,7 +442,7 @@ for (let card of tirees) {
 }
 
 // Sauvegarde propre
-await setfiche("cards", allStarsCardsArray.join("."), auteur_Message);
+await setfiche("cards", allStarsCardsArray.join(". "), auteur_Message);
 
 await repondre(
   `🎉 Cartes ajoutées à ta fiche All Stars : ${tirees
