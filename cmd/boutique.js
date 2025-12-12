@@ -152,7 +152,7 @@ ovlcmd({
     // Reçu
     await ovl.sendMessage(ms_org, {
         image: { url: card.image },
-        caption: `╭───〔 🌀🛍️ REÇU D’ACHAT 〕───────  
+        caption: `╭───〔 🌀🛍️ REÇU D’ACHAT 〕─  
 
 👤 Client: ${fiche.code_fiche}
 🎴 Carte ajoutée: ${card.name}
@@ -168,15 +168,16 @@ Merci pour ton achat !
                 // --- VENTE ---
 else if (mode === "vente") {
 
-    // Fonction de nettoyage universel  
     function cleanName(name) {
-        return name
-            .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z0-9]/gi, "")
-            .trim();
-    }
+    return name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        // retire tous les emojis SAUF 🎰
+        .replace(/([\p{Emoji_Presentation}\p{Emoji}\u200d](?!🎰))/gu, "")
+        .replace(/[^a-z0-9🎰]/gi, "") // autorise 🎰
+        .trim();
+}
 
     function isJackpotCard(cardName) {
         return cardName.includes("🎰");
@@ -201,16 +202,16 @@ else if (mode === "vente") {
     // Prix de vente
     let finalSalePrice = Math.floor(basePrix / 2);
 
-    if (isJackpotCard(card.name)) {
-        finalSalePrice = 0; // 🔥 Cartes 🎰 → rapportent 0
-    }
-
+    if (isJackpotCard(currentCards[idx])) {
+    finalSalePrice = 0;
+    } // 🔥 Cartes 🎰 → rapportent 0
+    
     await setfiche("golds", parseInt(fiche.golds || 0) + finalSalePrice, auteur_Message);
 
     // Reçu
     await ovl.sendMessage(ms_org, {
         image: { url: card.image },
-        caption: `╭───〔 🌀🛍️ REÇU DE VENTE 〕───────  
+        caption: `╭───〔 🌀🛍️ REÇU DE VENTE 〕─  
 
 👤 Client: ${fiche.code_fiche}
 🎴 Carte retirée: ${card.name}
