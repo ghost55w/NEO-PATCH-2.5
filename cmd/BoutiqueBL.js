@@ -211,7 +211,9 @@ pour fermer la session de boutique 👉🏽 close.
       if (limite && (ficheTeam.niveau < limite.niveau || ficheTeam.goals < limite.goals)) {
         await repondre(`❌ Impossible d'acheter ${card.name} (Rank ${card.rank}) !  
 Niveau requis : ${limite.niveau}▲ | Goals requis : ${limite.goals}  
-Ton niveau : ${ficheTeam.niveau}▲ | Tes goals : ${ficheTeam.goals}`);
+Ton niveau : ${ficheTeam.niveau}▲ | Tes goals : ${ficheTeam.goals}
+╰───────────────────
+                *BLUE🔷LOCK⚽*`);
         userInput = await waitFor();
         continue;
       }
