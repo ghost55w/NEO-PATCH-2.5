@@ -430,7 +430,7 @@ let allStarsCardsArray = [];
 
 if (ficheAllStars2 && typeof ficheAllStars2.cards === "string") {
     allStarsCardsArray = ficheAllStars2.cards.length > 0
-        ? ficheAllStars2.cards.split(".")
+        ? ficheAllStars2.cards.split(". ")
         : [];
 }
 
