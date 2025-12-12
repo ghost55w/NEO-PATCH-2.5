@@ -430,7 +430,7 @@ if (!allStarsData || typeof allStarsData.cards !== "string") {
 }
 
 // Transformer en tableau avec .
-let allStarsArray = allStarsData.cards.length > 0
+let allStarsCardsArray = allStarsData.cards.length > 0
     ? allStarsData.cards.split(".")
     : [];
 
