@@ -212,7 +212,8 @@ ${couponUsed ? "✅ Coupon utilisé 100🎟️" : ""}
 Merci pour ton achat !
 ╰───────────────────`
 }, { quoted: ms });
-                                           
+   }    
+     
                 // --- VENTE ---
 else if (mode === "vente") {
 
