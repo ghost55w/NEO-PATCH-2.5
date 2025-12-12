@@ -129,18 +129,7 @@ const icon = getCurrencyIcon(card.currency);
                     userInput = await waitFor(120000); 
                     continue; 
                 }
-
-                // --- GESTION COUPON ---
-                let couponUsed = false;
-                let finalPrice = basePrix;
-                if (conf.includes("+coupon") && mode === "achat") {
-                    const userCoupons = parseInt(userData.coupons || 0);
-                    if (userCoupons < 100) { await repondre("❌ Pas assez de coupons."); userInput = await waitFor(120000); continue; }
-                    finalPrice = Math.floor(finalPrice / 2);
-                    couponUsed = true;
-                    await MyNeoFunctions.updateUser(auteur_Message, { coupons: userCoupons - 100 });
-                }
-
+            
    // --- ACHAT ---
 if (mode === "achat") {
     let np = parseInt(userData.np || 0);
