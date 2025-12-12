@@ -94,33 +94,33 @@ ovlcmd({
                         || allCards.find(c => c.name.toLowerCase().includes(q));
                 if (!card) { await repondre(`❌ Aucune carte trouvée pour : ${query}`); userInput = await waitFor(120000); continue; }
 
-                // --- Vérification du niveau pour l'achat ---
-                let userLevel = parseInt(fiche.niveu_xp || 0);
-                let cardGrade = card.grade?.toUpperCase() || "";
-
-                if (["SS-", "SS", "SS+"].includes(cardGrade) && userLevel < 10) {
-                    await repondre(`❌ Niveau insuffisant pour acheter cette carte (niveau requis : 10▲). Ton niveau : ${userLevel}▲
-                    ╰───────────────────`);
-                    userInput = await waitFor(120000);
-                    continue;
-                }
-                if (cardGrade === "OR" && userLevel < 5) {
-                    await repondre(`❌ Niveau insuffisant pour acheter cette carte OR (niveau requis : 5▲). Ton niveau : ${userLevel}▲
-                    ╰───────────────────`);
-                    userInput = await waitFor(120000);
-                    continue;
-                }
-
                 let basePrix = parseInt((card.price || "").replace(/[^\d]/g, "")) || 0;
                 let golds = parseInt(fiche.golds || 0);
                 let nc = parseInt(userData.nc || 0);
 
                 // --- ACHAT ---
-                if(mode === "achat") {
-                    const icon = getCurrencyIcon(card.currency);
-                    await ovl.sendMessage(ms_org, {
-                        image: { url: card.image },
-                        caption: `🌀🎴 Carte: ${card.name}
+if(mode === "achat") {
+    // --- Vérification du niveau pour l'achat ---
+    let userLevel = parseInt(fiche.niveu_xp || 0);
+    let cardGrade = card.grade?.toUpperCase() || "";
+
+    if (["SS-", "SS", "SS+"].includes(cardGrade) && userLevel < 10) {
+        await repondre(`❌ Niveau insuffisant pour acheter cette carte (niveau requis : 10▲). Ton niveau : ${userLevel}▲
+        ╰───────────────────`);
+        userInput = await waitFor(120000);
+        continue;
+    }
+    if (cardGrade === "OR" && userLevel < 5) {
+        await repondre(`❌ Niveau insuffisant pour acheter cette carte OR (niveau requis : 5▲). Ton niveau : ${userLevel}▲
+        ╰───────────────────`);
+        userInput = await waitFor(120000);
+        continue;
+    }
+
+    const icon = getCurrencyIcon(card.currency);
+    await ovl.sendMessage(ms_org, {
+        image: { url: card.image },
+        caption: `🌀🎴 Carte: ${card.name}
 🔅Grade: ${card.grade}
 🔅Catégorie: ${card.category}
 🔅Placement: ${card.placement}
@@ -128,7 +128,10 @@ ovlcmd({
 
 ✔️ Confirmer achat ? (oui/non/+coupon)
 ╰──────────────────`
-                    }, { quoted: ms });
+    }, { quoted: ms });
+
+    // ... le reste du code achat
+}
 
                     const conf = (await waitFor(60000))?.toLowerCase() || "";
                     if(!["oui", "+coupon"].some(c => conf.includes(c))) {
