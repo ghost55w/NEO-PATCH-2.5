@@ -66,7 +66,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 📈 Note: ${data.note}/100
 ⌬ *Talent⭐:* ▱▱▱▱▬▬▬ ${data.talent}
 ⌬ *Speed💬:* ▱▱▱▱▬▬▬  ${data.speed}
-⌬ *Strikes👊🏻:* ▱▱▱▱▬▬▬ ${data.striking}
+⌬ *Strikes👊🏻:* ▱▱▱▱▬▬▬ ${data.close_fight}
 ⌬ *Attaques🌀:* ▱▱▱▱▬▬▬ ${data.attaques}
 
 ░▒░▒░ CARDS 🎴: ${data.cards.split("\n").length}
