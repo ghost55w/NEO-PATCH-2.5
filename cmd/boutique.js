@@ -195,8 +195,7 @@ if (cardGrade === "OR" && userLevel < 5) {
     await repondre("⚠️ Attention : cette carte est déjà possédée par 2 joueurs, tu payes +50% du prix de base !");
 }
 
-    // Reçu
-     let icon = getCurrencyIcon(card.currency);   
+    // Reçu   
     await ovl.sendMessage(ms_org, {
         image: { url: card.image },
         caption: `╭───〔 🌀🛍️ REÇU D’ACHAT 〕─  
@@ -214,7 +213,7 @@ Merci pour ton achat !
                                            
                 // --- VENTE ---
 else if (mode === "vente") {
-
+let icon = getCurrencyIcon(card.currency);
     function cleanName(name) {  
         return name  
             .toLowerCase()  
@@ -241,7 +240,6 @@ else if (mode === "vente") {
     }
 
   // 🔒 Confirmation avant la vente
-  let icon = getCurrencyIcon(card.currency);
 await ovl.sendMessage(ms_org, {
     image: { url: card.image },
     caption: `🛍️🎴 Carte: ${card.name}
@@ -281,8 +279,6 @@ if (!confVente.includes("oui")) {
 
     // Ajout money
     await setfiche("golds", parseInt(fiche.golds || 0) + finalSalePrice, auteur_Message);
-
-    let icon = getCurrencyIcon(card.currency);
     await ovl.sendMessage(ms_org, {
         image: { url: card.image },
         caption: `╭───〔 🌀🛍️ REÇU DE VENTE 〕─
