@@ -231,15 +231,6 @@ async function initFichesAuto() {
 
 initFichesAuto();
 
-function countCards(cardsRaw) {
-    if (!cardsRaw || typeof cardsRaw !== "string") return 0;
-
-    return cardsRaw
-        .split(/[\n\.]/)        // accepte \n ou .
-        .map(c => c.trim())
-        .filter(c => c.length > 0)
-        .length;
-}
 
 // --- add_fiche command ---
 ovlcmd({
