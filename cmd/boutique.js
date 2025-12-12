@@ -5,10 +5,16 @@ const { getData, setfiche } = require("../DataBase/allstars_divs_fiches");
 const config = require("../set");
 
 // --- UTILITAIRES ---
+function getCurrencyIcon(currency) {
+  if (currency === "nc") return "🔷";
+  if (currency === "golds") return "🧭";
+  return "";
+}
 const formatNumber = n => {
     try { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
     catch { return n; }
 }
+
 
 // --- COMMANDE BOUTIQUE ---
 ovlcmd({
@@ -97,11 +103,17 @@ if (cardGrade === "OR" && userLevel < 5) {
                 let basePrix = parseInt((card.price || "").replace(/[^\d]/g, "")) || 0;
                 let golds = parseInt(fiche.golds || 0);
                 let nc = parseInt(userData.nc || 0);
-
+const icon = getCurrencyIcon(card.currency);
                 await ovl.sendMessage(ms_org, {
                     image: { url: card.image },
-                    caption: `🎴 Carte: ${card.name}\nGrade: ${card.grade}\nCatégorie: ${card.category}\nPlacement: ${card.placement}\n🛍️Prix: ${formatNumber(basePrix)} 🧭\n
-   ✔️ Confirmer ${mode} ? (oui/non/+coupon)`
+                    caption: `🎴 Carte: ${card.name}
+Grade: ${card.rarity}
+Catégorie: ${card.type}
+Placement: ${card.placement}
+🛍️Prix: ${card.price} ${icon}
+
+✔️ Confirmer achat ? (oui/non/+coupon)
+`);
                 }, { quoted: ms });
 
                 let conf = (await waitFor(60000))?.toLowerCase() || "";
