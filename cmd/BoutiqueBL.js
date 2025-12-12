@@ -359,6 +359,7 @@ ovlcmd({
     const ancienNom = pureName(ancienNomRaw);
     const nouveauNom = pureName(nouveauNomRaw);
 
+    // --- TROUVER POSITION DE L'ANCIEN JOUEUR ---
     let posAncien = null;
     for (let i = 1; i <= 15; i++) {
       const slot = ficheLineup[`joueur${i}`] || "";
@@ -374,9 +375,23 @@ ovlcmd({
     const carte = allCards.find(c => pureName(c.name) === nouveauNom);
     if (!carte) return repondre(`❌ Carte introuvable : ${nouveauNomRaw}`);
 
-    const cardsOwned = (userData.cards || "").
+    const cardsOwned = (userData.cards || "").split("\n").filter(Boolean);
+    if (!cardsOwned.some(c => pureName(c) === pureName(carte.name))) {
+      return repondre(`❌ Tu ne possèdes pas ${carte.name} pour la remplacer.`);
+    }
 
-      // --- DELETE UN JOUEUR +DEL J# ---
+    ficheLineup[`joueur${posAncien}`] = `${carte.name} (${carte.ovr})${carte.countryEmoji || getCountryEmoji(carte.country)}`;
+    await updatePlayers(auteur_Message, ficheLineup);
+
+    await repondre(`✅ ${carte.name} a remplacé ${ancienNomRaw} en position J${posAncien} ✔️`);
+
+  } catch (e) {
+    console.error("Erreur commande sub:", e);
+    return repondre("❌ Erreur interne lors de la substitution.");
+  }
+});
+
+// --- DELETE UN JOUEUR +DEL J# ---
 ovlcmd({
   nom_cmd: "del",
   react: "❌",
@@ -398,8 +413,8 @@ ovlcmd({
     await updatePlayers(auteur_Message, ficheLineup);
 
     await repondre(`✅ Joueur en position J${pos} supprimé avec succès !`);
-  } catch (err) {
-    console.error("Erreur commande del:", err);
+  } catch (e) {
+    console.error("Erreur commande del:", e);
     return repondre("❌ Erreur interne lors de la suppression du joueur.");
   }
 });
