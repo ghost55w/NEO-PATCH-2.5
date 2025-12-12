@@ -232,8 +232,7 @@ Bienvenue dans la Roulette, choisissez un chiffre parmis les 5️⃣0️⃣. Si 
                 let newArgent = (parseInt(ficheArgent.argent) || 0) + 100000;
                 await MyNeoFunctions.updateUser(auteur_Message, { argent: newArgent });
                 break;
-        } 
-          }
+        }           
           await ovl.sendMessage(ms_org, {
             video: { url: 'https://files.catbox.moe/vfv2hk.mp4' },
             caption: `🎰FÉLICITATIONS ! 🥳🥳 vous avez gagné +${reward} 🎁🎊
