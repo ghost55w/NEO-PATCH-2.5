@@ -251,7 +251,7 @@ Bienvenue dans la Roulette, choisissez un chiffre parmis les 5️⃣0️⃣. Si 
       };
       
 // --- Roulette main ---
-// Le joueur paie 1 NP pour jouer → il aura 3 roulettes
+// Le joueur paie 1 NP pour jouer → il aura 2 roulettes
 for (let tour = 1; tour <= 2; tour++) {
 
     await repondre(`🎰 *Roulette ${tour}/2* — Bonne chance !`);
@@ -442,7 +442,7 @@ for (let card of tirees) {
 }
 
 // Sauvegarde propre
-await setfiche("all_stars", allStarsCardsArray.join("."), auteur_Message);
+await setfiche("cards", allStarsCardsArray.join("."), auteur_Message);
 
 await repondre(
   `🎉 Cartes ajoutées à ta fiche All Stars : ${tirees
