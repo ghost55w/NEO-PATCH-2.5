@@ -294,38 +294,37 @@ Merci pour l'achat ⚽🔷 !
             .map(c => c.trim())
             .filter(Boolean);
 
-        const qNorm = compact(query);
+        // ----- SYSTÈME DE MATCHING ULTRA-PRÉCIS -----
 
-        // DEBUG (tu peux commenter ces lignes si tu veux)
-        console.log("DEBUG vente - user cards:", cardsOwned);
-        console.log("DEBUG vente - normalized:", cardsOwned.map(c => compact(c)));
-        console.log("DEBUG vente - query:", qNorm);
+const qNorm = pureName(query);
 
-        // 1) comparaison stricte normalisée
-        let idx = cardsOwned.findIndex(c => compact(c) === qNorm);
+// Liste des cartes possédées (normalisées)
+const ownedNormalized = cardsOwned.map(c => pureName(c));
 
-        // 2) comparaison inclusive
-        if (idx === -1) {
-            idx = cardsOwned.findIndex(c =>
-                compact(c).includes(qNorm) ||
-                qNorm.includes(compact(c))
-            );
-        }
+// 1) Correspondance stricte
+let idx = ownedNormalized.findIndex(n => n === qNorm);
 
-        // 3) correspondance par segments (ex: « isagi nel » → « isagi »)
-        if (idx === -1) {
-            const qSimple = pureName(query);
-            idx = cardsOwned.findIndex(c => {
-                const parts = pureName(c).split(" ");
-                return parts.includes(qSimple);
-            });
-        }
+// 2) Correspondance inclusive
+if (idx === -1) {
+    idx = ownedNormalized.findIndex(n =>
+        n.includes(qNorm) || qNorm.includes(n)
+    );
+}
 
-        if (idx === -1) {
-            await repondre("❌ Tu ne possèdes pas cette carte !");
-            userInput = await waitFor();
-            continue;
-        }
+// 3) Match par segment (ex: "reo nel" → "reo")
+if (idx === -1) {
+    const qParts = qNorm.split(" ");
+    idx = ownedNormalized.findIndex(n => {
+        const nParts = n.split(" ");
+        return qParts.some(p => nParts.includes(p));
+    });
+}
+
+if (idx === -1) {
+    await repondre("❌ Tu ne possèdes pas cette carte !");
+    userInput = await waitFor();
+    continue;
+}
 
         // Suppression de la carte
         const removedCard = cardsOwned.splice(idx, 1)[0];
@@ -388,11 +387,19 @@ ovlcmd({
     let posAncien = null;
     for (let i = 1; i <= 15; i++) {
       const slot = ficheLineup[`joueur${i}`] || "";
-      if (pureName(slot) === ancienNom) {
-        posAncien = i;
-        break;
-      }
-    }
+      const slotNorm = pureName(slot);
+
+// Match strict
+if (slotNorm === ancienNom) {
+    posAncien = i;
+    break;
+}
+
+// Match partiel (ex: "reo" → "reo (78)")
+if (slotNorm.includes(ancienNom) || ancienNom.includes(slotNorm)) {
+    posAncien = i;
+    break;
+}
     if (!posAncien) return repondre(`❌ Aucun joueur trouvé avec le nom "${ancienNomRaw}" dans ton lineup.`);
 
     const carte = allCards.find(c => pureName(c.name) === nouveauNom);
