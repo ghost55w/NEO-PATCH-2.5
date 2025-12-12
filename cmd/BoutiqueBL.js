@@ -343,7 +343,7 @@ if (idx === -1) {
         });
 
         await repondre(`
-╭───〔 🧾 REÇU DE VENTE 🔷 〕──
+╭───〔 ⚽ REÇU DE VENTE 🔷 〕──
 🔹 Carte vendue : ${card.name}
 💶 Gain : ${salePrice}
 💰 Argent actuel : ${ficheTeam.argent + salePrice}
