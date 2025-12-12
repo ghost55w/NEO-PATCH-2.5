@@ -17,46 +17,27 @@ const formatNumber = n => {
 };
 
 // --- NOM PUR pour comparaison ---
-// Version robuste, compatible Node, retire drapeaux/emojis/parenthèses/overalls
 const pureName = str => {
-    if (!str) return "";
-    let s = String(str);
-
-    // Retirer parenthèses et contenu
-    s = s.replace(/\(.+?\)/g, " ");
-
-    // Retirer drapeaux
-    s = s.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, " ");
-
-    // Retirer emojis courants
-    s = s.replace(/[\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, " ");
-
-    // Retirer variation selectors + ZWJ
-    s = s.replace(/[\uFE00-\uFE0F\u200D]/g, " ");
-
-    // Normalisation → suppression accents
-    s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
-
-    // Garder lettres / chiffres / espaces
-    s = s.replace(/[^0-9a-zA-ZÀ-ÿ\s]/g, " ");
-
-    // Nettoyer espaces
-    s = s.replace(/\s+/g, " ").trim().toLowerCase();
-
-    return s;
+  if (!str) return "";
+  let s = String(str);
+  s = s.replace(/.+?/g, " ");
+  s = s.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, " ");
+  s = s.replace(/[\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, " ");
+  s = s.replace(/[\uFE00-\uFE0F\u200D]/g, " ");
+  s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+  s = s.replace(/[^0-9a-zA-ZÀ-ÿ\s]/g, " ");
+  s = s.replace(/\s+/g, " ").trim().toLowerCase();
+  return s;
 };
-
-// Version compacte (retire aussi tous les espaces)
 const compact = s => pureName(s).replace(/\s+/g, "");
 
-// --- EMOJI PAYS SÉCURISÉS ---
+// --- EMOJI PAYS ---
 const countryEmojis = {
-  "Japan": "\u{1F1EF}\u{1F1F5}",    // 🇯🇵
-  "France": "\u{1F1EB}\u{1F1F7}",   // 🇫🇷
-  "Brazil": "\u{1F1E7}\u{1F1F7}",   // 🇧🇷
-  "Germany": "\u{1F1E9}\u{1F1EA}",  // 🇩🇪
-  "Malta": "\u{1F1F2}\u{1F1F9}",    // 🇲🇹
-  // ajoute tous les pays nécessaires
+  "Japan": "\u{1F1EF}\u{1F1F5}",//🇯🇵
+  "France": "\u{1F1EB}\u{1F1F7}",//🇫🇷
+  "Brazil": "\u{1F1E7}\u{1F1F7}",//🇧🇷
+  "Germany": "\u{1F1E9}\u{1F1EA}",//🇩🇪
+  "Malta": "\u{1F1F2}\u{1F1F9}"//🇲🇹
 };
 const getCountryEmoji = country => countryEmojis[country] || "";
 
@@ -76,7 +57,6 @@ function calculPrix(card) {
 
   let ovr = Number(card.ovr || 0);
   let bonusOvr = ovr * 1000;
-
   return baseRankPrice + bonusOvr;
 }
 
@@ -95,7 +75,6 @@ async function addToLineup(auteur_Message, card, ovl, ms_org, repondre) {
   try {
     let ficheLineup = await getLineup(auteur_Message);
     if (!ficheLineup) return false;
-
     ficheLineup = ficheLineup.toJSON ? ficheLineup.toJSON() : ficheLineup;
 
     const freePositions = [];
@@ -121,7 +100,7 @@ Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
       try {
         const r = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: timeout });
         return (r?.message?.extendedTextMessage?.text || r?.message?.conversation || "").trim().toLowerCase();
-      } catch { return ""; }
+      } catch (e) { return ""; }
     };
 
     const posMsg = await waitFor();
@@ -141,8 +120,8 @@ Positions libres : ${freePositions.map(i => `J${i}`).join(", ")}
     await repondre(`✅ ${card.name} placé en position J${numPos} ✔️`);
     return true;
 
-  } catch (err) {
-    console.error("❌ Erreur addToLineup:", err);
+  } catch (e) {
+    console.error("❌ Erreur addToLineup:", e);
     await repondre("❌ Erreur interne lors du placement de la carte.");
     return false;
   }
@@ -181,7 +160,7 @@ pour fermer la session de boutique 👉🏽 close.
       try {
         const r = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: timeout });
         return (r?.message?.extendedTextMessage?.text || r?.message?.conversation || "").trim();
-      } catch { return ""; }
+      } catch (e) { return ""; }
     };
 
     let sessionOpen = true;
@@ -287,106 +266,59 @@ ${couponUsed ? "🎟️ Coupon utilisé (-50%)" : ""}
 Merci pour l'achat ⚽🔷 !
 ╰───────────────────
                    *BLUE🔷LOCK⚽*`);
-      }
+      } else if (mode === "vente") {
+        // --- VENTE ---
+        let ficheLineup = await getLineup(auteur_Message);
+        ficheLineup = ficheLineup?.toJSON ? ficheLineup.toJSON() : ficheLineup;
 
-   //------------- VENTE (comparaison intelligente + lineup) ------------
-else if (mode === "vente") {
-  
-let ficheLineup = await getLineup(auteur_Message);
-ficheLineup = ficheLineup?.toJSON ? ficheLineup.toJSON() : ficheLineup;
-    // données joueur
-    let cardsOwned = (userData.cards || "")
-        .split("\n")
-        .map(c => c.trim())
-        .filter(Boolean);
+        let cardsOwned = (userData.cards || "").split("\n").map(c => c.trim()).filter(Boolean);
+        const qNorm = pureName(query);
+        const ownedNormalized = cardsOwned.map(c => pureName(c));
 
-    // normalisation recherche
-    const qNorm = pureName(query);
-
-    // --- Cartes possédées normalisées ---
-    const ownedNormalized = cardsOwned.map(c => pureName(c));
-
-    // --- Récup lineup pour matching ---
-    let lineupSlots = [];
-    for (let i = 1; i <= 15; i++) {
-        const raw = ficheLineup?.[`joueur${i}`] || "";
-        if (raw && raw !== "aucun") {
-            lineupSlots.push({
-                pos: i,
-                raw,
-                norm: pureName(
-                    raw
-                        .replace(/\(\d+\)/g, " ") // retire (78)
-                        .replace(/[\u{1F1E6}-\u{1F1FF}]/gu, " ") // retire drapeaux
-                )
-            });
+        let lineupSlots = [];
+        for (let i = 1; i <= 15; i++) {
+          const raw = ficheLineup?.[`joueur${i}`] || "";
+          if (raw && raw !== "aucun") {
+            lineupSlots.push({ pos: i, raw, norm: pureName(raw.replace(/\d+/g, " ").replace(/[\u{1F1E6}-\u{1F1FF}]/gu, " ")) });
+          }
         }
-    }
 
-    // --- MATCHING ULTRA-PRÉCIS ---
-    let idx = ownedNormalized.findIndex(n => n === qNorm);
-
-    // inclusive
-    if (idx === -1) {
-        idx = ownedNormalized.findIndex(n =>
-            n.includes(qNorm) || qNorm.includes(n)
-        );
-    }
-
-    // segmenté
-    if (idx === -1) {
-        const p = qNorm.split(" ");
-        idx = ownedNormalized.findIndex(n => {
+        let idx = ownedNormalized.findIndex(n => n === qNorm);
+        if (idx === -1) idx = ownedNormalized.findIndex(n => n.includes(qNorm) || qNorm.includes(n));
+        if (idx === -1) {
+          const p = qNorm.split(" ");
+          idx = ownedNormalized.findIndex(n => {
             const np = n.split(" ");
             return p.some(x => np.includes(x));
-        });
-    }
-
-    // recherche dans lineup
-    let lineupMatch = null;
-
-    if (idx === -1) {
-        lineupMatch = lineupSlots.find(s => s.norm === qNorm);
-
-        if (!lineupMatch) {
-            lineupMatch = lineupSlots.find(s =>
-                s.norm.includes(qNorm) || qNorm.includes(s.norm)
-            );
+          });
         }
-    }
 
-    // aucune correspondance
-    if (idx === -1 && !lineupMatch) {
-        await repondre("❌ Tu ne possèdes pas cette carte !");
-        userInput = await waitFor();
-        continue;
-    }
+        let lineupMatch = null;
+        if (idx === -1) {
+          lineupMatch = lineupSlots.find(s => s.norm === qNorm);
+          if (!lineupMatch) lineupMatch = lineupSlots.find(s => s.norm.includes(qNorm) || qNorm.includes(s.norm));
+        }
 
-    // ---- SUPPRESSION CARTE ----
+        if (idx === -1 && !lineupMatch) {
+          await repondre("❌ Tu ne possèdes pas cette carte !");
+          userInput = await waitFor();
+          continue;
+        }
 
-    // Si la carte est dans la liste userData.cards
-    if (idx !== -1) {
-        cardsOwned.splice(idx, 1);
-        await MyNeoFunctions.updateUser(auteur_Message, {
-            cards: cardsOwned.join("\n")
-        });
-    }
+        if (idx !== -1) {
+          cardsOwned.splice(idx, 1);
+          await MyNeoFunctions.updateUser(auteur_Message, { cards: cardsOwned.join("\n") });
+        }
 
-    // Si la carte vient du lineup → on vide son slot
-    if (lineupMatch) {
-        ficheLineup[`joueur${lineupMatch.pos}`] = "aucun";
-        await updatePlayers(auteur_Message, ficheLineup);
-    }
+        if (lineupMatch) {
+          ficheLineup[`joueur${lineupMatch.pos}`] = "aucun";
+          await updatePlayers(auteur_Message, ficheLineup);
+        }
 
-    // ---- PAIEMENT ----
-    const salePrice = Math.floor(basePrix / 2);
+        const salePrice = Math.floor(basePrix / 2);
+        await TeamFunctions.updateUser(auteur_Message, { argent: ficheTeam.argent + salePrice });
 
-    await TeamFunctions.updateUser(auteur_Message, {
-        argent: ficheTeam.argent + salePrice
-    });
-
-    // ---- REÇU ----
-    await repondre(`
+        await repondre(`
 ╭───〔 ⚽ REÇU DE VENTE 🔷 〕──
 🔹 Carte vendue : ${card.name}
 💶 Gain : ${salePrice}
@@ -394,15 +326,14 @@ ficheLineup = ficheLineup?.toJSON ? ficheLineup.toJSON() : ficheLineup;
 
 ╰───────────────────
                 *BLUE🔷LOCK⚽*`);
+      }
 
       userInput = await waitFor();
-    } // fin while(sessionOpen)
-
-  } catch (err) {
-    console.log("Erreur critique BL:", err);
+    } // end while
+  } catch (e) {
+    console.log("Erreur critique BL:", e);
     return repondre("⚽Erreur inattendue. Tape `close` pour quitter.");
   }
-
 });
 
 // --- SUBSTITUTION LINEUP ---
@@ -428,42 +359,24 @@ ovlcmd({
     const ancienNom = pureName(ancienNomRaw);
     const nouveauNom = pureName(nouveauNomRaw);
 
-    // --- TROUVER POSITION DE L'ANCIEN JOUEUR ---
-let posAncien = null;
+    let posAncien = null;
+    for (let i = 1; i <= 15; i++) {
+      const slot = ficheLineup[`joueur${i}`] || "";
+      const slotNorm = pureName(slot);
+      if (slotNorm === ancienNom || slotNorm.includes(ancienNom) || ancienNom.includes(slotNorm)) {
+        posAncien = i;
+        break;
+      }
+    }
 
-for (let i = 1; i <= 15; i++) {
-  const slot = ficheLineup[`joueur${i}`] || "";
-  const slotNorm = pureName(slot);
+    if (!posAncien) return repondre(`❌ Aucun joueur trouvé avec le nom "${ancienNomRaw}" dans ton lineup.`);
 
-  if (slotNorm === ancienNom ||
-      slotNorm.includes(ancienNom) ||
-      ancienNom.includes(slotNorm)) {
-    posAncien = i;
-    break;
-  }
-}
-
-if (!posAncien)
-  return repondre(`❌ Aucun joueur trouvé avec le nom "${ancienNomRaw}" dans ton lineup.`);
     const carte = allCards.find(c => pureName(c.name) === nouveauNom);
     if (!carte) return repondre(`❌ Carte introuvable : ${nouveauNomRaw}`);
 
-    const cardsOwned = (userData.cards || "").split("\n").filter(Boolean);
-    if (!cardsOwned.some(c => pureName(c) === pureName(carte.name)))
-      return repondre(`❌ Tu ne possèdes pas ${carte.name} pour la remplacer.`);
+    const cardsOwned = (userData.cards || "").
 
-    ficheLineup[`joueur${posAncien}`] = `${carte.name} (${carte.ovr})${carte.countryEmoji || getCountryEmoji(carte.country)}`;
-    await updatePlayers(auteur_Message, ficheLineup);
-
-    await repondre(`✅ ${carte.name} a remplacé ${ancienNomRaw} en position J${posAncien} ✔️`);
-
-  } catch (err) {
-    console.error("Erreur commande sub:", err);
-    return repondre("❌ Erreur interne lors de la substitution.");
-  }
-});
-
-// --- DELETE UN JOUEUR +DEL J# ---
+      // --- DELETE UN JOUEUR +DEL J# ---
 ovlcmd({
   nom_cmd: "del",
   react: "❌",
