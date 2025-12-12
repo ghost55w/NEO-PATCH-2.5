@@ -31,7 +31,7 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   },
   pseudo: { type: DataTypes.STRING, defaultValue: 'aucun' },
   classement: { type: DataTypes.STRING, defaultValue: 'aucun' },
-  niveau_xp: { type: DataTypes.INTEGER, defaultValue: 1 },
+  niveu_xp: { type: DataTypes.INTEGER, defaultValue: 1 },
   division: { type: DataTypes.STRING, defaultValue: 'aucun' },
   rang: { type: DataTypes.STRING, defaultValue: 'aucun' },
   classe: { type: DataTypes.STRING, defaultValue: 'aucun' },
