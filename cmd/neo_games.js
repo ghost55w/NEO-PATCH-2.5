@@ -374,14 +374,14 @@ ovlcmd({
       await envoyerVideo(ms_org, ovl, videoLinks[niveau]);
 
       const probasGrade = [
-        { value: "or", probability: 5 },
+        { value: "or", probability: 3 },
         { value: "argent", probability: 25 },
         { value: "bronze", probability: 70 }
       ];
       const probasCategorie = [
-        { value: "ss+", probability: 2 },
-        { value: "ss", probability: 5 },
-        { value: "ss-", probability: 10 },
+        { value: "ss+", probability: 1 },
+        { value: "ss", probability: 2 },
+        { value: "ss-", probability: 5 },
         { value: "s+", probability: 18 },
         { value: "s", probability: 25 },
         { value: "s-", probability: 40 }
