@@ -9,8 +9,11 @@ const config = require("../set");
 
 // --- UTILITAIRES ---
 const formatNumber = n => {
-  try { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
-  catch { return n; }
+  try { 
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); 
+  } catch (e) { 
+    return n; 
+  }
 };
 
 // --- NOM PUR pour comparaison ---
@@ -384,24 +387,22 @@ ovlcmd({
     const nouveauNom = pureName(nouveauNomRaw);
 
     // --- TROUVER POSITION DE L'ANCIEN JOUEUR ---
-    let posAncien = null;
-    for (let i = 1; i <= 15; i++) {
-      const slot = ficheLineup[`joueur${i}`] || "";
-      const slotNorm = pureName(slot);
+let posAncien = null;
 
-// Match strict
-if (slotNorm === ancienNom) {
+for (let i = 1; i <= 15; i++) {
+  const slot = ficheLineup[`joueur${i}`] || "";
+  const slotNorm = pureName(slot);
+
+  if (slotNorm === ancienNom ||
+      slotNorm.includes(ancienNom) ||
+      ancienNom.includes(slotNorm)) {
     posAncien = i;
     break;
+  }
 }
 
-// Match partiel (ex: "reo" → "reo (78)")
-if (slotNorm.includes(ancienNom) || ancienNom.includes(slotNorm)) {
-    posAncien = i;
-    break;
-}
-    if (!posAncien) return repondre(`❌ Aucun joueur trouvé avec le nom "${ancienNomRaw}" dans ton lineup.`);
-
+if (!posAncien)
+  return repondre(`❌ Aucun joueur trouvé avec le nom "${ancienNomRaw}" dans ton lineup.`);
     const carte = allCards.find(c => pureName(c.name) === nouveauNom);
     if (!carte) return repondre(`❌ Carte introuvable : ${nouveauNomRaw}`);
 
