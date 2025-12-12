@@ -197,6 +197,8 @@ const icon = getCurrencyIcon(card.currency);
 }
 
     // Reçu
+     const icon = getCurrencyIcon(card.currency);
+     
     await ovl.sendMessage(ms_org, {
         image: { url: card.image },
         caption: `╭───〔 🌀🛍️ REÇU D’ACHAT 〕─  
@@ -215,25 +217,23 @@ Merci pour ton achat !
                 // --- VENTE ---
 else if (mode === "vente") {
 
-    function cleanName(name) {
-    return name
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        // retire tous les emojis SAUF 🎰
-        .replace(/([\p{Emoji_Presentation}\p{Emoji}\u200d](?!🎰))/gu, "")
-        .replace(/[^a-z0-9🎰]/gi, "") // autorise 🎰
-        .trim();
-}
+    function cleanName(name) {  
+        return name  
+            .toLowerCase()  
+            .normalize("NFD")  
+            .replace(/[\u0300-\u036f]/g, "")  
+            .replace(/([\p{Emoji_Presentation}\p{Emoji}\u200d](?!🎰))/gu, "")  
+            .replace(/[^a-z0-9🎰]/gi, "") 
+            .trim();
+    }
 
-    function isJackpotCard(cardName) {
-        return cardName.includes("🎰");
+    function isJackpotCard(cardName) {  
+        return cardName.includes("🎰");  
     }
 
     let currentCards = (fiche.cards || "").split("\n").map(x => x.trim()).filter(Boolean);
 
     let cleanedTarget = cleanName(card.name);
-
     let idx = currentCards.findIndex(c => cleanName(c) === cleanedTarget);
 
     if (idx === -1) {
@@ -242,31 +242,33 @@ else if (mode === "vente") {
         continue;
     }
 
-    // Suppression
+    // 📌 Vérification avant suppression
+    let isJackpot = isJackpotCard(currentCards[idx]);
+
+    // Suppression de la carte
     currentCards.splice(idx, 1);
     await setfiche("cards", currentCards.join("\n"), auteur_Message);
 
     // Prix de vente
     let finalSalePrice = Math.floor(basePrix / 2);
+    if (isJackpot) finalSalePrice = 0;
 
-    if (isJackpotCard(currentCards[idx])) {
-    finalSalePrice = 0;
-    } // 🔥 Cartes 🎰 → rapportent 0
-    
+    // Ajout money
     await setfiche("golds", parseInt(fiche.golds || 0) + finalSalePrice, auteur_Message);
 
-    // Reçu
+    const icon = getCurrencyIcon(card.currency);
+
     await ovl.sendMessage(ms_org, {
         image: { url: card.image },
-        caption: `╭───〔 🌀🛍️ REÇU DE VENTE 〕─  
+        caption: `╭───〔 🌀🛍️ REÇU DE VENTE 〕─
 
 👤 Client: ${fiche.code_fiche}
 🎴 Carte retirée: ${card.name}
-💳 Tu as reçu: ${formatNumber(finalSalePrice)} ${icon} 
+💳 Tu as reçu: ${formatNumber(finalSalePrice)} ${icon}
 
 ╰───────────────────`
     }, { quoted: ms });
-}
+        }
                 userData = await MyNeoFunctions.getUserData(auteur_Message);
                 fiche = await getData({ jid: auteur_Message });
                 userInput = await waitFor(120000);
