@@ -289,60 +289,102 @@ Merci pour l'achat ⚽🔷 !
                    *BLUE🔷LOCK⚽*`);
       }
 
-      //------------- VENTE (comparaison intelligente) ------------
-      else if (mode === "vente") {
+   //------------- VENTE (comparaison intelligente + lineup) ------------
+else if (mode === "vente") {
 
-        let cardsOwned = (userData.cards || "")
-            .split("\n")
-            .map(c => c.trim())
-            .filter(Boolean);
+    // données joueur
+    let cardsOwned = (userData.cards || "")
+        .split("\n")
+        .map(c => c.trim())
+        .filter(Boolean);
 
-        // ----- SYSTÈME DE MATCHING ULTRA-PRÉCIS -----
+    // normalisation recherche
+    const qNorm = pureName(query);
 
-const qNorm = pureName(query);
+    // --- Cartes possédées normalisées ---
+    const ownedNormalized = cardsOwned.map(c => pureName(c));
 
-// Liste des cartes possédées (normalisées)
-const ownedNormalized = cardsOwned.map(c => pureName(c));
+    // --- Récup lineup pour matching ---
+    let lineupSlots = [];
+    for (let i = 1; i <= 15; i++) {
+        const raw = ficheLineup?.[`joueur${i}`] || "";
+        if (raw && raw !== "aucun") {
+            lineupSlots.push({
+                pos: i,
+                raw,
+                norm: pureName(
+                    raw
+                        .replace(/\(\d+\)/g, " ") // retire (78)
+                        .replace(/[\u{1F1E6}-\u{1F1FF}]/gu, " ") // retire drapeaux
+                )
+            });
+        }
+    }
 
-// 1) Correspondance stricte
-let idx = ownedNormalized.findIndex(n => n === qNorm);
+    // --- MATCHING ULTRA-PRÉCIS ---
+    let idx = ownedNormalized.findIndex(n => n === qNorm);
 
-// 2) Correspondance inclusive
-if (idx === -1) {
-    idx = ownedNormalized.findIndex(n =>
-        n.includes(qNorm) || qNorm.includes(n)
-    );
-}
+    // inclusive
+    if (idx === -1) {
+        idx = ownedNormalized.findIndex(n =>
+            n.includes(qNorm) || qNorm.includes(n)
+        );
+    }
 
-// 3) Match par segment (ex: "reo nel" → "reo")
-if (idx === -1) {
-    const qParts = qNorm.split(" ");
-    idx = ownedNormalized.findIndex(n => {
-        const nParts = n.split(" ");
-        return qParts.some(p => nParts.includes(p));
-    });
-}
+    // segmenté
+    if (idx === -1) {
+        const p = qNorm.split(" ");
+        idx = ownedNormalized.findIndex(n => {
+            const np = n.split(" ");
+            return p.some(x => np.includes(x));
+        });
+    }
 
-if (idx === -1) {
-    await repondre("❌ Tu ne possèdes pas cette carte !");
-    userInput = await waitFor();
-    continue;
-}
+    // recherche dans lineup
+    let lineupMatch = null;
 
-        // Suppression de la carte
-        const removedCard = cardsOwned.splice(idx, 1)[0];
+    if (idx === -1) {
+        lineupMatch = lineupSlots.find(s => s.norm === qNorm);
 
+        if (!lineupMatch) {
+            lineupMatch = lineupSlots.find(s =>
+                s.norm.includes(qNorm) || qNorm.includes(s.norm)
+            );
+        }
+    }
+
+    // aucune correspondance
+    if (idx === -1 && !lineupMatch) {
+        await repondre("❌ Tu ne possèdes pas cette carte !");
+        userInput = await waitFor();
+        continue;
+    }
+
+    // ---- SUPPRESSION CARTE ----
+
+    // Si la carte est dans la liste userData.cards
+    if (idx !== -1) {
+        cardsOwned.splice(idx, 1);
         await MyNeoFunctions.updateUser(auteur_Message, {
             cards: cardsOwned.join("\n")
         });
+    }
 
-        const salePrice = Math.floor(basePrix / 2);
+    // Si la carte vient du lineup → on vide son slot
+    if (lineupMatch) {
+        ficheLineup[`joueur${lineupMatch.pos}`] = "aucun";
+        await updatePlayers(auteur_Message, ficheLineup);
+    }
 
-        await TeamFunctions.updateUser(auteur_Message, {
-            argent: ficheTeam.argent + salePrice
-        });
+    // ---- PAIEMENT ----
+    const salePrice = Math.floor(basePrix / 2);
 
-        await repondre(`
+    await TeamFunctions.updateUser(auteur_Message, {
+        argent: ficheTeam.argent + salePrice
+    });
+
+    // ---- REÇU ----
+    await repondre(`
 ╭───〔 ⚽ REÇU DE VENTE 🔷 〕──
 🔹 Carte vendue : ${card.name}
 💶 Gain : ${salePrice}
@@ -350,8 +392,6 @@ if (idx === -1) {
 
 ╰───────────────────
                 *BLUE🔷LOCK⚽*`);
-
-      } // fin else if vente
 
       userInput = await waitFor();
     } // fin while(sessionOpen)
