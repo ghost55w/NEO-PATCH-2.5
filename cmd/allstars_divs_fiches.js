@@ -35,7 +35,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 ▔▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
 ◇ *Pseudo👤*: ${data.pseudo}
 ◇ *Classement continental🌍:* ${data.classement}
-◇ *Niveau XP⏫*: ${data.niveau_xp} ▲
+◇ *Niveau XP⏫*: ${data.niveu_xp} ▲
 ◇ *Division🛡️*: ${data.division}
 ◇ *Rank 🎖️*: ${data.rang}
 ◇ *Classe🎖️*: ${data.classe}
