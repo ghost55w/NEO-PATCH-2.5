@@ -106,10 +106,10 @@ if (cardGrade === "OR" && userLevel < 5) {
 const icon = getCurrencyIcon(card.currency);
                 await ovl.sendMessage(ms_org, {
     image: { url: card.image },
-    caption: `🎴 Carte: ${card.name}
-Grade: ${card.grade}
-Catégorie: ${card.category}
-Placement: ${card.placement}
+    caption: `🌀🎴 Carte: ${card.name}
+🔅Grade: ${card.grade}
+🔅Catégorie: ${card.category}
+🔅Placement: ${card.placement}
 🛍️Prix: ${card.price} ${icon}
 
 ✔️ Confirmer achat ? (oui/non/+coupon)
