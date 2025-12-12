@@ -197,38 +197,24 @@ const icon = getCurrencyIcon(card.currency);
 }
 
     // Reçu
-    await ovl.sendMessage(ms_org, {
-        image: { url: card.image },
-        caption: `╭───〔 🌀🛍️ REÇU D’ACHAT 〕─  
+const icon = getCurrencyIcon(card.currency); // 🔷 pour NC, 🧭 pour golds
+
+await ovl.sendMessage(ms_org, {
+    image: { url: card.image },
+    caption: `╭───〔 🌀🛍️ REÇU D’ACHAT 〕─  
 
 👤 Client: ${fiche.code_fiche}
 🎴 Carte ajoutée: ${card.name}
-💳 Paiement: 1 NP + ${formatNumber(finalPrice)} ${icon} 
+💳 Paiement: 1 NP + ${formatNumber(finalPrice)} ${icon}
 ${couponUsed ? "✅ Coupon utilisé 100🎟️" : ""}
 👑 +5 NS ajouté ! Royalities xp 👑🎉🍾🥂
 
 Merci pour ton achat !
 ╰───────────────────`
-    }, { quoted: ms });
-   }             
+}, { quoted: ms });
                                            
                 // --- VENTE ---
 else if (mode === "vente") {
-
-    function cleanName(name) {
-    return name
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        // retire tous les emojis SAUF 🎰
-        .replace(/([\p{Emoji_Presentation}\p{Emoji}\u200d](?!🎰))/gu, "")
-        .replace(/[^a-z0-9🎰]/gi, "") // autorise 🎰
-        .trim();
-}
-
-    function isJackpotCard(cardName) {
-        return cardName.includes("🎰");
-    }
 
     let currentCards = (fiche.cards || "").split("\n").map(x => x.trim()).filter(Boolean);
 
@@ -256,17 +242,18 @@ else if (mode === "vente") {
     await setfiche("golds", parseInt(fiche.golds || 0) + finalSalePrice, auteur_Message);
 
     // Reçu
-    await ovl.sendMessage(ms_org, {
-        image: { url: card.image },
-        caption: `╭───〔 🌀🛍️ REÇU DE VENTE 〕─  
+    const icon = getCurrencyIcon(card.currency); // 🔷 pour NC, 🧭 pour golds
+
+await ovl.sendMessage(ms_org, {
+    image: { url: card.image },
+    caption: `╭───〔 🌀🛍️ REÇU DE VENTE 〕─  
 
 👤 Client: ${fiche.code_fiche}
 🎴 Carte retirée: ${card.name}
 💳 Tu as reçu: ${formatNumber(finalSalePrice)} ${icon} 
 
 ╰───────────────────`
-    }, { quoted: ms });
-}
+}, { quoted: ms });
                 userData = await MyNeoFunctions.getUserData(auteur_Message);
                 fiche = await getData({ jid: auteur_Message });
                 userInput = await waitFor(120000);
