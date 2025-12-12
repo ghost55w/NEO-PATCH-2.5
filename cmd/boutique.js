@@ -150,9 +150,6 @@ if (mode === "achat") {
         continue; 
     }
 
-    let finalPrice = basePrix;
-    let couponUsed = false;
-
     // --- GESTION COUPON ---
     if (conf.includes("+coupon")) {
         const userCoupons = parseInt(userData.coupons || 0);
