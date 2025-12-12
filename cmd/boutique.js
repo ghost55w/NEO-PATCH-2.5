@@ -252,7 +252,8 @@ await ovl.sendMessage(ms_org, {
 
 💰 Prix de vente: ${Math.floor(basePrix / 2)} ${getCurrencyIcon(card.currency)}
 
-✔️ Confirmer vente ? (oui/non)`
+✔️ Confirmer vente ? (oui/non)
+╰───────────────────`
 }, { quoted: ms });
 
 let confVente = (await waitFor(60000))?.toLowerCase() || "";
