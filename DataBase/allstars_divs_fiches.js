@@ -58,7 +58,7 @@ const AllStarsDivsFiche = sequelize.define('AllStarsDivsFiche', {
   talent: { type: DataTypes.INTEGER, defaultValue: 0 },
   intelligence: { type: DataTypes.INTEGER, defaultValue: 0 },
   speed: { type: DataTypes.INTEGER, defaultValue: 0 },
-  striking: { type: DataTypes.INTEGER, defaultValue: 0 },
+  close_fight: { type: DataTypes.INTEGER, defaultValue: 0 },
   attaques: { type: DataTypes.INTEGER, defaultValue: 0 },
   total_cards: { type: DataTypes.INTEGER, defaultValue: 0 },
   cards: { type: DataTypes.TEXT, defaultValue: 'aucune' },
