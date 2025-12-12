@@ -157,9 +157,9 @@ Bienvenue dans la Roulette, choisissez un chiffre parmis les 5️⃣0️⃣. Si 
 ╭─────〔 🎰CASINO🎰 〕───
 *\ ${numbers.join(', ')}\ *.
  🎊▔▔🎊▔🎊▔🎊▔▔🎊▔▔🎊▔🎊▔🎊 
- $Gains:  🎁50🔷  🎁100.000 🧭  🎁25🎟️  🎁100.000💵
+ $Gains:  🎁50🔷 🎁100.000🧭 🎁25🎟️ 🎁100.000💵
 
-☞ *🎰JACKPOT:* si vous réussissez à gagner 3x de suite c'est la récompense max +1.000.000🧭+1.000.000💶+100🔷+50🎟️ 🎊🎉🎉🍾🍾🎇🎇
+☞ *🎰JACKPOT:*si vous réussissez à gagner 3x de suite c'est la récompense max +1.000.000🧭+1.000.000💶+100🔷+50🎟️ 🎊🎉🎉🍾🍾🎇🎇
 ╰───────────────────
 
 🎊Voulez-vous tenter votre chance ? (1min)
