@@ -79,7 +79,7 @@ ovlcmd({
                 if (!card) { await repondre(`❌ Aucune carte trouvée pour : ${query}`); userInput = await waitFor(120000); continue; }
 
                 // --- Vérification du niveau pour l'achat ---
-let userLevel = parseInt(fiche.niveau_xp || 0);
+let userLevel = parseInt(fiche.niveu_xp || 0);
 let cardGrade = card.grade?.toUpperCase() || "";
 
 if (["SS-", "SS", "SS+"].includes(cardGrade) && userLevel < 10) {
