@@ -141,15 +141,20 @@ const icon = getCurrencyIcon(card.currency);
                     await MyNeoFunctions.updateUser(auteur_Message, { coupons: userCoupons - 100 });
                 }
 
-   if (mode === "achat") {
+   // --- ACHAT ---
+if (mode === "achat") {
     let np = parseInt(userData.np || 0);
-    if (np < 1) { await repondre("❌ Pas assez de NP"); userInput = await waitFor(120000); continue; }
+    if (np < 1) { 
+        await repondre("❌ Pas assez de NP"); 
+        userInput = await waitFor(120000); 
+        continue; 
+    }
 
-    // Prix final avant transaction
     let finalPrice = basePrix;
     let couponUsed = false;
 
-    if(conf.includes("+coupon")) {
+    // --- GESTION COUPON ---
+    if (conf.includes("+coupon")) {
         const userCoupons = parseInt(userData.coupons || 0);
         if (userCoupons < 100) {
             await repondre("❌ Pas assez de coupons.");
@@ -161,14 +166,37 @@ const icon = getCurrencyIcon(card.currency);
         await MyNeoFunctions.updateUser(auteur_Message, { coupons: userCoupons - 100 });
     }
 
-    if (golds < finalPrice && nc < finalPrice) { await repondre("❌ Pas assez de fonds"); userInput = await waitFor(120000); continue; }
+    // --- AJUSTEMENT PRIX SI 2 JOUEURS POSSEDENT DEJA LA CARTE ---
+    async function getAdjustedPrice(cardName, basePrice) {
+        const allFiches = await getAllFiches();
+        let ownersCount = 0;
+        for (const fiche of allFiches) {
+            const cardsList = (fiche.cards || "").split("\n").map(x => x.trim()).filter(Boolean);
+            if (cardsList.includes(cardName)) ownersCount++;
+        }
+        if (ownersCount >= 2) return Math.floor(basePrice * 1.5);
+        return basePrice;
+    }
+
+    finalPrice = await getAdjustedPrice(card.name, finalPrice);
+    if (finalPrice > basePrix) {
+        await repondre("⚠️ Attention : cette carte est déjà possédée par 2 joueurs, tu payes +50% du prix de base !");
+    }
+
+    if (golds < finalPrice && nc < finalPrice) { 
+        await repondre("❌ Pas assez de fonds"); 
+        userInput = await waitFor(120000); 
+        continue; 
+    }
 
     // Déduction NP
     await MyNeoFunctions.updateUser(auteur_Message, { np: np - 1 });
 
+    // Déduction fonds
     if (golds >= finalPrice) await setfiche("golds", golds - finalPrice, auteur_Message);
     else await MyNeoFunctions.updateUser(auteur_Message, { nc: nc - finalPrice });
 
+    // Ajout carte
     let currentCards = (fiche.cards || "").split("\n").map(x => x.trim()).filter(Boolean);
     if (!currentCards.includes(card.name)) currentCards.push(card.name);
     await setfiche("cards", currentCards.join("\n"), auteur_Message);
@@ -177,32 +205,11 @@ const icon = getCurrencyIcon(card.currency);
     let currentNS = parseInt(userData.ns || 0) + 5;
     await MyNeoFunctions.updateUser(auteur_Message, { ns: currentNS });
 
-     async function getAdjustedPrice(cardName, basePrice) {
-    // Récupère toutes les fiches des joueurs
-    const allFiches = await getAllFiches(); // suppose que ça renvoie un array de fiches
-    let ownersCount = 0;
-
-    for (const fiche of allFiches) {
-        const cardsList = (fiche.cards || "").split("\n").map(x => x.trim()).filter(Boolean);
-        if (cardsList.includes(cardName)) ownersCount++;
-    }
-
-    // Si déjà 2 joueurs possèdent la carte, le 3e paie +50% du prix de base
-    if (ownersCount >= 2) return Math.floor(basePrice * 1.5);
-
-    return basePrice;
-     }
-     if (finalPrice > basePrix) {
-    await repondre("⚠️ Attention : cette carte est déjà possédée par 2 joueurs, tu payes +50% du prix de base !");
-}
-
     // Reçu
-const icon = getCurrencyIcon(card.currency); // 🔷 pour NC, 🧭 pour golds
-
-await ovl.sendMessage(ms_org, {
-    image: { url: card.image },
-    caption: `╭───〔 🌀🛍️ REÇU D’ACHAT 〕─  
-
+    const icon = getCurrencyIcon(card.currency);
+    await ovl.sendMessage(ms_org, {
+        image: { url: card.image },
+        caption: `╭───〔 🌀🛍️ REÇU D’ACHAT 〕─  
 👤 Client: ${fiche.code_fiche}
 🎴 Carte ajoutée: ${card.name}
 💳 Paiement: 1 NP + ${formatNumber(finalPrice)} ${icon}
@@ -211,16 +218,13 @@ ${couponUsed ? "✅ Coupon utilisé 100🎟️" : ""}
 
 Merci pour ton achat !
 ╰───────────────────`
-}, { quoted: ms });
-   }    
-     
-                // --- VENTE ---
+    }, { quoted: ms });
+}
+
+// --- VENTE ---
 else if (mode === "vente") {
-
     let currentCards = (fiche.cards || "").split("\n").map(x => x.trim()).filter(Boolean);
-
     let cleanedTarget = cleanName(card.name);
-
     let idx = currentCards.findIndex(c => cleanName(c) === cleanedTarget);
 
     if (idx === -1) {
@@ -236,25 +240,23 @@ else if (mode === "vente") {
     // Prix de vente
     let finalSalePrice = Math.floor(basePrix / 2);
 
-    if (isJackpotCard(currentCards[idx])) {
-    finalSalePrice = 0;
-    } // 🔥 Cartes 🎰 → rapportent 0
-    
+    if (isJackpotCard(currentCards[idx])) finalSalePrice = 0;
+
     await setfiche("golds", parseInt(fiche.golds || 0) + finalSalePrice, auteur_Message);
 
     // Reçu
-    const icon = getCurrencyIcon(card.currency); // 🔷 pour NC, 🧭 pour golds
-
-await ovl.sendMessage(ms_org, {
-    image: { url: card.image },
-    caption: `╭───〔 🌀🛍️ REÇU DE VENTE 〕─  
-
+    const icon = getCurrencyIcon(card.currency);
+    await ovl.sendMessage(ms_org, {
+        image: { url: card.image },
+        caption: `╭───〔 🌀🛍️ REÇU DE VENTE 〕─  
 👤 Client: ${fiche.code_fiche}
 🎴 Carte retirée: ${card.name}
 💳 Tu as reçu: ${formatNumber(finalSalePrice)} ${icon} 
 
 ╰───────────────────`
-}, { quoted: ms });
+    }, { quoted: ms });
+}
+
                 userData = await MyNeoFunctions.getUserData(auteur_Message);
                 fiche = await getData({ jid: auteur_Message });
                 userInput = await waitFor(120000);
