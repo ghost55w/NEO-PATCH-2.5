@@ -130,9 +130,6 @@ if(mode === "achat") {
 ╰──────────────────`
     }, { quoted: ms });
 
-    // ... le reste du code achat
-}
-
                     const conf = (await waitFor(60000))?.toLowerCase() || "";
                     if(!["oui", "+coupon"].some(c => conf.includes(c))) {
                         await repondre("❌ Réponse invalide."); 
