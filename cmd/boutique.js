@@ -107,13 +107,13 @@ const icon = getCurrencyIcon(card.currency);
                 await ovl.sendMessage(ms_org, {
     image: { url: card.image },
     caption: `🎴 Carte: ${card.name}
-Grade: ${card.rarity}
-Catégorie: ${card.type}
+Grade: ${card.grade}
+Catégorie: ${card.category}
 Placement: ${card.placement}
 🛍️Prix: ${card.price} ${icon}
 
 ✔️ Confirmer achat ? (oui/non/+coupon)
-╰─────────────────────────`
+╰──────────────────`
 }, { quoted: ms });
 
                 let conf = (await waitFor(60000))?.toLowerCase() || "";
@@ -177,6 +177,25 @@ Placement: ${card.placement}
     let currentNS = parseInt(userData.ns || 0) + 5;
     await MyNeoFunctions.updateUser(auteur_Message, { ns: currentNS });
 
+     async function getAdjustedPrice(cardName, basePrice) {
+    // Récupère toutes les fiches des joueurs
+    const allFiches = await getAllFiches(); // suppose que ça renvoie un array de fiches
+    let ownersCount = 0;
+
+    for (const fiche of allFiches) {
+        const cardsList = (fiche.cards || "").split("\n").map(x => x.trim()).filter(Boolean);
+        if (cardsList.includes(cardName)) ownersCount++;
+    }
+
+    // Si déjà 2 joueurs possèdent la carte, le 3e paie +50% du prix de base
+    if (ownersCount >= 2) return Math.floor(basePrice * 1.5);
+
+    return basePrice;
+     }
+     if (finalPrice > basePrix) {
+    await repondre("⚠️ Attention : cette carte est déjà possédée par 2 joueurs, tu payes +50% du prix de base !");
+}
+
     // Reçu
     await ovl.sendMessage(ms_org, {
         image: { url: card.image },
@@ -184,7 +203,7 @@ Placement: ${card.placement}
 
 👤 Client: ${fiche.code_fiche}
 🎴 Carte ajoutée: ${card.name}
-💳 Paiement: 1 NP + ${formatNumber(finalPrice)} 🧭
+💳 Paiement: 1 NP + ${formatNumber(finalPrice)} ${icon} 
 ${couponUsed ? "✅ Coupon utilisé 100🎟️" : ""}
 👑 +5 NS ajouté ! Royalities xp 👑🎉🍾🥂
 
@@ -243,7 +262,7 @@ else if (mode === "vente") {
 
 👤 Client: ${fiche.code_fiche}
 🎴 Carte retirée: ${card.name}
-💳 Tu as reçu: ${formatNumber(finalSalePrice)} 🧭
+💳 Tu as reçu: ${formatNumber(finalSalePrice)} ${icon} 
 
 ╰───────────────────`
     }, { quoted: ms });
