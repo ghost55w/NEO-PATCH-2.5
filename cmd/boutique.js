@@ -152,7 +152,7 @@ ovlcmd({
     // Reçu
     await ovl.sendMessage(ms_org, {
         image: { url: card.image },
-        caption: `╭───〔 🛍️ REÇU D’ACHAT 〕───────  
+        caption: `╭───〔 🌀🛍️ REÇU D’ACHAT 〕───────  
 
 👤 Client: ${fiche.code_fiche}
 🎴 Carte ajoutée: ${card.name}
@@ -168,7 +168,7 @@ Merci pour ton achat !
                 // --- VENTE ---
 else if (mode === "vente") {
 
-    // Fonction de nettoyage universel
+    // Fonction de nettoyage universel  
     function cleanName(name) {
         return name
             .toLowerCase()
@@ -178,13 +178,14 @@ else if (mode === "vente") {
             .trim();
     }
 
-    // Liste actuelle des cartes
+    function isJackpotCard(cardName) {
+        return cardName.includes("🎰");
+    }
+
     let currentCards = (fiche.cards || "").split("\n").map(x => x.trim()).filter(Boolean);
 
-    // Nettoyage du nom recherché
     let cleanedTarget = cleanName(card.name);
 
-    // Recherche fiable
     let idx = currentCards.findIndex(c => cleanName(c) === cleanedTarget);
 
     if (idx === -1) {
@@ -193,28 +194,31 @@ else if (mode === "vente") {
         continue;
     }
 
-    // Suppression de la carte
+    // Suppression
     currentCards.splice(idx, 1);
     await setfiche("cards", currentCards.join("\n"), auteur_Message);
 
     // Prix de vente
     let finalSalePrice = Math.floor(basePrix / 2);
-    if(card.name.includes("🎰")) finalSalePrice = basePrix;
+
+    if (isJackpotCard(card.name)) {
+        finalSalePrice = 0; // 🔥 Cartes 🎰 → rapportent 0
+    }
 
     await setfiche("golds", parseInt(fiche.golds || 0) + finalSalePrice, auteur_Message);
 
     // Reçu
     await ovl.sendMessage(ms_org, {
         image: { url: card.image },
-        caption: `╭───〔 🛍️ REÇU DE VENTE 〕───────  
+        caption: `╭───〔 🌀🛍️ REÇU DE VENTE 〕───────  
 
 👤 Client: ${fiche.code_fiche}
 🎴 Carte retirée: ${card.name}
 💳 Tu as reçu: ${formatNumber(finalSalePrice)} 🧭
+
 ╰───────────────────`
     }, { quoted: ms });
 }
-
                 userData = await MyNeoFunctions.getUserData(auteur_Message);
                 fiche = await getData({ jid: auteur_Message });
                 userInput = await waitFor(120000);
