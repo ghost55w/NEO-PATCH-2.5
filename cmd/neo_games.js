@@ -300,6 +300,15 @@ for (let tour = 1; tour <= 2; tour++) {
   await rouletteHandler();
 });
 
+function countCards(cardsRaw) {
+    if (!cardsRaw || typeof cardsRaw !== "string") return 0;
+
+    return cardsRaw
+        .split(/[\n\ • ]/)     // accepte \n OU .
+        .map(c => c.trim())
+        .filter(c => c.length > 0)
+        .length;
+}
 
 // --- Tirage All Stars ---
 ovlcmd({
