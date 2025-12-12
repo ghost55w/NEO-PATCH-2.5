@@ -11,6 +11,17 @@ function normalizeText(text) {
     .trim();
 }
 
+// --- Utilitaires ---
+function countCards(cardsRaw) {
+    if (!cardsRaw || typeof cardsRaw !== "string") return 0;
+
+    return cardsRaw
+        .split(/[\n•]/)     // accepte \n ou le séparateur •
+        .map(c => c.trim())
+        .filter(c => c.length > 0)
+        .length;
+}
+
 function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
   if (registeredFiches.has(nom_joueur)) return;
   registeredFiches.add(nom_joueur);
