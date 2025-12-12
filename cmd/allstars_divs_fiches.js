@@ -35,7 +35,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 ▔▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
 ◇ *Pseudo👤*: ${data.pseudo}
 ◇ *Classement continental🌍:* ${data.classement}
-◇ *Niveau XP⏫*: ${data.niveu_xp} ▲
+◇ *Niveau XP⏫*: ${data.niveau_xp} ▲
 ◇ *Division🛡️*: ${data.division}
 ◇ *Rank 🎖️*: ${data.rang}
 ◇ *Classe🎖️*: ${data.classe}
@@ -66,14 +66,14 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 📈 Note: ${data.note}/100
 ⌬ *Talent⭐:*      ▱▱▱▱▬▬▬ ${data.talent}
 ⌬ *Speed💬:*       ▱▱▱▱▬▬▬  ${data.speed}
-⌬ *Close combat👊🏻:* ▱▱▱▱▬▬▬ ${data.close_fight}
+⌬ *Strikes👊🏻:* ▱▱▱▱▬▬▬ ${data.striking}
 ⌬ *Attaques🌀:*    ▱▱▱▱▬▬▬ ${data.attaques}
 
 ░▒░▒░ CARDS 🎴: ${data.cards.split("\n").length}
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
 🎴 ${data.cards.split("\n").join(" • ")}
 ╰───────────────────
-                *⌬𝗡SL PRO ESPORTS™🏆*`;
+*🏆NSL PRO ESPORTS ARENA®*`;
 
         await ovl.sendMessage(ms_org, {
           video: { url: 'https://files.catbox.moe/0qzigf.mp4' },
