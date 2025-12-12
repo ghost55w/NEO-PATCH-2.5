@@ -242,6 +242,32 @@ else if (mode === "vente") {
         continue;
     }
 
+  // 🔒 Confirmation avant la vente
+await ovl.sendMessage(ms_org, {
+    image: { url: card.image },
+    caption: `🛍️🎴 Carte: ${card.name}
+🔅Grade: ${card.grade}
+🔅Catégorie: ${card.category}
+🔅Placement: ${card.placement}
+
+💰 Prix de vente: ${Math.floor(basePrix / 2)} ${getCurrencyIcon(card.currency)}
+
+✔️ Confirmer vente ? (oui/non)`
+}, { quoted: ms });
+
+let confVente = (await waitFor(60000))?.toLowerCase() || "";
+
+if (confVente.includes("non")) {
+    await repondre("❌ Vente annulée.");
+    userInput = await waitFor(120000);
+    continue;
+}
+
+if (!confVente.includes("oui")) {
+    await repondre("❌ Réponse invalide. Vente annulée.");
+    userInput = await waitFor(120000);
+    continue;
+}
     // 📌 Vérification avant suppression
     let isJackpot = isJackpotCard(currentCards[idx]);
 
