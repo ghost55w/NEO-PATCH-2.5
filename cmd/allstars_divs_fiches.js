@@ -69,7 +69,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 ⌬ *Strikes👊🏻:* ▱▱▱▱▬▬▬ ${data.close_fight}
 ⌬ *Attaques🌀:* ▱▱▱▱▬▬▬ ${data.attaques}
 
-░▒░▒░ CARDS 🎴: ${data.cards.split("\n").length}
+░▒░▒░ CARDS 🎴: ${countCards(data.cards)}
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
 🎴 ${data.cards.split("\n").join(" • ")}
 ╰───────────────────
@@ -230,6 +230,16 @@ async function initFichesAuto() {
 }
 
 initFichesAuto();
+
+function countCards(cardsRaw) {
+    if (!cardsRaw || typeof cardsRaw !== "string") return 0;
+
+    return cardsRaw
+        .split(/[\n\.]/)        // accepte \n ou .
+        .map(c => c.trim())
+        .filter(c => c.length > 0)
+        .length;
+}
 
 // --- add_fiche command ---
 ovlcmd({
