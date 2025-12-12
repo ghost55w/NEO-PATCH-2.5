@@ -121,7 +121,7 @@ if (cardGrade === "OR" && userLevel < 5) {
                 }
 //----------- ACHAT ------------------- 
    if (mode === "achat") {
-     const icon = getCurrencyIcon(card.currency);
+     let icon = getCurrencyIcon(card.currency);
                 await ovl.sendMessage(ms_org, {
     image: { url: card.image },
     caption: `🌀🎴 Carte: ${card.name}
@@ -196,8 +196,7 @@ if (cardGrade === "OR" && userLevel < 5) {
 }
 
     // Reçu
-     const icon = getCurrencyIcon(card.currency);
-     
+     let icon = getCurrencyIcon(card.currency);   
     await ovl.sendMessage(ms_org, {
         image: { url: card.image },
         caption: `╭───〔 🌀🛍️ REÇU D’ACHAT 〕─  
@@ -242,6 +241,7 @@ else if (mode === "vente") {
     }
 
   // 🔒 Confirmation avant la vente
+  let icon = getCurrencyIcon(card.currency);
 await ovl.sendMessage(ms_org, {
     image: { url: card.image },
     caption: `🛍️🎴 Carte: ${card.name}
@@ -249,7 +249,7 @@ await ovl.sendMessage(ms_org, {
 🔅Catégorie: ${card.category}
 🔅Placement: ${card.placement}
 
-💰 Prix de vente: ${Math.floor(basePrix / 2)} ${getCurrencyIcon(card.currency)}
+💰 Prix de vente: ${Math.floor(basePrix / 2)} ${icon} 
 
 ✔️ Confirmer vente ? (oui/non)
 ╰───────────────────`
@@ -282,8 +282,7 @@ if (!confVente.includes("oui")) {
     // Ajout money
     await setfiche("golds", parseInt(fiche.golds || 0) + finalSalePrice, auteur_Message);
 
-    const icon = getCurrencyIcon(card.currency);
-
+    let icon = getCurrencyIcon(card.currency);
     await ovl.sendMessage(ms_org, {
         image: { url: card.image },
         caption: `╭───〔 🌀🛍️ REÇU DE VENTE 〕─
