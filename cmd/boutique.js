@@ -103,7 +103,25 @@ if (cardGrade === "OR" && userLevel < 5) {
                 let basePrix = parseInt((card.price || "").replace(/[^\d]/g, "")) || 0;
                 let golds = parseInt(fiche.golds || 0);
                 let nc = parseInt(userData.nc || 0);
-const icon = getCurrencyIcon(card.currency);
+                if(!conf.includes("oui") && !conf.includes("+coupon")) { 
+                    await repondre("❌ Réponse invalide."); 
+                    userInput = await waitFor(120000); 
+                    continue; 
+                }
+
+                // --- GESTION COUPON ---
+                let couponUsed = false;
+                let finalPrice = basePrix;
+                if (conf.includes("+coupon") && mode === "achat") {
+                    const userCoupons = parseInt(userData.coupons || 0);
+                    if (userCoupons < 100) { await repondre("❌ Pas assez de coupons."); userInput = await waitFor(120000); continue; }
+                    finalPrice = Math.floor(finalPrice / 2);
+                    couponUsed = true;
+                    await MyNeoFunctions.updateUser(auteur_Message, { coupons: userCoupons - 100 });
+                }
+//----------- ACHAT ------------------- 
+   if (mode === "achat") {
+     const icon = getCurrencyIcon(card.currency);
                 await ovl.sendMessage(ms_org, {
     image: { url: card.image },
     caption: `🌀🎴 Carte: ${card.name}
@@ -122,26 +140,7 @@ const icon = getCurrencyIcon(card.currency);
                     await repondre("❌ Transaction annulée."); 
                     userInput = await waitFor(120000); 
                     continue; 
-                }
-
-                if(!conf.includes("oui") && !conf.includes("+coupon")) { 
-                    await repondre("❌ Réponse invalide."); 
-                    userInput = await waitFor(120000); 
-                    continue; 
-                }
-
-                // --- GESTION COUPON ---
-                let couponUsed = false;
-                let finalPrice = basePrix;
-                if (conf.includes("+coupon") && mode === "achat") {
-                    const userCoupons = parseInt(userData.coupons || 0);
-                    if (userCoupons < 100) { await repondre("❌ Pas assez de coupons."); userInput = await waitFor(120000); continue; }
-                    finalPrice = Math.floor(finalPrice / 2);
-                    couponUsed = true;
-                    await MyNeoFunctions.updateUser(auteur_Message, { coupons: userCoupons - 100 });
-                }
-
-   if (mode === "achat") {
+                } 
     let np = parseInt(userData.np || 0);
     if (np < 1) { await repondre("❌ Pas assez de NP"); userInput = await waitFor(120000); continue; }
 
