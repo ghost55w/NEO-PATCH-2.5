@@ -99,12 +99,14 @@ ovlcmd({
                 let cardGrade = card.grade?.toUpperCase() || "";
 
                 if (["SS-", "SS", "SS+"].includes(cardGrade) && userLevel < 10) {
-                    await repondre(`❌ Niveau insuffisant pour acheter cette carte (niveau requis : 10). Ton niveau : ${userLevel}`);
+                    await repondre(`❌ Niveau insuffisant pour acheter cette carte (niveau requis : 10▲). Ton niveau : ${userLevel}▲
+                    ╰───────────────────`);
                     userInput = await waitFor(120000);
                     continue;
                 }
                 if (cardGrade === "OR" && userLevel < 5) {
-                    await repondre(`❌ Niveau insuffisant pour acheter cette carte OR (niveau requis : 5). Ton niveau : ${userLevel}`);
+                    await repondre(`❌ Niveau insuffisant pour acheter cette carte OR (niveau requis : 5▲). Ton niveau : ${userLevel}▲
+                    ╰───────────────────`);
                     userInput = await waitFor(120000);
                     continue;
                 }
