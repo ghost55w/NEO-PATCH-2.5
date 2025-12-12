@@ -291,6 +291,7 @@ Merci pour l'achat ⚽🔷 !
 
    //------------- VENTE (comparaison intelligente + lineup) ------------
 else if (mode === "vente") {
+  
 let ficheLineup = await getLineup(auteur_Message);
 ficheLineup = ficheLineup?.toJSON ? ficheLineup.toJSON() : ficheLineup;
     // données joueur
