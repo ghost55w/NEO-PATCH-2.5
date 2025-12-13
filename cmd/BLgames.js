@@ -19,7 +19,7 @@ function tirerParProbabilite(table) {
 
 // --- Tirage Blue Lock avec GIF et choix d'emplacement ---
 ovlcmd({
-  nom_cmd: "+tirageBL",
+  nom_cmd: "tirageBL",
   react: "🔷",
   classe: "BLUE_LOCK🔷",
   desc: "Lance un tirage Blue Lock (Deluxe, Super ou Ultra)"
