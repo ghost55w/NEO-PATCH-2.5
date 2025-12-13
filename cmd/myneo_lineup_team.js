@@ -296,7 +296,7 @@ ovlcmd({
 🌍+player⚽: ⚠️pour voir son Hero
 
 ╰───────────────────
-              *BLUE🔷LOCK⚽*`;
+                 *BLUE🔷LOCK⚽*`;
 
       return await ovl.sendMessage(ms_org, {
         image: { url: "https://files.catbox.moe/2patx3.jpg" },
@@ -399,7 +399,7 @@ ovlcmd({
 14 👤${data.joueur14}
 15 👤${data.joueur15}
 ╰───────────────────
-                  *BLUE🔷LOCK⚽* `;
+                    *BLUE🔷LOCK⚽* `;
 
     return await ovl.sendMessage(ms_org, {
       image: { url: "https://files.catbox.moe/p94q3m.jpg" },
