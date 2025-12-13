@@ -1,5 +1,6 @@
 const { ovlcmd } = require('../lib/ovlcmd');
 const { MyNeoFunctions } = require("../DataBase/myneo_lineup_team");
+const { cardsBlueLock } = require("../DataBase/cardsBL");
 const { getData, setfiche } = require("../DataBase/allstars_divs_fiches");
 
 // --- Helpers TirageBL ---
