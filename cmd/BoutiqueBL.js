@@ -343,7 +343,6 @@ ovlcmd({
   classe: "NEO_GAMES⚽"
 }, async (ms_org, ovl, { ms, auteur_Message, repondre }) => {
   try {
-    // --- Récupération données ---
     const userData = await MyNeoFunctions.getUserData(auteur_Message);
     if (!userData) return repondre("❌ Impossible de récupérer tes données.");
 
@@ -351,32 +350,28 @@ ovlcmd({
     if (!ficheLineup) return repondre("❌ Impossible de récupérer ton lineup.");
     ficheLineup = ficheLineup.toJSON ? ficheLineup.toJSON() : ficheLineup;
 
-    // --- Parsing commande ---
     const regex = /\+sub\s+(.+?)\s+par\s+(.+)/i;
     const match = ms?.message?.conversation?.match(regex);
-    if (!match) {
-      return repondre("❌ Format invalide.\nExemples :\n+sub kuon par kyora\n+sub j2 par j14");
-    }
+    if (!match)
+      return repondre("❌ Format invalide.\nExemples:\n+sub kuon par kyora\n+sub j2 par j14");
 
     const ancienRaw = match[1].trim();
     const nouveauRaw = match[2].trim();
 
-    // --- Trouver position de l'ancien joueur ---
+    // --- Trouver position ancien joueur ---
     let posAncien = null;
-    const matchAncien = ancienRaw.match(/^j(\d{1,2})$/i);
+    const jMatch = ancienRaw.match(/^j(\d{1,2})$/i);
 
-    if (matchAncien) {
-      posAncien = parseInt(matchAncien[1], 10);
+    if (jMatch) {
+      posAncien = parseInt(jMatch[1], 10);
       if (posAncien < 1 || posAncien > 15)
         return repondre("❌ Position invalide (J1 à J15).");
-
       if (!ficheLineup[`joueur${posAncien}`] || ficheLineup[`joueur${posAncien}`] === "aucun")
-        return repondre(`❌ Aucun joueur en position J${posAncien}.`);
+        return repondre(`❌ Aucun joueur en J${posAncien}.`);
     } else {
       const ancienNom = pureName(ancienRaw);
       for (let i = 1; i <= 15; i++) {
-        const slot = ficheLineup[`joueur${i}`] || "";
-        if (pureName(slot).includes(ancienNom)) {
+        if (pureName(ficheLineup[`joueur${i}`]).includes(ancienNom)) {
           posAncien = i;
           break;
         }
@@ -385,36 +380,31 @@ ovlcmd({
         return repondre(`❌ Aucun joueur trouvé : "${ancienRaw}".`);
     }
 
-    // --- Trouver la nouvelle carte ---
+    // --- Trouver nouvelle carte ---
     let carte = null;
-    const matchNouveau = nouveauRaw.match(/^j(\d{1,2})$/i);
+    const jNew = nouveauRaw.match(/^j(\d{1,2})$/i);
 
-    if (matchNouveau) {
-      const posNew = parseInt(matchNouveau[1], 10);
+    if (jNew) {
+      const posNew = parseInt(jNew[1], 10);
       if (posNew < 1 || posNew > 15)
         return repondre("❌ Position invalide (J1 à J15).");
-
       const slotNew = ficheLineup[`joueur${posNew}`];
       if (!slotNew || slotNew === "aucun")
-        return repondre(`❌ Aucun joueur en position J${posNew}.`);
-
-      const nameOnly = pureName(slotNew);
-      carte = allCards.find(c => pureName(c.name) === nameOnly);
+        return repondre(`❌ Aucun joueur en J${posNew}.`);
+      carte = allCards.find(c => pureName(c.name) === pureName(slotNew));
     } else {
-      const nouveauNom = pureName(nouveauRaw);
-      carte = allCards.find(c => pureName(c.name) === nouveauNom);
+      carte = allCards.find(c => pureName(c.name) === pureName(nouveauRaw));
     }
 
     if (!carte)
       return repondre(`❌ Carte introuvable : "${nouveauRaw}".`);
 
-    // --- Vérifier possession de la carte ---
+    // --- Vérifier possession ---
     const cardsOwned = (userData.cards || "").split("\n").filter(Boolean);
-    if (!cardsOwned.some(c => pureName(c) === pureName(carte.name))) {
-      return repondre(`❌ Tu ne possèdes pas la carte ${carte.name}.`);
-    }
+    if (!cardsOwned.some(c => pureName(c) === pureName(carte.name)))
+      return repondre(`❌ Tu ne possèdes pas ${carte.name}.`);
 
-    // --- Remplacement ---
+    // --- Appliquer remplacement ---
     ficheLineup[`joueur${posAncien}`] =
       `${carte.name} (${carte.ovr}) ${carte.countryEmoji || getCountryEmoji(carte.country)}`;
 
