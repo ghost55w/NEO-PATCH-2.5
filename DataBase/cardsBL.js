@@ -553,7 +553,7 @@ const cardsBlueLock = {
   acc: 88,
   phy: 83,
   def: 85,
-  goal: "",
+  goal: "https://files.catbox.moe/kwpoy7.mp4",
   image: "https://files.catbox.moe/g1wf7s.png",
   rank: "S",
   taille: "177cm",
