@@ -21,10 +21,10 @@ ovlcmd({
     const joueurNomSaisi = joueurMatch[1].trim().toLowerCase().replace(/\s+/g, ' ');
 
     // Recherche du joueur dans la database (ignore la casse et les espaces)
-    const joueurData = Object.entries(cardsBlueLock).find(([key]) => {
-        const keyNormalized = key.trim().toLowerCase().replace(/\s+/g, ' ');
-        return keyNormalized === joueurNomSaisi;
-    })?.[1];
+    const joueurData = Object.values(cardsBlueLock).find(joueur => {
+    const nameNormalized = joueur.name.trim().toLowerCase().replace(/\s+/g, ' ');
+    return nameNormalized === joueurNomSaisi;
+});
 
     if (!joueurData) {
         return repondre(`⚠️ Joueur non trouvé dans la Database : *${joueurNomSaisi}*`);
