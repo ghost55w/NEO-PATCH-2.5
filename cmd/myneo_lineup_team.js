@@ -1,6 +1,7 @@
 const { ovlcmd } = require('../lib/ovlcmd');
 const { MyNeoFunctions, TeamFunctions, BlueLockFunctions } = require("../DataBase/myneo_lineup_team");
 const { getData, setfiche } = require("../DataBase/allstars_divs_fiches");
+const { cardsBlueLock } = require("../DataBase/cardsBL");
 
 // Déstructuration unique pour MyNeo
 const { saveUser: saveMyNeo, deleteUser: delMyNeo, getUserData: getNeo, updateUser: updateMyNeo } = MyNeoFunctions;
@@ -18,7 +19,34 @@ function normalizeJid(input) {
   if (/^\d+$/.test(input)) return input + "@s.whatsapp.net";
   return String(input);
 }
+function generateStarterLineupFromDB() {
+  // 1️⃣ Convertir la DB en tableau
+  const allPlayers = Object.values(cardsBlueLock);
 
+  // 2️⃣ Garder uniquement les rang B
+  const rankB = allPlayers.filter(p => p.rank === "B");
+
+  // 3️⃣ Séparer par OVR
+  const ovr78 = rankB.filter(p => p.ovr === 78);
+  const ovrLow = rankB.filter(p => [75, 76, 77].includes(p.ovr));
+
+  if (ovr78.length < 2 || ovrLow.length < 8) {
+    throw new Error("Pas assez de joueurs rang B pour générer le lineup");
+  }
+
+  // 4️⃣ Mélange helper
+  const shuffle = arr => [...arr].sort(() => 0.5 - Math.random());
+
+  // 5️⃣ Tirage sans doublon
+  const selected78 = shuffle(ovr78).slice(0, 2);
+  const selectedLow = shuffle(ovrLow).slice(0, 8);
+
+  // 6️⃣ Fusion + mélange final
+  const starters = shuffle([...selected78, ...selectedLow]);
+
+  // 7️⃣ Format stocké dans lineup
+  return starters.map(p => `${p.name} (${p.ovr})`);
+}
 // ------------------- Commandes -------------------
 
 // SAVE
