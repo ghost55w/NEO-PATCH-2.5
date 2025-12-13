@@ -36,22 +36,39 @@ ovlcmd({
     const distance = parseFloat(distanceMatch[1]);
 
     // Calcul du résultat du tir
-    let resultat;
-    if (distance <= 5) {
-        resultat = tirPuissance > gardien ? "but" :
-            tirPuissance === gardien ? (Math.random() < 0.5 ? "but" : "arrêt") :
-            (Math.random() < 0.2 ? "but" : "arrêt");
-    } else if (distance <= 10) {
-        resultat = tirPuissance > gardien ? (Math.random() < 0.6 ? "but" : "arrêt") :
-            tirPuissance === gardien ? (Math.random() < 0.3 ? "but" : "arrêt") :
-            (Math.random() < 0.1 ? "but" : "arrêt");
-    } else {
-        resultat = tirPuissance > gardien ? "but" : "arrêt";
-    }
+const sho = parseInt(joueurData.sho || 50, 10); // sho du joueur
+
+// Calcul du résultat du tir selon la distance et l'écart sho/gardien
+let probaGoal = 0;
+const ecart = sho - gardien;
+
+if (distance <= 5) {
+    if (ecart > 10) probaGoal = 1.0;       // 100%
+    else if (ecart > 0) probaGoal = 0.85;  // 85%
+    else if (ecart === 0) probaGoal = 0.5; // 50%
+    else probaGoal = 0;                     // tir < gardien → 0%
+} else if (distance <= 10) {
+    if (ecart > 10) probaGoal = 0.9;       // 90%
+    else if (ecart > 0) probaGoal = 0.65;  // 65%
+    else if (ecart === 0) probaGoal = 0.3; // 30%
+    else if (ecart >= -5) probaGoal = 0.2; // tir < gardien mais < 5 points → 20%
+    else probaGoal = 0;                     // sinon 0%
+} else {
+    // Pour les distances >10, ajustement possible
+    if (ecart > 10) probaGoal = 0.85;
+    else if (ecart > 0) probaGoal = 0.6;
+    else if (ecart === 0) probaGoal = 0.2;
+    else if (ecart >= -5) probaGoal = 0.1;
+    else probaGoal = 0;
+}
+
+// Tir aléatoire selon la probabilité
+const tirAleatoire = Math.random(); // valeur entre 0 et 1
+const resultat = tirAleatoire <= probaGoal ? "but" : "arrêt"; 
 
     // Gif d'action de tir avant résultat
     await ovl.sendMessage(ms_org, {
-        video: { url: "https://files.catbox.moe/z64kuq.mp4" },
+        video: { url: "" },
         caption: "",
         gifPlayback: true
     });
