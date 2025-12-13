@@ -1,27 +1,35 @@
 const { ovlcmd } = require("../lib/ovlcmd");
+const { cardsBlueLock } = require("../DataBase/cardsBL");
+
 
 ovlcmd({
     nom: "goal",
     isfunc: true
 }, async (ms_org, ovl, { texte, repondre }) => {
-    if (!texte.toLowerCase().startsWith("🔷⚽duel action de but🥅")) return;
+    if (!texte.toLowerCase().startsWith("🔷⚽ goal🥅")) return;
 
-    const tirMatch = texte.match(/🥅Tir\s*=\s*(\d+)/i);
+    // Extraction des stats directement depuis le pavé
+    const joueurMatch = texte.match(/🥅joueur\s*=\s*(.+)/i);
     const gardienMatch = texte.match(/🥅Gardien\s*=\s*(\d+)/i);
     const zoneMatch = texte.match(/🥅Zone\s*=\s*([\w\s-]+)/i);
     const distanceMatch = texte.match(/🥅Distance\s*=\s*([\d.]+)/i);
 
-    if (!tirMatch || !gardienMatch || !zoneMatch || !distanceMatch) {
+    if (!joueurMatch || !gardienMatch || !zoneMatch || !distanceMatch) {
         return repondre("⚠️ Format incorrect. Assure-toi que la fiche est bien remplie.");
     }
 
-    const tirPuissance = parseInt(tirMatch[1], 10);
+    const joueurNom = joueurMatch[1].trim().toLowerCase().replace(/\s+/g, ' ');
+    const joueurData = cardsBlueLock[joueurNom];
+
+    if (!joueurData) return repondre(`⚠️ Joueur non trouvé dans la Database : *${joueurNom}*`);
+
+    const tirPuissance = parseInt(joueurData.tir || 50, 10); // Tir pris depuis la Database
     const gardien = parseInt(gardienMatch[1], 10);
     const zone = zoneMatch[1].trim().toLowerCase().replace(/\s+/g, ' ');
     const distance = parseFloat(distanceMatch[1]);
 
+    // Calcul du résultat du tir
     let resultat;
-
     if (distance <= 5) {
         resultat = tirPuissance > gardien ? "but" :
             tirPuissance === gardien ? (Math.random() < 0.5 ? "but" : "arrêt") :
@@ -34,6 +42,7 @@ ovlcmd({
         resultat = tirPuissance > gardien ? "but" : "arrêt";
     }
 
+    // Gif d'action de tir avant résultat
     await ovl.sendMessage(ms_org, {
         video: { url: "https://files.catbox.moe/z64kuq.mp4" },
         caption: "",
@@ -59,17 +68,30 @@ ovlcmd({
         }
 
         const commentaire = commentaires[zone][Math.floor(Math.random() * commentaires[zone].length)];
-        const video = [
+
+        // 1️⃣ Premier GIF : GOAL classique avec commentaire
+        const videoGoal = [
             "https://files.catbox.moe/chcn2d.mp4",
             "https://files.catbox.moe/t04dmz.mp4",
             "https://files.catbox.moe/8t1eya.mp4"
         ][Math.floor(Math.random() * 3)];
 
         await ovl.sendMessage(ms_org, {
-            video: { url: video },
+            video: { url: videoGoal },
             caption: `*🥅:✅GOOAAAAAL!!!⚽⚽⚽ ▱▱▱▱*\n${commentaire}`,
             gifPlayback: true
         });
+
+        // 2️⃣ Deuxième GIF : célébration spécifique du joueur
+        const gifCelebration = joueurData.goal;
+        if (gifCelebration) {
+            await ovl.sendMessage(ms_org, {
+                video: { url: gifCelebration },
+                caption: "",
+                gifPlayback: true
+            });
+        }
+
     } else {
         await ovl.sendMessage(ms_org, {
             video: { url: 'https://files.catbox.moe/88lylr.mp4' },
@@ -78,7 +100,7 @@ ovlcmd({
         });
     }
 });
-
+    
 const activeCountdowns = {};
 const pausedCountdowns = {};
 
