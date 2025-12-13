@@ -45,7 +45,6 @@ function generateStarterLineupFromDB() {
 });
 }
 // ------------------- Commandes -------------------
-
 ovlcmd({
   nom_cmd: "save",
   classe: "Other",
@@ -53,50 +52,67 @@ ovlcmd({
   desc: "Enregistrer un joueur (myneo/team/lineup)",
 }, async (ms_org, ovl, cmd) => {
   const { arg, repondre, prenium_id } = cmd;
+
   if (!prenium_id) return repondre("⚠️ Seuls les membres de la NS peuvent enregistrer un joueur.");
   const mention = arg[0];
   if (!mention) return repondre("⚠️ Mentionne un utilisateur.");
 
   const type = arg[1]?.toLowerCase();
-  const baseMyNeo = {
-    users: "aucun", tel: mention.replace("@s.whatsapp.net", ""), points_jeu: 0, nc: 0, np: 0,
-    coupons: 0, gift_box: 0, all_stars: "", blue_lock: "+Team⚽", elysium: "+ElysiumMe💠"
-  };
-  const baseTeam = {
-    users: "aucun", team: "aucun", argent: 0, classement: "aucun", wins: 0, loss: 0, niveau: 0, trophies: 0, goals: 0
-  };
-  const baseLineup = {
-    nom: "Starter Squad",
-    joueur1: starters[0] || "",
-    joueur2: starters[1] || "",
-    joueur3: starters[2] || "",
-    joueur4: starters[3] || "",
-    joueur5: starters[4] || "",
-    joueur6: starters[5] || "",
-    joueur7: starters[6] || "",
-    joueur8: starters[7] || "",
-    joueur9: starters[8] || "",
-    joueur10: starters[9] || "",
-    joueur11: "",
-    joueur12: "",
-    joueur13: "",
-    joueur14: "",
-    joueur15: "",
-    stat1: 100, stat2: 100, stat3: 100, stat4: 100,
-    stat5: 100, stat6: 100, stat7: 100, stat8: 100,
-    stat9: 100, stat10: 100
+  const bases = { 
+    myneo: {
+      users: "aucun", tel: mention.replace("@s.whatsapp.net",""), points_jeu: 0, nc: 0, np: 0,
+      coupons: 0, gift_box: 0, all_stars: "", blue_lock: "+Team⚽", elysium: "+ElysiumMe💠"
+    },
+    team: {
+      users: "aucun", team: "aucun", argent: 0, classement: "aucun", wins: 0, loss: 0, niveau: 0, trophies: 0, goals: 0
+    },
+    lineup: {} // on remplira plus bas après génération
   };
 
-  const bases = { myneo: baseMyNeo, team: baseTeam, lineup: baseLineup };
   const saves = { myneo: saveMyNeo, team: saveTeam, lineup: saveLineup };
   const gets = { myneo: getNeo, team: getTeam, lineup: getLineup };
 
   if (!bases[type]) return repondre("⚠️ Type invalide. Utilise : myneo, team ou lineup.");
 
+  // Vérifier si le joueur existe déjà
   const existing = await gets[type](mention);
   if (existing) return repondre("⚠️ Ce joueur est déjà enregistré.");
 
-  const base = { ...bases[type] };
+  let base = { ...bases[type] };
+
+  // --- Génération lineup si type = 'lineup' ---
+  if (type === "lineup") {
+    let starters = [];
+    try {
+      starters = generateStarterLineupFromDB(); // sync, ou await si async
+    } catch(e){
+      return repondre("⚠️ Impossible de générer le lineup de départ.");
+    }
+
+    base = {
+      nom: "Starter Squad",
+      joueur1: starters[0] || "",
+      joueur2: starters[1] || "",
+      joueur3: starters[2] || "",
+      joueur4: starters[3] || "",
+      joueur5: starters[4] || "",
+      joueur6: starters[5] || "",
+      joueur7: starters[6] || "",
+      joueur8: starters[7] || "",
+      joueur9: starters[8] || "",
+      joueur10: starters[9] || "",
+      joueur11: "",
+      joueur12: "",
+      joueur13: "",
+      joueur14: "",
+      joueur15: "",
+      stat1: 100, stat2: 100, stat3: 100, stat4: 100,
+      stat5: 100, stat6: 100, stat7: 100, stat8: 100,
+      stat9: 100, stat10: 100
+    };
+  }
+
+  // --- Mise à jour des champs supplémentaires depuis les arguments ---
   for (let i = 2; i < arg.length; i += 2) {
     const key = arg[i]?.toLowerCase();
     const val = arg[i + 1];
@@ -105,18 +121,11 @@ ovlcmd({
     }
   }
 
-  const msg = await saves[type](mention, base);
-  return repondre(msg);
-});
-
   try {
-    const existing = await gets[type](mention);
-    if (existing) return repondre("⚠️ Ce joueur est déjà enregistré.");
-
     const msg = await saves[type](mention, base);
     return repondre(msg || "✅ Joueur enregistré avec succès !");
   } catch (e) {
-    console.error("Erreur save/get :", e);
+    console.error("❌ Erreur save/get :", e);
     return repondre("⚠️ Une erreur est survenue lors de l'enregistrement.");
   }
 });
