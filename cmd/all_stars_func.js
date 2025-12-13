@@ -1,14 +1,13 @@
 const { ovlcmd } = require("../lib/ovlcmd");
 const { cardsBlueLock } = require("../DataBase/cardsBL");
 
-
 ovlcmd({
     nom: "goal",
     isfunc: true
 }, async (ms_org, ovl, { texte, repondre }) => {
     if (!texte.toLowerCase().startsWith("🔷⚽ goal🥅")) return;
 
-    // Extraction des stats directement depuis le pavé
+    // Extraction des stats depuis le pavé
     const joueurMatch = texte.match(/🥅joueur\s*=\s*(.+)/i);
     const gardienMatch = texte.match(/🥅Gardien\s*=\s*(\d+)/i);
     const zoneMatch = texte.match(/🥅Zone\s*=\s*([\w\s-]+)/i);
@@ -18,10 +17,18 @@ ovlcmd({
         return repondre("⚠️ Format incorrect. Assure-toi que la fiche est bien remplie.");
     }
 
-    const joueurNom = joueurMatch[1].trim().toLowerCase().replace(/\s+/g, ' ');
-    const joueurData = cardsBlueLock[joueurNom];
+    // Normalisation du nom saisi
+    const joueurNomSaisi = joueurMatch[1].trim().toLowerCase().replace(/\s+/g, ' ');
 
-    if (!joueurData) return repondre(`⚠️ Joueur non trouvé dans la Database : *${joueurNom}*`);
+    // Recherche du joueur dans la database (ignore la casse et les espaces)
+    const joueurData = Object.entries(cardsBlueLock).find(([key]) => {
+        const keyNormalized = key.trim().toLowerCase().replace(/\s+/g, ' ');
+        return keyNormalized === joueurNomSaisi;
+    })?.[1];
+
+    if (!joueurData) {
+        return repondre(`⚠️ Joueur non trouvé dans la Database : *${joueurNomSaisi}*`);
+    }
 
     const tirPuissance = parseInt(joueurData.tir || 50, 10); // Tir pris depuis la Database
     const gardien = parseInt(gardienMatch[1], 10);
@@ -100,7 +107,7 @@ ovlcmd({
         });
     }
 });
-    
+
 const activeCountdowns = {};
 const pausedCountdowns = {};
 
