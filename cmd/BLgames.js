@@ -32,7 +32,7 @@ ovlcmd({
     const lineup = ficheNeo.lineup || Array(15).fill(null); // 15 emplacements
 
     // --------------- Envoi GIF de tirage ---------------
-    const gifTirage = "https://files.catbox.moe/tirage.gif"; 
+    const gifTirage = "https://files.catbox.moe/gaksn8.webp"; 
     await ovl.sendMessage(ms_org, { video: { url: gifTirage }, caption: "🎲 Prépare-toi pour le tirage..." }, { quoted: ms });
 
     // --------------- Envoi des 3 images des tirages ---------------
