@@ -25,8 +25,6 @@ function normalizeJid(input) {
   return String(input);
 }
 
-const getCountryEmoji = country => countryEmojis[country] || "";
-
 function generateStarterLineupFromDB() {
   // 1️⃣ Récupération DB
   const allPlayers = Object.values(cardsBlueLock);
