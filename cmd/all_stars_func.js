@@ -66,14 +66,7 @@ if (distance <= 5) {
 const tirAleatoire = Math.random(); // valeur entre 0 et 1
 const resultat = tirAleatoire <= probaGoal ? "but" : "arrêt"; 
 
-    // Gif d'action de tir avant résultat
-    await ovl.sendMessage(ms_org, {
-        video: { url: "" },
-        caption: "",
-        gifPlayback: true
-    });
-
-    if (resultat === "but") {
+   if (resultat === "but") {
         const commentaires = {
             "lucarne droite": ["*🎙️: COMME UN MISSILE GUIDÉ ! Le ballon se niche dans la lucarne droite - splendide !*", "*🎙️: UNE FRAPPE POUR L'HISTOIRE ! La lucarne droite explose sous l'effet de la frappe !*"],
             "lucarne gauche": ["*🎙️: MAGNIFIQUE ! La lucarne gauche est pulvérisée par cette frappe !*", "*🎙️: UNE PRÉCISION D'ORFÈVRE ! Lucarne gauche touchée, le gardien impuissant !*"],
