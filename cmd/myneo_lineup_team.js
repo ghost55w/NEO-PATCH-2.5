@@ -17,6 +17,30 @@ const countryEmojis = {
 
 const getCountryEmoji = country => countryEmojis[country] || "";
 
+// --- NORMALISATION NOM JOUEUR ---
+function normalizeName(str = "") {
+  return str
+    .toLowerCase()
+    .replace(/\([^)]*\)/g, "") // enlève (98)
+    .replace(/[\u{1F1E6}-\u{1F1FF}]/gu, "") // enlève 🇯🇵
+    .replace(/[^a-z0-9\s]/gi, "")
+    .trim();
+}
+
+// --- RECHERCHE JOUEUR DB ---
+function findPlayerInDB(inputName) {
+  const target = normalizeName(inputName);
+
+  for (const p of Object.values(cardsBlueLock)) {
+    const dbName = normalizeName(p.name);
+    if (dbName === target) {
+      const flag = getCountryEmoji(p.country);
+      return `${p.name} (${p.ovr}) ${flag}`.trim();
+    }
+  }
+  return null;
+}
+
 // --- Helper ---
 function normalizeJid(input) {
   if (!input) return null;
@@ -438,8 +462,17 @@ ovlcmd({
     if (/^j\d+$/.test(arg[i]) && arg[i + 1] === "=") {
       const index = parseInt(arg[i].slice(1));
       if (index >= 1 && index <= 15) {
-        updates[`joueur${index}`] = arg[i + 2];
-      }
+        const inputName = arg[i + 2];
+
+// 🔍 Recherche dans la DB
+const playerFromDB = findPlayerInDB(inputName);
+
+if (!playerFromDB) {
+  return repondre(`⚠️ Joueur "${inputName}" introuvable dans la Database Blue Lock.`);
+}
+
+updates[`joueur${index}`] = playerFromDB;
+      }   
     }
   }
 
