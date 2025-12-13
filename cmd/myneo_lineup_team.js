@@ -1,16 +1,9 @@
 const { ovlcmd } = require('../lib/ovlcmd');
 const { MyNeoFunctions, TeamFunctions, BlueLockFunctions } = require("../DataBase/myneo_lineup_team");
-const { getData, setfiche } = require("../DataBase/allstars_divs_fiches");
-const { cardsBlueLock } = require("../DataBase/cardsBL");
-
-// Déstructuration unique pour MyNeo
 const { saveUser: saveMyNeo, deleteUser: delMyNeo, getUserData: getNeo, updateUser: updateMyNeo } = MyNeoFunctions;
-
-// Team
 const { saveUser: saveTeam, deleteUser: delTeam, getUserData: getTeam, updateUser: updateTeam } = TeamFunctions;
-
-// BlueLock
 const { saveUser: saveLineup, deleteUser: delLineup, getUserData: getLineup, updatePlayers, updateStats } = BlueLockFunctions;
+const { cardsBlueLock } = require("../DataBase/cardsBL");
 
 // --- Helper ---
 function normalizeJid(input) {
@@ -52,7 +45,6 @@ function generateStarterLineupFromDB() {
 }
 // ------------------- Commandes -------------------
 
-// SAVE
 ovlcmd({
   nom_cmd: "save",
   classe: "Other",
@@ -60,45 +52,18 @@ ovlcmd({
   desc: "Enregistrer un joueur (myneo/team/lineup)",
 }, async (ms_org, ovl, cmd) => {
   const { arg, repondre, prenium_id } = cmd;
-
   if (!prenium_id) return repondre("⚠️ Seuls les membres de la NS peuvent enregistrer un joueur.");
-
-  const rawMention = arg[0];
-  if (!rawMention) return repondre("⚠️ Mentionne un utilisateur.");
-
-  const mention = normalizeJid(rawMention);
-  if (!mention) return repondre("⚠️ Impossible de normaliser la mention.");
+  const mention = arg[0];
+  if (!mention) return repondre("⚠️ Mentionne un utilisateur.");
 
   const type = arg[1]?.toLowerCase();
-  if (!["myneo", "team", "lineup"].includes(type)) return repondre("⚠️ Type invalide. Utilise : myneo, team ou lineup.");
-
   const baseMyNeo = {
-    users: "aucun",
-    tel: mention.replace("@s.whatsapp.net", ""),
-    ns: 0,
-    nc: 0,
-    np: 0,
-    coupons: 0,
-    gift_box: 0,
-    all_stars: "",
-    blue_lock: "+Team⚽",
-    elysium: "+ElysiumMe💠"
+    users: "aucun", tel: mention.replace("@s.whatsapp.net", ""), points_jeu: 0, nc: 0, np: 0,
+    coupons: 0, gift_box: 0, all_stars: "", blue_lock: "+Team⚽", elysium: "+ElysiumMe💠"
   };
-
   const baseTeam = {
     users: "aucun", team: "aucun", argent: 0, classement: "aucun", wins: 0, loss: 0, niveau: 0, trophies: 0, goals: 0
   };
-
-  let starters = [];
-  if (type === "lineup") {
-    try {
-      starters = await generateStarterLineupFromDB(); // ✅ await si async
-    } catch (e) {
-      console.error("Erreur generateStarterLineupFromDB :", e);
-      return repondre("⚠️ Impossible de générer le lineup de base.");
-    }
-  }
-
   const baseLineup = {
     nom: "Starter Squad",
     joueur1: starters[0] || "",
@@ -125,9 +90,12 @@ ovlcmd({
   const saves = { myneo: saveMyNeo, team: saveTeam, lineup: saveLineup };
   const gets = { myneo: getNeo, team: getTeam, lineup: getLineup };
 
-  const base = { ...bases[type] };
+  if (!bases[type]) return repondre("⚠️ Type invalide. Utilise : myneo, team ou lineup.");
 
-  // Remplissage personnalisé avec arguments supplémentaires
+  const existing = await gets[type](mention);
+  if (existing) return repondre("⚠️ Ce joueur est déjà enregistré.");
+
+  const base = { ...bases[type] };
   for (let i = 2; i < arg.length; i += 2) {
     const key = arg[i]?.toLowerCase();
     const val = arg[i + 1];
@@ -135,6 +103,10 @@ ovlcmd({
       base[key] = isNaN(val) ? val : parseInt(val);
     }
   }
+
+  const msg = await saves[type](mention, base);
+  return repondre(msg);
+});
 
   try {
     const existing = await gets[type](mention);
