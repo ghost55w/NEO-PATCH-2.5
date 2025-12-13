@@ -336,85 +336,97 @@ Merci pour l'achat ⚽🔷 !
   }
 });
 
-  // --- SUBSTITUTION LINEUP ---
+// --- SUBSTITUTION LINEUP ---
 ovlcmd({
   nom_cmd: "sub",
   react: "🔁",
   classe: "NEO_GAMES⚽"
 }, async (ms_org, ovl, { ms, auteur_Message, repondre }) => {
   try {
-    let userData = await MyNeoFunctions.getUserData(auteur_Message);
+    // --- Récupération données ---
+    const userData = await MyNeoFunctions.getUserData(auteur_Message);
     if (!userData) return repondre("❌ Impossible de récupérer tes données.");
 
     let ficheLineup = await getLineup(auteur_Message);
     if (!ficheLineup) return repondre("❌ Impossible de récupérer ton lineup.");
     ficheLineup = ficheLineup.toJSON ? ficheLineup.toJSON() : ficheLineup;
 
+    // --- Parsing commande ---
     const regex = /\+sub\s+(.+?)\s+par\s+(.+)/i;
     const match = ms?.message?.conversation?.match(regex);
-    if (!match) return repondre("❌ Format invalide. Utilise : +sub [Joueur à remplacer] par [Nouvelle carte]");
+    if (!match) {
+      return repondre("❌ Format invalide.\nExemples :\n+sub kuon par kyora\n+sub j2 par j14");
+    }
 
-    const ancienRaw = match[1].trim(); // "J1" ou nom
-    const nouveauRaw = match[2].trim(); // "J2" ou nom
+    const ancienRaw = match[1].trim();
+    const nouveauRaw = match[2].trim();
 
-    // --- TROUVER POSITION DE L'ANCIEN JOUEUR ---
+    // --- Trouver position de l'ancien joueur ---
     let posAncien = null;
     const matchAncien = ancienRaw.match(/^j(\d{1,2})$/i);
+
     if (matchAncien) {
       posAncien = parseInt(matchAncien[1], 10);
       if (posAncien < 1 || posAncien > 15)
-        return repondre("❌ Position invalide (1-15).");
+        return repondre("❌ Position invalide (J1 à J15).");
+
       if (!ficheLineup[`joueur${posAncien}`] || ficheLineup[`joueur${posAncien}`] === "aucun")
-        return repondre(`❌ Pas de joueur en position J${posAncien} pour remplacer.`);
+        return repondre(`❌ Aucun joueur en position J${posAncien}.`);
     } else {
       const ancienNom = pureName(ancienRaw);
       for (let i = 1; i <= 15; i++) {
         const slot = ficheLineup[`joueur${i}`] || "";
-        const slotNorm = pureName(slot);
-        if (slotNorm === ancienNom || slotNorm.includes(ancienNom) || ancienNom.includes(slotNorm)) {
+        if (pureName(slot).includes(ancienNom)) {
           posAncien = i;
           break;
         }
       }
       if (!posAncien)
-        return repondre(`❌ Aucun joueur trouvé avec le nom "${ancienRaw}" dans ton lineup.`);
+        return repondre(`❌ Aucun joueur trouvé : "${ancienRaw}".`);
     }
 
-    // --- TROUVER LA NOUVELLE CARTE ---
+    // --- Trouver la nouvelle carte ---
     let carte = null;
     const matchNouveau = nouveauRaw.match(/^j(\d{1,2})$/i);
+
     if (matchNouveau) {
       const posNew = parseInt(matchNouveau[1], 10);
       if (posNew < 1 || posNew > 15)
-        return repondre("❌ Position invalide (1-15).");
+        return repondre("❌ Position invalide (J1 à J15).");
+
       const slotNew = ficheLineup[`joueur${posNew}`];
       if (!slotNew || slotNew === "aucun")
-        return repondre(`❌ Pas de joueur en position J${posNew} pour remplacer.`);
-      const nameOnly = slotNew.replace(/\(\d+\)/g, "").trim();
-      carte = allCards.find(c => pureName(c.name) === pureName(nameOnly));
-      if (!carte)
-        return repondre(`❌ Carte introuvable en position J${posNew}.`);
+        return repondre(`❌ Aucun joueur en position J${posNew}.`);
+
+      const nameOnly = pureName(slotNew);
+      carte = allCards.find(c => pureName(c.name) === nameOnly);
     } else {
       const nouveauNom = pureName(nouveauRaw);
       carte = allCards.find(c => pureName(c.name) === nouveauNom);
-      if (!carte)
-        return repondre(`❌ Carte introuvable : ${nouveauRaw}`);
     }
 
-    // Vérifier que l'utilisateur possède la carte
+    if (!carte)
+      return repondre(`❌ Carte introuvable : "${nouveauRaw}".`);
+
+    // --- Vérifier possession de la carte ---
     const cardsOwned = (userData.cards || "").split("\n").filter(Boolean);
     if (!cardsOwned.some(c => pureName(c) === pureName(carte.name))) {
-      return repondre(`❌ Tu ne possèdes pas ${carte.name} pour la remplacer.`);
+      return repondre(`❌ Tu ne possèdes pas la carte ${carte.name}.`);
     }
 
-    // --- REMPLACEMENT ---
-    ficheLineup[`joueur${posAncien}`] = `${carte.name} (${carte.ovr})${carte.countryEmoji || getCountryEmoji(carte.country)}`;
+    // --- Remplacement ---
+    ficheLineup[`joueur${posAncien}`] =
+      `${carte.name} (${carte.ovr}) ${carte.countryEmoji || getCountryEmoji(carte.country)}`;
+
     await updatePlayers(auteur_Message, ficheLineup);
 
-    await repondre(`✅ ${carte.name} a remplacé le joueur en position J${posAncien} ✔️`);
+    return repondre(
+      `🔁 Substitution réussie !\n` +
+      `✅ ${carte.name} a remplacé le joueur en position J${posAncien}`
+    );
 
   } catch (e) {
-    console.error("Erreur commande sub:", e);
+    console.error("❌ Erreur commande sub:", e);
     return repondre("❌ Erreur interne lors de la substitution.");
   }
 });
