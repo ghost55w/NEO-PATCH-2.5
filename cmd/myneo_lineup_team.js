@@ -6,6 +6,17 @@ const { saveUser: saveTeam, deleteUser: delTeam, getUserData: getTeam, updateUse
 const { saveUser: saveLineup, deleteUser: delLineup, getUserData: getLineup, updatePlayers, updateStats } = BlueLockFunctions;
 
 
+// --- EMOJI PAYS (UNICODE SAFE) ---
+const countryEmojis = {
+  "Japan": "\u{1F1EF}\u{1F1F5}",   // 🇯🇵
+  "France": "\u{1F1EB}\u{1F1F7}",  // 🇫🇷
+  "Brazil": "\u{1F1E7}\u{1F1F7}",  // 🇧🇷
+  "Germany": "\u{1F1E9}\u{1F1EA}", // 🇩🇪
+  "Malta": "\u{1F1F2}\u{1F1F9}"    // 🇲🇹
+};
+
+const getCountryEmoji = country => countryEmojis[country] || "";
+
 // --- Helper ---
 function normalizeJid(input) {
   if (!input) return null;
@@ -13,37 +24,53 @@ function normalizeJid(input) {
   if (/^\d+$/.test(input)) return input + "@s.whatsapp.net";
   return String(input);
 }
+
+const getCountryEmoji = country => countryEmojis[country] || "";
+
 function generateStarterLineupFromDB() {
-  // 1️⃣ Convertir la DB en tableau
+  // 1️⃣ Récupération DB
   const allPlayers = Object.values(cardsBlueLock);
+  if (!allPlayers.length) {
+    throw new Error("cardsBlueLock vide");
+  }
 
-  // 2️⃣ Garder uniquement les rang B
-  const rankB = allPlayers.filter(p => p.rank === "B");
+  // 2️⃣ Filtre rang B
+  const rankB = allPlayers.filter(p =>
+    p &&
+    p.rank === "B" &&
+    typeof p.name === "string" &&
+    typeof p.ovr === "number" &&
+    typeof p.country === "string"
+  );
 
-  // 3️⃣ Séparer par OVR
+  // 3️⃣ Séparation OVR
   const ovr78 = rankB.filter(p => p.ovr === 78);
   const ovrLow = rankB.filter(p => [75, 76, 77].includes(p.ovr));
 
   if (ovr78.length < 2 || ovrLow.length < 8) {
-    throw new Error("Pas assez de joueurs rang B pour générer le lineup");
+    throw new Error(
+      `Pas assez de joueurs B (78:${ovr78.length}, low:${ovrLow.length})`
+    );
   }
 
-  // 4️⃣ Mélange helper
-  const shuffle = arr => [...arr].sort(() => 0.5 - Math.random());
+  // 4️⃣ Shuffle sécurisé
+  const shuffle = arr => arr
+    .map(v => ({ v, r: Math.random() }))
+    .sort((a, b) => a.r - b.r)
+    .map(o => o.v);
 
-  // 5️⃣ Tirage sans doublon
+  // 5️⃣ Sélection
   const selected78 = shuffle(ovr78).slice(0, 2);
   const selectedLow = shuffle(ovrLow).slice(0, 8);
-
-  // 6️⃣ Fusion + mélange final
   const starters = shuffle([...selected78, ...selectedLow]);
 
-  // 7️⃣ Format stocké dans lineup
+  // 6️⃣ FORMAT FINAL (DB SAFE + FLAG UNICODE)
   return starters.map(p => {
-  const flag = countryFlags[p.country] || "🏳️";
-  return `${p.name} (${p.ovr}) ${flag}`;
-});
-}
+    const flag = getCountryEmoji(p.country); // ✅ Unicode safe
+    return `${p.name} (${p.ovr}) ${flag}`.trim();
+  });
+    }
+
 // ------------------- Commandes -------------------
 ovlcmd({
   nom_cmd: "save",
@@ -85,8 +112,9 @@ ovlcmd({
     let starters = [];
     try {
       starters = generateStarterLineupFromDB(); // sync, ou await si async
-    } catch(e){
-      return repondre("⚠️ Impossible de générer le lineup de départ.");
+    } catch (e) {
+  console.error("LINEUP GEN ERROR:", e.message);
+  return repondre("⚠️ Impossible de générer le lineup de départ.");
     }
 
     base = {
