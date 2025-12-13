@@ -39,7 +39,7 @@ ovlcmd({
     const tirages = [
       { type: "Deluxe", nc: 30, image: "https://files.catbox.moe/2bszsx.jpg", caption: "💠 Tirage Deluxe - 30 NC 🔷\nProbabilités: B 85%, A 60% (>=5 buts)" },
       { type: "Super", nc: 50, image: "https://files.catbox.moe/4ekp2h.jpg", caption: "💎 Tirage Super - 50 NC 🔷\nProbabilités: A 80%, S 50% (>=10 buts, niv10, OVR>=95 10%)" },
-      { type: "Ultra", nc: 70, image: "https://files.catbox.moe/ultra.jpg", caption: "🏆 Tirage Ultra - 70 NC 🔷\nProbabilités: A 80%, S 65% (>=10 buts, niv10, OVR>=95 20%), SS 30% (>=20 buts, niv20, OVR>=105 10%)" },
+      { type: "Ultra", nc: 70, image: "https://files.catbox.moe/s1jdub.png", caption: "🏆 Tirage Ultra - 70 NC 🔷\nProbabilités: A 80%, S 65% (>=10 buts, niv10, OVR>=95 20%), SS 30% (>=20 buts, niv20, OVR>=105 10%)" },
     ];
 
     for (const t of tirages) {
