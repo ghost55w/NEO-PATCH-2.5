@@ -21,33 +21,42 @@ const getCountryEmoji = country => countryEmojis[country] || "";
 function normalizeName(str = "") {
   return str
     .toLowerCase()
-    .replace(/\([^)]*\)/g, "") // enlève (98)
+    .replace(/\([^)]*\)/g, "")   // enlève (87), (95), etc.
     .replace(/[\u{1F1E6}-\u{1F1FF}]/gu, "") // enlève 🇯🇵
-    .replace(/[^a-z0-9\s]/gi, "")
+    .replace(/[^a-z0-9\s]/gi, "") // enlève tout autre caractère spécial
     .trim();
 }
 
-// --- RECHERCHE JOUEUR DB ---
-function findPlayerInDB(inputName) {
+// --- RECHERCHE JOUEUR DB AVEC OVR ---
+function findPlayerInDB(inputName, inputOvr = null) {
   if (!inputName) return null;
 
   const target = normalizeName(inputName);
 
   // 1️⃣ Tous les joueurs valides
-  const candidates = Object.values(cardsBlueLock).filter(p => p?.name && typeof p.ovr === "number" && p.country);
+  const candidates = Object.values(cardsBlueLock).filter(
+    p => p?.name && typeof p.ovr === "number" && p.country
+  );
 
-  // 2️⃣ MATCH STRICT sur le nom uniquement
-  const exactMatches = candidates.filter(p => normalizeName(p.name) === target);
+  // 2️⃣ Exact match sur le nom normalisé
+  let exactMatches = candidates.filter(p => normalizeName(p.name) === target);
 
-  if (exactMatches.length === 0) return null;
+  if (!exactMatches.length) return null;
 
-  // 3️⃣ Si plusieurs exacts (rare), on prend le OVR le plus bas pour éviter Rin NEL
+  // 3️⃣ Si on a un OVR fourni, on filtre par OVR
+  if (inputOvr !== null) {
+    exactMatches = exactMatches.filter(p => p.ovr === inputOvr);
+    if (!exactMatches.length) return null; // si aucun match avec cet OVR
+  }
+
+  // 4️⃣ Sinon, on prend le joueur avec le **OVR le plus bas** (version standard)
   exactMatches.sort((a, b) => a.ovr - b.ovr);
 
   const player = exactMatches[0];
   const flag = getCountryEmoji(player.country);
   return `${player.name} (${player.ovr}) ${flag}`.trim();
 }
+
   
 // --- Helper ---
 function normalizeJid(input) {
@@ -467,18 +476,17 @@ ovlcmd({
   //Modification de LINEUP
  const updates = {};
 
-  for (let i = 1; i < arg.length; i += 3) {
-    if (/^j\d+$/.test(arg[i]) && arg[i + 1] === "=") {
-      const index = parseInt(arg[i].slice(1), 10);
+  const inputName = arg[i + 2];
 
-      if (index >= 1 && index <= 15) {
-        const inputName = arg[i + 2];
+// Détection de l'OVR dans la saisie (optionnel)
+let inputOvr = null;
+const ovrMatch = inputName.match(/\((\d+)\)/);
+if (ovrMatch) inputOvr = parseInt(ovrMatch[1], 10);
 
-        const playerFormatted = findPlayerInDB(inputName);
-        if (!playerFormatted) {
-          return repondre(`⚠️ Joueur introuvable dans la DB : ${inputName}`);
-        }
-
+const playerFormatted = findPlayerInDB(inputName, inputOvr);
+if (!playerFormatted) {
+  return repondre(`⚠️ Joueur introuvable dans la DB : ${inputName}`);
+}
         updates[`joueur${index}`] = playerFormatted;
       }
     }
