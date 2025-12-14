@@ -465,16 +465,25 @@ ovlcmd({
         const inputName = arg[i + 2];
 
 // 🔍 Recherche dans la DB
-const playerFromDB = findPlayerInDB(inputName);
+function findPlayerInDB(inputName) {
+  if (!inputName) return null;
 
-if (!playerFromDB) {
-  return repondre(`⚠️ Joueur "${inputName}" introuvable dans la Database Blue Lock.`);
-}
+  const target = normalizeName(inputName);
 
-updates[`joueur${index}`] = playerFromDB;
-      }   
+  for (const p of Object.values(cardsBlueLock)) {
+    if (!p?.name || !p?.ovr || !p?.country) continue;
+
+    const dbName = normalizeName(p.name);
+
+    // ✅ MATCH UNIQUEMENT SUR name
+    if (dbName === target || dbName.includes(target)) {
+      const flag = getCountryEmoji(p.country);
+      return `${p.name} (${p.ovr}) ${flag}`.trim();
     }
   }
+
+  return null;
+}
 
   if (Object.keys(updates).length > 0) {
     const message = await updatePlayers(userId, updates);
