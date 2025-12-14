@@ -6,8 +6,6 @@ const { saveUser: saveTeam, deleteUser: delTeam, getUserData: getTeam, updateUse
 const { saveUser: saveLineup, deleteUser: delLineup, getUserData: getLineup, updatePlayers, updateStats } = BlueLockFunctions;
 
 
-
-// --- NOM PUR pour comparaison ---
 // --- NORMALISATION NOM ---
 const pureName = str => {
   if (!str) return "";
@@ -34,32 +32,29 @@ function findPlayerInDB(inputName) {
   if (!inputName) return null;
 
   const input = pureName(inputName);
-  const wantsNEL = input.includes("nel");
+  const wantsNEL = /nel/i.test(inputName);
 
   const players = Object.values(cardsBlueLock);
 
-  // 1️⃣ match exact sur name
-  let exact = players.filter(p =>
-    pureName(p.name) === input
-  );
-
+  // 1️⃣ Match exact
+  let exact = players.filter(p => pureName(p.name) === input);
   if (exact.length) {
-    exact.sort((a, b) => a.ovr - b.ovr);
+    exact.sort((a, b) => b.ovr - a.ovr); // +OVR first
     const p = exact[0];
     return `${p.name} (${p.ovr}) ${getCountryEmoji(p.country)}`;
   }
 
-  // 2️⃣ match sans NEL (par défaut)
+  // 2️⃣ Match partiel
   let filtered = players.filter(p => {
     const pname = pureName(p.name);
-    if (!pname.startsWith(input)) return false;
-    if (!wantsNEL && pname.includes("nel")) return false;
+    if (!pname.includes(input)) return false;
+    if (!wantsNEL && /nel/i.test(p.name)) return false;
     return true;
   });
 
   if (!filtered.length) return null;
 
-  filtered.sort((a, b) => a.ovr - b.ovr);
+  filtered.sort((a, b) => b.ovr - a.ovr);
   const p = filtered[0];
   return `${p.name} (${p.ovr}) ${getCountryEmoji(p.country)}`;
 }
@@ -430,31 +425,29 @@ ovlcmd({
   }
 });
  
-
 ovlcmd({
   nom_cmd: "lineup⚽",
   classe: "Other",
   react: "📋",
   desc: "Afficher ou modifier l'équipe du joueur.",
 }, async (ms_org, ovl, cmd_options) => {
-
   try {
-  const { arg, repondre, auteur_Message } = cmd_options;
-  let userId = auteur_Message;
-  if (arg.length >= 1) userId = arg[0];
+    const { arg, repondre, auteur_Message } = cmd_options;
+    let userId = auteur_Message;
+    if (arg.length >= 1) userId = arg[0];
 
-  let data = await getLineup(userId);
-  if (!data) return repondre("⚠️ Joueur introuvable.");
+    let data = await getLineup(userId);
+    if (!data) return repondre("⚠️ Joueur introuvable.");
 
-  // --- Affichage du lineup ---
-  if (arg.length <= 1) {
-    await ovl.sendMessage(ms_org, {
-      video: { url: "https://files.catbox.moe/z64kuq.mp4" },
-      caption: "",
-      gifPlayback: true
-    }, { quoted: cmd_options.ms });
+    // --- Affichage du lineup ---
+    if (arg.length <= 1) {
+      await ovl.sendMessage(ms_org, {
+        video: { url: "https://files.catbox.moe/z64kuq.mp4" },
+        caption: "",
+        gifPlayback: true
+      }, { quoted: cmd_options.ms });
 
-    const lineup = `░░ *👥SQUAD⚽🥅*: ${data.nom}
+      const lineup = `░░ *👥SQUAD⚽🥅*: ${data.nom}
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▱▱▱▱
 1  👤(AG) ${data.joueur1} 
 2  👤(AC) ${data.joueur2} 
@@ -476,61 +469,43 @@ ovlcmd({
 ╰───────────────────
                     *BLUE🔷LOCK⚽* `;
 
-    return await ovl.sendMessage(ms_org, {
-      image: { url: "https://files.catbox.moe/p94q3m.jpg" },
-      caption: lineup
-    }, { quoted: cmd_options.ms });
-  }
-
-  // --- Fonction utilitaire pour trouver une carte DB ---
-  function findCardByName(input) {
-    if (!input) return null;
-    const valNorm = pureName(input);
-    const allCards = Object.values(cardsBlueLock);
-
-    // 1️⃣ Match exact
-    let card = allCards.find(c => pureName(c.name) === valNorm);
-
-    // 2️⃣ Sinon match partiel
-    if (!card) {
-      card = allCards.find(c => pureName(c.name).includes(valNorm) || valNorm.includes(pureName(c.name)));
+      return await ovl.sendMessage(ms_org, {
+        image: { url: "https://files.catbox.moe/p94q3m.jpg" },
+        caption: lineup
+      }, { quoted: cmd_options.ms });
     }
 
-    return card || null;
-  }
+    // --- Modification du lineup ---
+    const updates = {};
 
-  // --- Modification du lineup ---
-  const updates = {};
+    for (let i = 0; i < arg.length; i += 3) {
+      if (/^j\d+$/i.test(arg[i]) && arg[i + 1] === "=") {
+        const index = parseInt(arg[i].slice(1), 10);
+        if (index < 1 || index > 15) continue;
 
-  for (let i = 1; i < arg.length; i += 3) {
-    if (/^j\d+$/i.test(arg[i]) && arg[i + 1] === "=") {
-      const index = parseInt(arg[i].slice(1), 10);
-      if (index < 1 || index > 15) continue;
+        const playerFormatted = findPlayerInDB(arg[i + 2]);
+        if (!playerFormatted) {
+          return repondre(`⚠️ Joueur introuvable dans la DB : ${arg[i + 2]}`);
+        }
 
-      const inputName = arg[i + 2];
-
-const playerFormatted = findPlayerInDB(inputName);
-if (!playerFormatted) {
-  return repondre(`⚠️ Joueur introuvable dans la DB : ${inputName}`);
-}
-
-updates[`joueur${index}`] = playerFormatted;
+        updates[`joueur${index}`] = playerFormatted;
+      }
     }
-  }
 
-  if (!Object.keys(updates).length) {
-    return repondre("⚠️ Format incorrect. Exemple : +lineup⚽ j3 = Isagi");
-  }
+    if (Object.keys(updates).length > 0) {
+      const message = await updatePlayers(userId, updates);
+      return repondre(message || "✅ Lineup mis à jour avec succès !");
+    } else {
+      return repondre("⚠️ Format incorrect. Utilise: +lineup⚽ j1 = Nom j2 = Nom...");
+    }
 
-  await updatePlayers(userId, updates);
-  return repondre("✅ Lineup mis à jour avec succès !");
-    } catch (e) {
-  console.error("❌ LINEUP ERROR:", e);
-  return repondre(
-    `❌ Erreur LINEUP\n` +
-    `Message: ${e.message}\n` +
-    `Stack:\n${e.stack}`
-  );
+  } catch (e) {
+    console.error("❌ LINEUP ERROR:", e);
+    return repondre(
+      `❌ Erreur LINEUP\n` +
+      `Message: ${e.message}\n` +
+      `Stack:\n${e.stack}`
+    );
   }
 });
 
