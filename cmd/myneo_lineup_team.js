@@ -463,20 +463,24 @@ ovlcmd({
       caption: lineup
     }, { quoted: cmd_options.ms });
   }
- 
-if (/^j\d+$/.test(arg[i]) && arg[i + 1] === "=") {
-  const index = parseInt(arg[i].slice(1));
-  if (index >= 1 && index <= 15) {
-    const inputName = arg[i + 2];
+ const updates = {};
 
-    const playerFormatted = findPlayerInDB(inputName);
-    if (!playerFormatted) {
-      return repondre(`⚠️ Joueur introuvable dans la DB : ${inputName}`);
+for (let i = 0; i < arg.length; i += 3) {
+  if (/^j\d+$/.test(arg[i]) && arg[i + 1] === "=") {
+    const index = parseInt(arg[i].slice(1));
+    if (index >= 1 && index <= 15) {
+      const inputName = arg[i + 2];
+
+      const playerFormatted = findPlayerInDB(inputName);
+      if (!playerFormatted) {
+        return repondre(`⚠️ Joueur introuvable dans la DB : ${inputName}`);
+      }
+
+      updates[`joueur${index}`] = playerFormatted;
     }
-
-    updates[`joueur${index}`] = playerFormatted;
   }
 }
+
   if (Object.keys(updates).length > 0) {
     const message = await updatePlayers(userId, updates);
     return repondre(message);
