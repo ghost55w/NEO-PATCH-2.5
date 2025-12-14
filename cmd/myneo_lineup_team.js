@@ -482,12 +482,25 @@ ovlcmd({
     }, { quoted: cmd_options.ms });
   }
 
+  // --- Fonction utilitaire pour trouver une carte DB ---
+  function findCardByName(input) {
+    if (!input) return null;
+    const valNorm = pureName(input);
+    const allCards = Object.values(cardsBlueLock);
+
+    // 1️⃣ Match exact
+    let card = allCards.find(c => pureName(c.name) === valNorm);
+
+    // 2️⃣ Sinon match partiel
+    if (!card) {
+      card = allCards.find(c => pureName(c.name).includes(valNorm) || valNorm.includes(pureName(c.name)));
+    }
+
+    return card || null;
+  }
+
   // --- Modification du lineup ---
   const updates = {};
-  const allCardsNormalized = Object.values(cardsBlueLock).map(c => ({
-    raw: c,
-    norm: pureName(c.name)
-  }));
 
   for (let i = 1; i < arg.length; i += 3) {
     const key = arg[i];
@@ -498,30 +511,11 @@ ovlcmd({
       const index = parseInt(key.slice(1), 10);
       if (index < 1 || index > 15) continue;
 
-      const valNorm = pureName(val);
-
-      // 1️⃣ Cherche d'abord dans le lineup actuel
-      let card = null;
-      for (let j = 1; j <= 15; j++) {
-        const slot = data[`joueur${j}`];
-        if (slot && slot !== "aucun" && pureName(slot).includes(valNorm)) {
-          card = allCardsNormalized.find(c => c.norm === pureName(slot));
-          if (!card) card = allCardsNormalized.find(c => c.norm.includes(valNorm) || valNorm.includes(c.norm));
-          break;
-        }
-      }
-
-      // 2️⃣ Si pas trouvé dans le lineup, cherche dans toute la DB
-      if (!card) {
-        card = allCardsNormalized.find(c => c.norm === valNorm)
-            || allCardsNormalized.find(c => c.norm.includes(valNorm) || valNorm.includes(c.norm));
-      }
-
+      const card = findCardByName(val);
       if (!card) return repondre(`⚠️ Joueur introuvable dans la DB : ${val}`);
 
-      // Formatage identique à la boutique
-      const flag = getCountryEmoji(card.raw.country);
-      updates[`joueur${index}`] = `${card.raw.name} (${card.raw.ovr}) ${flag}`;
+      const flag = getCountryEmoji(card.country);
+      updates[`joueur${index}`] = `${card.name} (${card.ovr}) ${flag}`;
     }
   }
 
