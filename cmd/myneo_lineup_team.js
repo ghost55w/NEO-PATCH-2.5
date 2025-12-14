@@ -33,19 +33,20 @@ function findPlayerInDB(inputName) {
 
   const target = normalizeName(inputName);
 
-  for (const p of Object.values(cardsBlueLock)) {
-    if (!p?.name || typeof p.ovr !== "number" || !p.country) continue;
+  // 1️⃣ Tous les joueurs valides
+  const candidates = Object.values(cardsBlueLock).filter(p => p?.name && typeof p.ovr === "number" && p.country);
 
-    const dbName = normalizeName(p.name);
+  // 2️⃣ MATCH STRICT sur le nom uniquement
+  const exactMatches = candidates.filter(p => normalizeName(p.name) === target);
 
-    // ✅ MATCH STRICT UNIQUEMENT SUR LE NAME
-    if (dbName === target) {
-      const flag = getCountryEmoji(p.country);
-      return `${p.name} (${p.ovr}) ${flag}`.trim();
-    }
-  }
+  if (exactMatches.length === 0) return null;
 
-  return null;
+  // 3️⃣ Si plusieurs exacts (rare), on prend le OVR le plus bas pour éviter Rin NEL
+  exactMatches.sort((a, b) => a.ovr - b.ovr);
+
+  const player = exactMatches[0];
+  const flag = getCountryEmoji(player.country);
+  return `${player.name} (${player.ovr}) ${flag}`.trim();
 }
   
 // --- Helper ---
