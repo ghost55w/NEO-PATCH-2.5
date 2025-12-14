@@ -464,13 +464,6 @@ ovlcmd({
     }, { quoted: cmd_options.ms });
   }
  
-  const updates = {};
-  for (let i = 0; i < arg.length; i += 3) {
-    if (/^j\d+$/.test(arg[i]) && arg[i + 1] === "=") {
-      const index = parseInt(arg[i].slice(1));
-      if (index >= 1 && index <= 15) {
-        const inputName = arg[i + 2];
-
 if (/^j\d+$/.test(arg[i]) && arg[i + 1] === "=") {
   const index = parseInt(arg[i].slice(1));
   if (index >= 1 && index <= 15) {
@@ -484,7 +477,6 @@ if (/^j\d+$/.test(arg[i]) && arg[i + 1] === "=") {
     updates[`joueur${index}`] = playerFormatted;
   }
 }
-
   if (Object.keys(updates).length > 0) {
     const message = await updatePlayers(userId, updates);
     return repondre(message);
