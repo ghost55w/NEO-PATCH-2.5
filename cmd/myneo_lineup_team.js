@@ -34,12 +34,12 @@ function findPlayerInDB(inputName) {
   const target = normalizeName(inputName);
 
   for (const p of Object.values(cardsBlueLock)) {
-    if (!p?.name || !p?.ovr || !p?.country) continue;
+    if (!p?.name || typeof p.ovr !== "number" || !p.country) continue;
 
     const dbName = normalizeName(p.name);
 
-    // ✅ MATCH UNIQUEMENT SUR name
-    if (dbName === target || dbName.includes(target)) {
+    // ✅ MATCH STRICT UNIQUEMENT SUR LE NAME
+    if (dbName === target) {
       const flag = getCountryEmoji(p.country);
       return `${p.name} (${p.ovr}) ${flag}`.trim();
     }
@@ -463,30 +463,32 @@ ovlcmd({
       caption: lineup
     }, { quoted: cmd_options.ms });
   }
+  //Modification de LINEUP
  const updates = {};
 
-for (let i = 0; i < arg.length; i += 3) {
-  if (/^j\d+$/.test(arg[i]) && arg[i + 1] === "=") {
-    const index = parseInt(arg[i].slice(1));
-    if (index >= 1 && index <= 15) {
-      const inputName = arg[i + 2];
+  for (let i = 1; i < arg.length; i += 3) {
+    if (/^j\d+$/.test(arg[i]) && arg[i + 1] === "=") {
+      const index = parseInt(arg[i].slice(1), 10);
 
-      const playerFormatted = findPlayerInDB(inputName);
-      if (!playerFormatted) {
-        return repondre(`⚠️ Joueur introuvable dans la DB : ${inputName}`);
+      if (index >= 1 && index <= 15) {
+        const inputName = arg[i + 2];
+
+        const playerFormatted = findPlayerInDB(inputName);
+        if (!playerFormatted) {
+          return repondre(`⚠️ Joueur introuvable dans la DB : ${inputName}`);
+        }
+
+        updates[`joueur${index}`] = playerFormatted;
       }
-
-      updates[`joueur${index}`] = playerFormatted;
     }
   }
-}
 
-  if (Object.keys(updates).length > 0) {
-    const message = await updatePlayers(userId, updates);
-    return repondre(message);
-  } else {
-    return repondre("⚠️ Format incorrect. Utilise: +lineup j1 = Nom j2 = Nom...");
+  if (Object.keys(updates).length === 0) {
+    return repondre("⚠️ Format incorrect. Utilise : +lineup⚽ j1 = Nom j2 = Nom");
   }
+
+  const message = await updatePlayers(userId, updates);
+  return repondre(message);
 });
 
 ovlcmd({
