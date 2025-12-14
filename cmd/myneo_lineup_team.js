@@ -29,18 +29,25 @@ function normalizeName(str = "") {
 
 // --- RECHERCHE JOUEUR DB ---
 function findPlayerInDB(inputName) {
+  if (!inputName) return null;
+
   const target = normalizeName(inputName);
 
   for (const p of Object.values(cardsBlueLock)) {
+    if (!p?.name || !p?.ovr || !p?.country) continue;
+
     const dbName = normalizeName(p.name);
-    if (dbName === target) {
+
+    // ✅ MATCH UNIQUEMENT SUR name
+    if (dbName === target || dbName.includes(target)) {
       const flag = getCountryEmoji(p.country);
       return `${p.name} (${p.ovr}) ${flag}`.trim();
     }
   }
+
   return null;
 }
-
+  
 // --- Helper ---
 function normalizeJid(input) {
   if (!input) return null;
@@ -464,25 +471,18 @@ ovlcmd({
       if (index >= 1 && index <= 15) {
         const inputName = arg[i + 2];
 
-// 🔍 Recherche dans la DB
-function findPlayerInDB(inputName) {
-  if (!inputName) return null;
+if (/^j\d+$/.test(arg[i]) && arg[i + 1] === "=") {
+  const index = parseInt(arg[i].slice(1));
+  if (index >= 1 && index <= 15) {
+    const inputName = arg[i + 2];
 
-  const target = normalizeName(inputName);
-
-  for (const p of Object.values(cardsBlueLock)) {
-    if (!p?.name || !p?.ovr || !p?.country) continue;
-
-    const dbName = normalizeName(p.name);
-
-    // ✅ MATCH UNIQUEMENT SUR name
-    if (dbName === target || dbName.includes(target)) {
-      const flag = getCountryEmoji(p.country);
-      return `${p.name} (${p.ovr}) ${flag}`.trim();
+    const playerFormatted = findPlayerInDB(inputName);
+    if (!playerFormatted) {
+      return repondre(`⚠️ Joueur introuvable dans la DB : ${inputName}`);
     }
-  }
 
-  return null;
+    updates[`joueur${index}`] = playerFormatted;
+  }
 }
 
   if (Object.keys(updates).length > 0) {
