@@ -34,12 +34,15 @@ function findPlayerInDB(inputName) {
   const input = pureName(inputName);
   const wantsNEL = /nel/i.test(inputName);
 
+  console.log("Recherche joueur pour:", inputName, "=> normalisé:", input);
+
   const players = Object.values(cardsBlueLock);
 
   // 1️⃣ Match exact
   let exact = players.filter(p => pureName(p.name) === input);
+  console.log("Exact match trouvés:", exact.map(p => p.name));
   if (exact.length) {
-    exact.sort((a, b) => b.ovr - a.ovr); // +OVR first
+    exact.sort((a, b) => b.ovr - a.ovr);
     const p = exact[0];
     return `${p.name} (${p.ovr}) ${getCountryEmoji(p.country)}`;
   }
@@ -51,6 +54,7 @@ function findPlayerInDB(inputName) {
     if (!wantsNEL && /nel/i.test(p.name)) return false;
     return true;
   });
+  console.log("Match partiel trouvés:", filtered.map(p => p.name));
 
   if (!filtered.length) return null;
 
