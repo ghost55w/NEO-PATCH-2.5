@@ -424,6 +424,7 @@ ovlcmd({
   }
 });
  
+
 ovlcmd({
   nom_cmd: "lineup⚽",
   classe: "Other",
@@ -431,14 +432,13 @@ ovlcmd({
   desc: "Afficher ou modifier l'équipe du joueur.",
 }, async (ms_org, ovl, cmd_options) => {
   const { arg, repondre, auteur_Message } = cmd_options;
-   let userId = auteur_Message;
-  if (arg.length >= 1) {
-    userId = arg[0];
-    if (!userId) return repondre("⚠️ Mentionne un utilisateur.");
-  }
-  const data = await getLineup(userId);
+  let userId = auteur_Message;
+  if (arg.length >= 1) userId = arg[0];
+
+  let data = await getLineup(userId);
   if (!data) return repondre("⚠️ Joueur introuvable.");
 
+  // --- Affichage du lineup ---
   if (arg.length <= 1) {
     await ovl.sendMessage(ms_org, {
       video: { url: "https://files.catbox.moe/z64kuq.mp4" },
@@ -473,22 +473,47 @@ ovlcmd({
       caption: lineup
     }, { quoted: cmd_options.ms });
   }
-  //Modification de LINEUP
- const updates = {};
 
-  const inputName = arg[i + 2];
+  // --- Modification du lineup ---
+  const updates = {};
+  const allCardsNormalized = Object.values(cardsBlueLock).map(c => ({
+    raw: c,
+    norm: pureName(c.name)
+  }));
 
-// Détection de l'OVR dans la saisie (optionnel)
-let inputOvr = null;
-const ovrMatch = inputName.match(/\((\d+)\)/);
-if (ovrMatch) inputOvr = parseInt(ovrMatch[1], 10);
+  for (let i = 1; i < arg.length; i += 3) {
+    const key = arg[i];
+    const eq = arg[i + 1];
+    const val = arg[i + 2];
 
-const playerFormatted = findPlayerInDB(inputName, inputOvr);
-if (!playerFormatted) {
-  return repondre(`⚠️ Joueur introuvable dans la DB : ${inputName}`);
-}
-        updates[`joueur${index}`] = playerFormatted;
+    if (/^j\d+$/i.test(key) && eq === "=") {
+      const index = parseInt(key.slice(1), 10);
+      if (index < 1 || index > 15) continue;
+
+      const valNorm = pureName(val);
+
+      // 1️⃣ Cherche d'abord dans le lineup actuel
+      let card = null;
+      for (let j = 1; j <= 15; j++) {
+        const slot = data[`joueur${j}`];
+        if (slot && slot !== "aucun" && pureName(slot).includes(valNorm)) {
+          card = allCardsNormalized.find(c => c.norm === pureName(slot));
+          if (!card) card = allCardsNormalized.find(c => c.norm.includes(valNorm) || valNorm.includes(c.norm));
+          break;
+        }
       }
+
+      // 2️⃣ Si pas trouvé dans le lineup, cherche dans toute la DB
+      if (!card) {
+        card = allCardsNormalized.find(c => c.norm === valNorm)
+            || allCardsNormalized.find(c => c.norm.includes(valNorm) || valNorm.includes(c.norm));
+      }
+
+      if (!card) return repondre(`⚠️ Joueur introuvable dans la DB : ${val}`);
+
+      // Formatage identique à la boutique
+      const flag = getCountryEmoji(card.raw.country);
+      updates[`joueur${index}`] = `${card.raw.name} (${card.raw.ovr}) ${flag}`;
     }
   }
 
@@ -496,9 +521,10 @@ if (!playerFormatted) {
     return repondre("⚠️ Format incorrect. Utilise : +lineup⚽ j1 = Nom j2 = Nom");
   }
 
-  const message = await updatePlayers(userId, updates);
-  return repondre(message);
+  await updatePlayers(userId, updates);
+  return repondre("✅ Lineup mis à jour avec succès !");
 });
+
 
 ovlcmd({
     nom: "stats_lineup",
