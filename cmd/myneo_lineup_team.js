@@ -13,15 +13,15 @@ const pureName = str => {
   let s = String(str);
   s = s.replace(/.+?/g, " ");
   s = s.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, " ");
-  s = s.replace(/[\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, " ");
+  s = s.replace(/[\u{1F300}-\u{1F6FF}\u{2600}-\u{27BF}]/gu, " ");
   s = s.replace(/[\uFE00-\uFE0F\u200D]/g, " ");
-  s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
-  s = s.replace(/[^0-9a-zA-ZÀ-ÿ\s]/g, " ");
-  s = s.replace(/\s+/g, " ").trim().toLowerCase();
-  return s;
+  s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return s
+    .replace(/[^a-zA-Z0-9\s()]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 };
-const compact = s => pureName(s).replace(/\s+/g, "");
-
 
 // --- EMOJI PAYS (UNICODE SAFE) ---
 const countryEmojis = {
@@ -36,34 +36,25 @@ const getCountryEmoji = country => countryEmojis[country] || "";
 
 
 // --- RECHERCHE JOUEUR DB AVEC OVR ---
-function findPlayerInDB(inputName, inputOvr = null) {
+function findPlayerInDB(inputName) {
   if (!inputName) return null;
 
-  const target = normalizeName(inputName);
+  const target = pureName(inputName);
 
-  // 1️⃣ Tous les joueurs valides
-  const candidates = Object.values(cardsBlueLock).filter(
-    p => p?.name && typeof p.ovr === "number" && p.country
+  // match EXACT seulement
+  const matches = Object.values(cardsBlueLock).filter(p =>
+    p?.name && pureName(p.name) === target
   );
 
-  // 2️⃣ Exact match sur le nom normalisé
-  let exactMatches = candidates.filter(p => normalizeName(p.name) === target);
+  if (!matches.length) return null;
 
-  if (!exactMatches.length) return null;
+  // sécurité : si doublon exact → OVR le plus bas
+  matches.sort((a, b) => a.ovr - b.ovr);
 
-  // 3️⃣ Si on a un OVR fourni, on filtre par OVR
-  if (inputOvr !== null) {
-    exactMatches = exactMatches.filter(p => p.ovr === inputOvr);
-    if (!exactMatches.length) return null; // si aucun match avec cet OVR
-  }
-
-  // 4️⃣ Sinon, on prend le joueur avec le **OVR le plus bas** (version standard)
-  exactMatches.sort((a, b) => a.ovr - b.ovr);
-
-  const player = exactMatches[0];
-  const flag = getCountryEmoji(player.country);
-  return `${player.name} (${player.ovr}) ${flag}`.trim();
+  const p = matches[0];
+  return `${p.name} (${p.ovr}) ${getCountryEmoji(p.country)}`.trim();
 }
+
 
   
 // --- Helper ---
@@ -503,30 +494,28 @@ ovlcmd({
   const updates = {};
 
   for (let i = 1; i < arg.length; i += 3) {
-    const key = arg[i];
-    const eq = arg[i + 1];
-    const val = arg[i + 2];
-
-    if (/^j\d+$/i.test(key) && eq === "=") {
-      const index = parseInt(key.slice(1), 10);
+    if (/^j\d+$/i.test(arg[i]) && arg[i + 1] === "=") {
+      const index = parseInt(arg[i].slice(1), 10);
       if (index < 1 || index > 15) continue;
 
-      const card = findCardByName(val);
-      if (!card) return repondre(`⚠️ Joueur introuvable dans la DB : ${val}`);
+      const inputName = arg[i + 2];
+      const playerFormatted = findPlayerInDB(inputName);
 
-      const flag = getCountryEmoji(card.country);
-      updates[`joueur${index}`] = `${card.name} (${card.ovr}) ${flag}`;
+      if (!playerFormatted) {
+        return repondre(`⚠️ Joueur introuvable dans la DB : ${inputName}`);
+      }
+
+      updates[`joueur${index}`] = playerFormatted;
     }
   }
 
-  if (Object.keys(updates).length === 0) {
-    return repondre("⚠️ Format incorrect. Utilise : +lineup⚽ j1 = Nom j2 = Nom");
+  if (!Object.keys(updates).length) {
+    return repondre("⚠️ Format incorrect. Exemple : +lineup⚽ j3 = Isagi");
   }
 
   await updatePlayers(userId, updates);
   return repondre("✅ Lineup mis à jour avec succès !");
 });
-
 
 ovlcmd({
     nom: "stats_lineup",
