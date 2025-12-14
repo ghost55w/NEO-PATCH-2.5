@@ -8,19 +8,13 @@ const { saveUser: saveLineup, deleteUser: delLineup, getUserData: getLineup, upd
 
 
 // --- NOM PUR pour comparaison ---
+// --- NORMALISATION NOM ---
 const pureName = str => {
   if (!str) return "";
-  let s = String(str);
-  s = s.replace(/.+?/g, " ");
-  s = s.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, " ");
-  s = s.replace(/[\u{1F300}-\u{1F6FF}\u{2600}-\u{27BF}]/gu, " ");
-  s = s.replace(/[\uFE00-\uFE0F\u200D]/g, " ");
-  s = s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  return s
-    .replace(/[^a-zA-Z0-9\s()]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
+  return String(str)
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
 };
 
 // --- EMOJI PAYS (UNICODE SAFE) ---
@@ -39,23 +33,36 @@ const getCountryEmoji = country => countryEmojis[country] || "";
 function findPlayerInDB(inputName) {
   if (!inputName) return null;
 
-  const target = pureName(inputName);
+  const input = pureName(inputName);
+  const wantsNEL = input.includes("nel");
 
-  // match EXACT seulement
-  const matches = Object.values(cardsBlueLock).filter(p =>
-    p?.name && pureName(p.name) === target
+  const players = Object.values(cardsBlueLock);
+
+  // 1️⃣ match exact sur name
+  let exact = players.filter(p =>
+    pureName(p.name) === input
   );
 
-  if (!matches.length) return null;
+  if (exact.length) {
+    exact.sort((a, b) => a.ovr - b.ovr);
+    const p = exact[0];
+    return `${p.name} (${p.ovr}) ${getCountryEmoji(p.country)}`;
+  }
 
-  // sécurité : si doublon exact → OVR le plus bas
-  matches.sort((a, b) => a.ovr - b.ovr);
+  // 2️⃣ match sans NEL (par défaut)
+  let filtered = players.filter(p => {
+    const pname = pureName(p.name);
+    if (!pname.startsWith(input)) return false;
+    if (!wantsNEL && pname.includes("nel")) return false;
+    return true;
+  });
 
-  const p = matches[0];
-  return `${p.name} (${p.ovr}) ${getCountryEmoji(p.country)}`.trim();
+  if (!filtered.length) return null;
+
+  filtered.sort((a, b) => a.ovr - b.ovr);
+  const p = filtered[0];
+  return `${p.name} (${p.ovr}) ${getCountryEmoji(p.country)}`;
 }
-
-
   
 // --- Helper ---
 function normalizeJid(input) {
@@ -430,6 +437,8 @@ ovlcmd({
   react: "📋",
   desc: "Afficher ou modifier l'équipe du joueur.",
 }, async (ms_org, ovl, cmd_options) => {
+
+  try {
   const { arg, repondre, auteur_Message } = cmd_options;
   let userId = auteur_Message;
   if (arg.length >= 1) userId = arg[0];
@@ -499,13 +508,13 @@ ovlcmd({
       if (index < 1 || index > 15) continue;
 
       const inputName = arg[i + 2];
-      const playerFormatted = findPlayerInDB(inputName);
 
-      if (!playerFormatted) {
-        return repondre(`⚠️ Joueur introuvable dans la DB : ${inputName}`);
-      }
+const playerFormatted = findPlayerInDB(inputName);
+if (!playerFormatted) {
+  return repondre(`⚠️ Joueur introuvable dans la DB : ${inputName}`);
+}
 
-      updates[`joueur${index}`] = playerFormatted;
+updates[`joueur${index}`] = playerFormatted;
     }
   }
 
@@ -515,7 +524,17 @@ ovlcmd({
 
   await updatePlayers(userId, updates);
   return repondre("✅ Lineup mis à jour avec succès !");
+    } catch (e) {
+  console.error("❌ LINEUP ERROR:", e);
+  return repondre(
+    `❌ Erreur LINEUP\n` +
+    `Message: ${e.message}\n` +
+    `Stack:\n${e.stack}`
+  );
+  }
 });
+
+
 
 ovlcmd({
     nom: "stats_lineup",
