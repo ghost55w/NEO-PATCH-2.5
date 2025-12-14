@@ -6,6 +6,23 @@ const { saveUser: saveTeam, deleteUser: delTeam, getUserData: getTeam, updateUse
 const { saveUser: saveLineup, deleteUser: delLineup, getUserData: getLineup, updatePlayers, updateStats } = BlueLockFunctions;
 
 
+
+// --- NOM PUR pour comparaison ---
+const pureName = str => {
+  if (!str) return "";
+  let s = String(str);
+  s = s.replace(/.+?/g, " ");
+  s = s.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, " ");
+  s = s.replace(/[\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, " ");
+  s = s.replace(/[\uFE00-\uFE0F\u200D]/g, " ");
+  s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+  s = s.replace(/[^0-9a-zA-ZÀ-ÿ\s]/g, " ");
+  s = s.replace(/\s+/g, " ").trim().toLowerCase();
+  return s;
+};
+const compact = s => pureName(s).replace(/\s+/g, "");
+
+
 // --- EMOJI PAYS (UNICODE SAFE) ---
 const countryEmojis = {
   "Japan": "\u{1F1EF}\u{1F1F5}",   // 🇯🇵
@@ -17,15 +34,6 @@ const countryEmojis = {
 
 const getCountryEmoji = country => countryEmojis[country] || "";
 
-// --- NORMALISATION NOM JOUEUR ---
-function normalizeName(str = "") {
-  return str
-    .toLowerCase()
-    .replace(/\([^)]*\)/g, "")   // enlève (87), (95), etc.
-    .replace(/[\u{1F1E6}-\u{1F1FF}]/gu, "") // enlève 🇯🇵
-    .replace(/[^a-z0-9\s]/gi, "") // enlève tout autre caractère spécial
-    .trim();
-}
 
 // --- RECHERCHE JOUEUR DB AVEC OVR ---
 function findPlayerInDB(inputName, inputOvr = null) {
