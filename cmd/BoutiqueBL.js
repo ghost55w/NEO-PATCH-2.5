@@ -615,14 +615,11 @@ ovlcmd({
   classe: "BLUE_LOCK🔷",
   desc: "Lance un tirage Blue Lock (Deluxe, Super ou Ultra)"
 }, async (ms_org, ovl, { ms, auteur_Message, repondre }) => {
-  console.log("🟢 [TIRAGEBL-0] Commande détectée");
-
   try {
-    console.log("🟢 [TIRAGEBL-1] Auteur :", auteur_Message);
+    console.log("🟢 [TIRAGEBL-0] Commande détectée");
+
     const ficheNeo = await MyNeoFunctions.getUserData(auteur_Message);
     if (!ficheNeo) return repondre(`❌ Aucun joueur trouvé avec l'id : ${auteur_Message}`);
-
-    let lineup = ficheNeo.lineup || Array(15).fill(null);
 
     // --- GIF initial ---
     const gifTirage = "https://files.catbox.moe/jgwato.mp4";
@@ -630,10 +627,11 @@ ovlcmd({
 
     // --- 3 images des tirages ---
     const tiragesAffichage = [
-      { type: "Deluxe", nc: 30, image: "https://files.catbox.moe/2bszsx.jpg", caption: "💠 Tirage Deluxe - 30 NC 🔷\nProbabilités: B 85%, A 60% (>=5 buts)" },
-      { type: "Super", nc: 50, image: "https://files.catbox.moe/4ekp2h.jpg", caption: "💎 Tirage Super - 50 NC 🔷\nProbabilités: A 80%, S 50% (>=10 buts, niv10, OVR>=95 10%)" },
-      { type: "Ultra", nc: 70, image: "https://files.catbox.moe/s1jdub.png", caption: "🏆 Tirage Ultra - 70 NC 🔷\nProbabilités: A 80%, S 65% (>=10 buts, niv10, OVR>=95 20%), SS 30% (>=20 buts, niv20, OVR>=105 10%)" },
+      { type: "Deluxe", nc: 30, image: "https://files.catbox.moe/2bszsx.jpg", caption: "🎉🎊🎁`EVENT BLUELOCK`🎉🎁🎊\n🎰Tirage Deluxe🌀 - 30 NC 🔷\nRequis: (5 Goals⚽)\n╰───────────────────\n                      *🔷BLUELOCK⚽*" },
+      { type: "Super", nc: 50, image: "https://files.catbox.moe/4ekp2h.jpg", caption: "🎉🎊🎁`EVENT BLUELOCK`🎉🎁🎊\n🎰Tirage Super💫 - 50 NC 🔷\nRequis: (10 Goals⚽ / niveau 10 ▲ )\n╰───────────────────\n                      *🔷BLUELOCK⚽*" },
+      { type: "Ultra", nc: 70, image: "https://files.catbox.moe/s1jdub.png", caption: "🎉🎊🎁`EVENT BLUELOCK`🎉🎁🎊\n🎰Tirage Ultra🌟 - 70 NC 🔷\nRequis: (20 Goals⚽ / niveau 20 ▲ )\n╰───────────────────\n                      *🔷BLUELOCK⚽*" },
     ];
+
     for (const t of tiragesAffichage) {
       await ovl.sendMessage(ms_org, { image: { url: t.image }, caption: t.caption }, { quoted: ms });
     }
@@ -683,20 +681,20 @@ ovlcmd({
       return filtres[Math.floor(Math.random() * filtres.length)];
     }
 
-    const cartesTirees = [tirerCarte(typeTirage), tirerCarte(typeTirage)];
-
-    // --- GIF tirage avec compteur simplifié (5 étapes seulement) ---
-    await ovl.sendMessage(ms_org, { video: { url: gifTirage }, caption: "⚽🔷 Tirage encore... 0%" }, { quoted: ms });
-    for (let i = 1; i <= 5; i++) {
-      await ovl.sendMessage(ms_org, { text: `⚽🔷 Tirage encore... ${i*20}%` });
-      await new Promise(res => setTimeout(res, 150)); // 150ms par étape = effet rapide
+    // --- Tirage de 2 cartes différentes ---
+    let cartesTirees = [];
+    while (cartesTirees.length < 2) {
+      const c = tirerCarte(typeTirage);
+      if (!cartesTirees.find(x => x.name === c.name)) cartesTirees.push(c);
     }
 
-    // --- Envoi cartes tirées ---
-    for (let carte of cartesTirees) {
-      await ovl.sendMessage(ms_org, {
-        image: { url: carte.image },
-        caption: `
+   // --- Envoi cartes tirées ---
+await ovl.sendMessage(ms_org, { video: { url: gifTirage }, caption: "⚽🔷 Tirage en cours..." , gifPlayback: true }, { quoted: ms });
+
+for (let carte of cartesTirees) {
+  await ovl.sendMessage(ms_org, {
+    image: { url: carte.image },
+    caption: `
 ╭───〔 🔷 BLUE LOCK CARD ⚽ 〕
 🔹 Joueur : ${carte.name}
 🔹 Country : ${carte.country}
@@ -706,18 +704,64 @@ ovlcmd({
 🔹 Pied : ${carte.pieds}
 ╰───────────────────
 *BLUE🔷LOCK⚽*`
-      }, { quoted: ms });
+  }, { quoted: ms });
+}
+    // --- Demande si ajout dans lineup ---
+    await repondre(
+      "⚠️ Veux-tu ajouter ces cartes dans ton lineup ?\n" +
+      "Réponds par exemple : `oui " +
+      cartesTirees.map((c, i) => `${c.name} en J${i+1}`).join(" et ") +
+      "` pour placer chaque carte.\n" +
+      "Tu as 5 minutes pour répondre, sinon le tirage sera perdu."
+    );
 
-      // Placement automatique dans la première position libre
-      let pos = lineup.findIndex(p => !p);
-      if (pos !== -1) lineup[pos] = `${carte.name} (${carte.ovr}) ${getCountryEmoji(carte.country)}`;
+    const waitForLineup = async (timeout = 300000) => { // 5 minutes
+      try {
+        const r = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: timeout });
+        return (r?.message?.extendedTextMessage?.text || r?.message?.conversation || "").trim();
+      } catch { return ""; }
+    };
+
+    const response = await waitForLineup();
+    if (!response || !response.toLowerCase().startsWith("oui")) {
+      return repondre("⏱️ Temps écoulé ou refusé. Les cartes ne seront pas ajoutées au lineup.");
     }
 
-    await MyNeoFunctions.updateUser(auteur_Message, { lineup });
-    return repondre("✅ Tirage terminé et toutes les cartes placées avec succès ! ⚽🔷");
+    // --- Extraction positions ---
+    const positions = response.match(/j(\d+)/gi)?.map(p => parseInt(p.replace("j",""),10)) || [];
+    if (positions.length !== cartesTirees.length) {
+      return repondre(`❌ Nombre de positions fourni (${positions.length}) ne correspond pas au nombre de cartes (${cartesTirees.length}). Aucune carte ajoutée.`);
+    }
+
+    // --- Récupération lineup ---
+    let ficheLineup = await getLineup(auteur_Message);
+    if (!ficheLineup) return repondre("❌ Impossible de récupérer ton lineup.");
+    ficheLineup = ficheLineup.toJSON ? ficheLineup.toJSON() : ficheLineup;
+
+    // --- Vérification positions libres et ajout ---
+    for (let i = 0; i < cartesTirees.length; i++) {
+      const pos = positions[i];
+      if (pos < 1 || pos > 15) {
+        return repondre(`❌ Position invalide : J${pos}. Aucune carte ajoutée.`);
+      }
+      if (ficheLineup[`joueur${pos}`] && ficheLineup[`joueur${pos}`] !== "aucun") {
+        return repondre(`❌ Position J${pos} déjà occupée. Aucune carte ajoutée.`);
+      }
+    }
+
+    // --- Ajout des cartes ---
+    for (let i = 0; i < cartesTirees.length; i++) {
+      const carte = cartesTirees[i];
+      const pos = positions[i];
+      ficheLineup[`joueur${pos}`] = `${carte.name} (${carte.ovr}) ${getCountryEmoji(carte.country)}`;
+    }
+
+    await updatePlayers(auteur_Message, ficheLineup);
+
+    return repondre(`✅ Les cartes ont été ajoutées à ton lineup aux positions : ${positions.map(p=>"J"+p).join(", ")}`);
 
   } catch (e) {
     console.error("🔴 [TIRAGEBL-FATAL]", e);
     return repondre("❌ Erreur lors du tirage : " + e.message);
   }
-});
+}); 
