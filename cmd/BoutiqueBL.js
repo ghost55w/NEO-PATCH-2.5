@@ -473,12 +473,18 @@ if (arg.length < 3)
     if (!Object.keys(updates).length)
       return repondre("⚠️ Aucun changement effectué.");
 
-    await updatePlayers(auteur_Message, updates);
+    if (!Object.keys(updates).length)
+  return repondre("⚠️ Aucun changement effectué.");
 
-// 🔄 Recharger lineup pour affichage
-let data = await getLineup(auteur_Message);
-data = data.toJSON ? data.toJSON() : data;
+await updatePlayers(auteur_Message, updates);
 
+// ✅ MESSAGE DE CONFIRMATION
+await repondre(
+  "✅ Joueur(s) ajouté(s) avec succès ⚽\n" +
+  Object.entries(updates)
+    .map(([k, v]) => `• ${k.replace("joueur", "J")} → ${v}`)
+    .join("\n")
+);
 
   } catch (e) {
     console.error("❌ LINEUP ERROR:", e);
@@ -576,25 +582,42 @@ ovlcmd({
   nom_cmd: "del",
   react: "❌",
   classe: "NEO_GAMES⚽"
-}, async (ms_org, ovl, { ms, auteur_Message, repondre }) => {
+}, async (ms_org, ovl, { ms, auteur_Message, arg, repondre }) => {
   try {
     let ficheLineup = await getLineup(auteur_Message);
     if (!ficheLineup) return repondre("❌ Impossible de récupérer ton lineup.");
     ficheLineup = ficheLineup.toJSON ? ficheLineup.toJSON() : ficheLineup;
 
-    const regex = /\+del\s+J(\d{1,2})/i;
-    const match = ms?.message?.conversation?.match(regex);
-    if (!match) return repondre("❌ Format invalide. Utilise : +del J2");
+    if (!arg || !arg.length)
+      return repondre("❌ Utilise : +del j1 j2 j3");
 
-    const pos = parseInt(match[1], 10);
-    if (pos < 1 || pos > 15) return repondre("❌ Position invalide (1-15).");
+    const deleted = [];
 
-    ficheLineup[`joueur${pos}`] = "aucun";
+    for (const a of arg) {
+      const m = a.match(/^j(\d{1,2})$/i);
+      if (!m) continue;
+
+      const pos = parseInt(m[1], 10);
+      if (pos < 1 || pos > 15) continue;
+
+      if (ficheLineup[`joueur${pos}`] && ficheLineup[`joueur${pos}`] !== "aucun") {
+        ficheLineup[`joueur${pos}`] = "aucun";
+        deleted.push(`J${pos}`);
+      }
+    }
+
+    if (!deleted.length)
+      return repondre("⚠️ Aucun joueur supprimé.");
+
     await updatePlayers(auteur_Message, ficheLineup);
 
-    await repondre(`✅ Joueur en position J${pos} supprimé avec succès !`);
+    return repondre(
+      "✅ Joueur(s) supprimé(s) avec succès ❌\n" +
+      deleted.join(", ")
+    );
+
   } catch (e) {
     console.error("Erreur commande del:", e);
-    return repondre("❌ Erreur interne lors de la suppression du joueur.");
+    return repondre("❌ Erreur interne lors de la suppression.");
   }
 });
