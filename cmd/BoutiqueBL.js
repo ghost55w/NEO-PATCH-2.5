@@ -612,7 +612,7 @@ ovlcmd({
 
 // --- COMMANDE TIRAGE BLUE LOCK ---
 ovlcmd({
-  nom_cmd: "TirageBL",
+  nom_cmd: "tirageBL",
   react: "🎲",
   classe: "BLUE_LOCK🔷",
   desc: "Lance un tirage Blue Lock (Deluxe, Super ou Ultra)"
