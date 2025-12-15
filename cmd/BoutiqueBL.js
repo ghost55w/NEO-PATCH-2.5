@@ -37,7 +37,12 @@ const countryEmojis = {
   "France": "\u{1F1EB}\u{1F1F7}",//🇫🇷
   "Brazil": "\u{1F1E7}\u{1F1F7}",//🇧🇷
   "Germany": "\u{1F1E9}\u{1F1EA}",//🇩🇪
-  "Malta": "\u{1F1F2}\u{1F1F9}"//🇲🇹
+  "Malta": "\u{1F1F2}\u{1F1F9}", //🇲🇹
+  "England": "\u{1F1EC}\u{1F1E7}", // 🇬🇧 
+  "Argentina": "\u{1F1E6}\u{1F1F7}", // 🇦🇷
+  "Spain": "\u{1F1EA}\u{1F1F8}", // 🇪🇸
+  "Nigeria": "\u{1F1F3}\u{1F1EC}", // 🇳🇬
+  "Italy": "\u{1F1EE}\u{1F1F9}", // 🇮🇹
 };
 const getCountryEmoji = country => countryEmojis[country] || "";
 
