@@ -344,9 +344,52 @@ ovlcmd({
   classe: "NEO_GAMES⚽"
 }, async (ms_org, ovl, { ms, auteur_Message, arg, repondre }) => {
   try {
-    if (!arg || arg.length < 3)
-      return repondre("⚠️ Format : +lineup⚽ j2 = Kuon");
+    // 🎬 GIF AVANT TOUT (affichage OU modification)
+if (!arg || arg.length <= 1) {
+  await ovl.sendMessage(ms_org, {
+    video: { url: "https://files.catbox.moe/z64kuq.mp4" },
+    caption: "",
+    gifPlayback: true
+  }, { quoted: ms });
+}
+    // 📋 AFFICHAGE SIMPLE DU LINEUP
+if (!arg || arg.length === 0) {
+  let data = await getLineup(auteur_Message);
+  if (!data) return repondre("❌ Impossible de récupérer ton lineup.");
+  data = data.toJSON ? data.toJSON() : data;
 
+  const lineup = `░░ *👥SQUAD⚽🥅*: ${data.nom || "Neo"}
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▱▱▱▱
+1  👤(AG) ${data.joueur1 || "aucun"} 
+2  👤(AC) ${data.joueur2 || "aucun"} 
+3  👤(AD) ${data.joueur3 || "aucun"} 
+4  👤(MG) ${data.joueur4 || "aucun"} 
+5  👤(MC) ${data.joueur5 || "aucun"} 
+6  👤(MD) ${data.joueur6 || "aucun"} 
+7  👤(DG) ${data.joueur7 || "aucun"}  
+8  👤(DC) ${data.joueur8 || "aucun"} 
+9  👤(DC) ${data.joueur9 || "aucun"}  
+10 👤(DD) ${data.joueur10 || "aucun"}
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▱▱▱▱
+*🔷BENCH🥅*:
+11 👤${data.joueur11 || "aucun"}
+12 👤${data.joueur12 || "aucun"}
+13 👤${data.joueur13 || "aucun"}
+14 👤${data.joueur14 || "aucun"}
+15 👤${data.joueur15 || "aucun"}
+╰───────────────────
+                    *BLUE🔷LOCK⚽*`;
+
+  await ovl.sendMessage(ms_org, {
+    image: { url: "https://files.catbox.moe/p94q3m.jpg" },
+    caption: lineup
+  }, { quoted: ms });
+
+  return;
+}
+// ⚠️ FORMAT INVALIDE (MODIFICATION)
+if (arg.length < 3)
+  return repondre("⚠️ Format : +lineup⚽ j2 = Kuon");
     let ficheLineup = await getLineup(auteur_Message);
     if (!ficheLineup) return repondre("❌ Impossible de récupérer ton lineup.");
     ficheLineup = ficheLineup.toJSON ? ficheLineup.toJSON() : ficheLineup;
@@ -436,42 +479,12 @@ ovlcmd({
 let data = await getLineup(auteur_Message);
 data = data.toJSON ? data.toJSON() : data;
 
-// 📋 AFFICHAGE LINEUP
-const lineup = `░░ *👥SQUAD⚽🥅*: ${data.nom || "BLUE LOCK"}
-▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▱▱▱▱
-1  👤(AG) ${data.joueur1 || "aucun"} 
-2  👤(AC) ${data.joueur2 || "aucun"} 
-3  👤(AD) ${data.joueur3 || "aucun"} 
-4  👤(MG) ${data.joueur4 || "aucun"} 
-5  👤(MC) ${data.joueur5 || "aucun"} 
-6  👤(MD) ${data.joueur6 || "aucun"} 
-7  👤(DG) ${data.joueur7 || "aucun"}  
-8  👤(DC) ${data.joueur8 || "aucun"} 
-9  👤(DC) ${data.joueur9 || "aucun"}  
-10 👤(DD) ${data.joueur10 || "aucun"}
-▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▱▱▱▱
-*🔷BENCH🥅*:
-11 👤${data.joueur11 || "aucun"}
-12 👤${data.joueur12 || "aucun"}
-13 👤${data.joueur13 || "aucun"}
-14 👤${data.joueur14 || "aucun"}
-15 👤${data.joueur15 || "aucun"}
-╰───────────────────
-                    *BLUE🔷LOCK⚽*`;
-
-await ovl.sendMessage(ms_org, {
-  image: { url: "https://files.catbox.moe/p94q3m.jpg" },
-  caption: lineup
-}, { quoted: ms });
-
-return;
 
   } catch (e) {
     console.error("❌ LINEUP ERROR:", e);
     return repondre(`❌ Erreur LINEUP\n${e.message}`);
   }
 });
-
 
 // --- SUBSTITUTION LINEUP ---
 ovlcmd({
