@@ -616,8 +616,6 @@ ovlcmd({
   desc: "Lance un tirage Blue Lock (Deluxe, Super ou Ultra)"
 }, async (ms_org, ovl, { ms, auteur_Message, repondre }) => {
   try {
-    console.log("🟢 [TIRAGEBL-0] Commande détectée");
-
     const ficheNeo = await MyNeoFunctions.getUserData(auteur_Message);
     if (!ficheNeo) return repondre(`❌ Aucun joueur trouvé avec l'id : ${auteur_Message}`);
 
@@ -636,7 +634,7 @@ ovlcmd({
       await ovl.sendMessage(ms_org, { image: { url: t.image }, caption: t.caption }, { quoted: ms });
     }
 
-    await repondre("⚠️ Choisis ton tirage : *Deluxe*, *Super* ou *Ultra*");
+    await repondre("⚠️ Choisis ton tirage : *Deluxe*, *Super* ou *Ultra* (ou `close` pour fermer la session)");
 
     // --- Demande type tirage ---
     const demanderType = async (tentative = 1) => {
@@ -644,11 +642,20 @@ ovlcmd({
       const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
       const texte = rep?.message?.extendedTextMessage?.text || rep?.message?.conversation || "";
       const r = texte.toLowerCase();
+      if (r === "close") throw new Error("SessionClose");
       if (["deluxe","super","ultra"].includes(r)) return r;
       await repondre("⚠️ Choix invalide. Réponds par *Deluxe*, *Super* ou *Ultra*.");
       return demanderType(tentative + 1);
     };
-    const typeTirage = await demanderType();
+
+    let typeTirage;
+    try {
+      typeTirage = await demanderType();
+    } catch (e) {
+      if (e.message === "SessionClose") return repondre("✅ Session de tirage fermée.");
+      throw e;
+    }
+
     const ncTirage = tiragesAffichage.find(t => t.type.toLowerCase() === typeTirage).nc;
     if ((ficheNeo.nc || 0) < ncTirage) return repondre(`❌ Pas assez de NC 🔷 (il te faut ${ncTirage})`);
 
@@ -657,6 +664,12 @@ ovlcmd({
       nc: ficheNeo.nc - ncTirage,
       ns: (ficheNeo.ns || 0) + 5
     });
+
+    // --- Message intermédiaire NC / NS ---
+    await repondre(
+      `💳 ${ncTirage} NC 🔷 ont été retirés.\n` +
+      `👑 +5 Royalities ajoutés ! 🎉`
+    );
 
     // --- Fonction tirage avec probabilités ---
     function tirerCarte(type) {
@@ -688,13 +701,13 @@ ovlcmd({
       if (!cartesTirees.find(x => x.name === c.name)) cartesTirees.push(c);
     }
 
-   // --- Envoi cartes tirées ---
-await ovl.sendMessage(ms_org, { video: { url: gifTirage }, caption: "⚽🔷 Tirage en cours..." , gifPlayback: true }, { quoted: ms });
+    // --- Envoi GIF tirage + cartes ---
+    await ovl.sendMessage(ms_org, { video: { url: gifTirage }, caption: "⚽🔷 Tirage en cours..." , gifPlayback: true }, { quoted: ms });
 
-for (let carte of cartesTirees) {
-  await ovl.sendMessage(ms_org, {
-    image: { url: carte.image },
-    caption: `
+    for (let carte of cartesTirees) {
+      await ovl.sendMessage(ms_org, {
+        image: { url: carte.image },
+        caption: `
 ╭───〔 🔷 BLUE LOCK CARD ⚽ 〕
 🔹 Joueur : ${carte.name}
 🔹 Country : ${carte.country}
@@ -704,18 +717,20 @@ for (let carte of cartesTirees) {
 🔹 Pied : ${carte.pieds}
 ╰───────────────────
 *BLUE🔷LOCK⚽*`
-  }, { quoted: ms });
-}
+      }, { quoted: ms });
+    }
+
     // --- Demande si ajout dans lineup ---
     await repondre(
       "⚠️ Veux-tu ajouter ces cartes dans ton lineup ?\n" +
       "Réponds par exemple : `oui " +
       cartesTirees.map((c, i) => `${c.name} en J${i+1}`).join(" et ") +
       "` pour placer chaque carte.\n" +
-      "Tu as 5 minutes pour répondre, sinon le tirage sera perdu."
+      "Tu as 5 minutes pour répondre, sinon le tirage sera perdu.\n" +
+      "Tu peux aussi taper `close` pour fermer la session."
     );
 
-    const waitForLineup = async (timeout = 300000) => { // 5 minutes
+    const waitForLineup = async (timeout = 300000) => {
       try {
         const r = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: timeout });
         return (r?.message?.extendedTextMessage?.text || r?.message?.conversation || "").trim();
@@ -723,15 +738,13 @@ for (let carte of cartesTirees) {
     };
 
     const response = await waitForLineup();
-    if (!response || !response.toLowerCase().startsWith("oui")) {
-      return repondre("⏱️ Temps écoulé ou refusé. Les cartes ne seront pas ajoutées au lineup.");
-    }
+    if (!response) return repondre("⏱️ Temps écoulé. Les cartes ne seront pas ajoutées au lineup.");
+    if (response.toLowerCase() === "close") return repondre("✅ Session fermée par l'utilisateur.");
+    if (!response.toLowerCase().startsWith("oui")) return repondre("❌ Réponse invalide. Les cartes ne seront pas ajoutées.");
 
     // --- Extraction positions ---
     const positions = response.match(/j(\d+)/gi)?.map(p => parseInt(p.replace("j",""),10)) || [];
-    if (positions.length !== cartesTirees.length) {
-      return repondre(`❌ Nombre de positions fourni (${positions.length}) ne correspond pas au nombre de cartes (${cartesTirees.length}). Aucune carte ajoutée.`);
-    }
+    if (positions.length !== cartesTirees.length) return repondre(`❌ Nombre de positions fourni (${positions.length}) ne correspond pas au nombre de cartes (${cartesTirees.length}). Aucune carte ajoutée.`);
 
     // --- Récupération lineup ---
     let ficheLineup = await getLineup(auteur_Message);
@@ -741,12 +754,8 @@ for (let carte of cartesTirees) {
     // --- Vérification positions libres et ajout ---
     for (let i = 0; i < cartesTirees.length; i++) {
       const pos = positions[i];
-      if (pos < 1 || pos > 15) {
-        return repondre(`❌ Position invalide : J${pos}. Aucune carte ajoutée.`);
-      }
-      if (ficheLineup[`joueur${pos}`] && ficheLineup[`joueur${pos}`] !== "aucun") {
-        return repondre(`❌ Position J${pos} déjà occupée. Aucune carte ajoutée.`);
-      }
+      if (pos < 1 || pos > 15) return repondre(`❌ Position invalide : J${pos}. Aucune carte ajoutée.`);
+      if (ficheLineup[`joueur${pos}`] && ficheLineup[`joueur${pos}`] !== "aucun") return repondre(`❌ Position J${pos} déjà occupée. Aucune carte ajoutée.`);
     }
 
     // --- Ajout des cartes ---
@@ -757,11 +766,11 @@ for (let carte of cartesTirees) {
     }
 
     await updatePlayers(auteur_Message, ficheLineup);
-
     return repondre(`✅ Les cartes ont été ajoutées à ton lineup aux positions : ${positions.map(p=>"J"+p).join(", ")}`);
 
   } catch (e) {
+    if (e.message === "SessionClose") return repondre("✅ Session fermée par l'utilisateur.");
     console.error("🔴 [TIRAGEBL-FATAL]", e);
     return repondre("❌ Erreur lors du tirage : " + e.message);
   }
-}); 
+});          
