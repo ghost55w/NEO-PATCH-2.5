@@ -583,7 +583,6 @@ ovlcmd({
     for (const a of arg) {
       const m = a.match(/^j(\d{1,2})$/i);
       if (!m) continue;
-
       const pos = parseInt(m[1], 10);
       if (pos < 1 || pos > 15) continue;
 
@@ -612,154 +611,116 @@ ovlcmd({
 
 // --- COMMANDE TIRAGE BLUE LOCK ---
 ovlcmd({
-  nom_cmd: "tiragebl", // 
+  nom_cmd: "tirageBL",
   react: "🎲",
   classe: "BLUE_LOCK🔷",
   desc: "Lance un tirage Blue Lock (Deluxe, Super ou Ultra)"
 }, async (ms_org, ovl, { ms, auteur_Message, repondre }) => {
 
-  console.log("🟢 [TIRAGEBL-0] Commande détectée");
-
   try {
-    console.log("🟢 [TIRAGEBL-1] Auteur :", auteur_Message);
-
-    // --- Récupération de l'utilisateur ---
     const ficheNeo = await MyNeoFunctions.getUserData(auteur_Message);
-    console.log("🟢 [TIRAGEBL-2] ficheNeo =", ficheNeo);
+    if (!ficheNeo) return repondre(`❌ Aucun joueur trouvé avec l'id : ${auteur_Message}`);
 
-    if (!ficheNeo) {
-      console.log("🔴 [TIRAGEBL-ERR] ficheNeo introuvable");
-      return repondre(`❌ Aucun joueur trouvé avec l'id : ${auteur_Message}`);
-    }
-
-    // --- Préparation lineup ---
     let lineup = ficheNeo.lineup || Array(15).fill(null);
-    console.log("🟢 [TIRAGEBL-3] Lineup OK");
 
-    const timeoutGlobal = 5 * 60 * 1000;
-    const startTime = Date.now();
-
-    // --- GIF de tirage ---
+    // GIF initial
     const gifTirage = "https://files.catbox.moe/jgwato.mp4";
-    console.log("🟢 [TIRAGEBL-4] Envoi GIF tirage");
-
     await ovl.sendMessage(ms_org, {
       video: { url: gifTirage },
       caption: "",
       gifPlayback: true
     }, { quoted: ms });
 
-    // --- Choix du type de tirage ---
-    const tirages = [
-      { type: "deluxe", nc: 30 },
-      { type: "super", nc: 50 },
-      { type: "ultra", nc: 70 }
+    // --------------- Envoi des 3 images des tirages ---------------
+    const tiragesAffichage = [
+      { type: "Deluxe", nc: 30, image: "https://files.catbox.moe/2bszsx.jpg", caption: "💠 Tirage Deluxe - 30 NC 🔷\nProbabilités: B 85%, A 60% (>=5 buts)" },
+      { type: "Super", nc: 50, image: "https://files.catbox.moe/4ekp2h.jpg", caption: "💎 Tirage Super - 50 NC 🔷\nProbabilités: A 80%, S 50% (>=10 buts, niv10, OVR>=95 10%)" },
+      { type: "Ultra", nc: 70, image: "https://files.catbox.moe/s1jdub.png", caption: "🏆 Tirage Ultra - 70 NC 🔷\nProbabilités: A 80%, S 65% (>=10 buts, niv10, OVR>=95 20%), SS 30% (>=20 buts, niv20, OVR>=105 10%)" },
     ];
+    for (const t of tiragesAffichage) {
+      await ovl.sendMessage(ms_org, { image: { url: t.image }, caption: t.caption }, { quoted: ms });
+    }
 
-    console.log("🟢 [TIRAGEBL-5] Demande type tirage");
     await repondre("⚠️ Choisis ton tirage : *Deluxe*, *Super* ou *Ultra*");
 
     const demanderType = async (tentative = 1) => {
-      console.log(`🟡 [TIRAGEBL-6] Tentative type (${tentative})`);
-
       if (tentative > 3) throw new Error("MaxAttempts");
-
       const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
-      console.log("🟢 [TIRAGEBL-7] Réponse brute =", rep);
-
-      const texte =
-        rep?.message?.extendedTextMessage?.text ||
-        rep?.message?.conversation ||
-        "";
-
+      const texte = rep?.message?.extendedTextMessage?.text || rep?.message?.conversation || "";
       const r = texte.toLowerCase();
-      console.log("🟢 [TIRAGEBL-8] Texte =", r);
-
-      if (["deluxe", "super", "ultra"].includes(r)) return r;
-
+      if (["deluxe","super","ultra"].includes(r)) return r;
       await repondre("⚠️ Choix invalide. Réponds par *Deluxe*, *Super* ou *Ultra*.");
       return demanderType(tentative + 1);
     };
-
     const typeTirage = await demanderType();
-    console.log("🟢 [TIRAGEBL-9] Type choisi =", typeTirage);
+    const ncTirage = tiragesAffichage.find(t => t.type.toLowerCase() === typeTirage).nc;
+    if ((ficheNeo.nc || 0) < ncTirage) return repondre(`❌ Pas assez de NC 🔷 (il te faut ${ncTirage})`);
 
-    const tirageChoisi = tirages.find(t => t.type === typeTirage);
-
-    if ((ficheNeo.nc || 0) < tirageChoisi.nc) {
-      console.log("🔴 [TIRAGEBL-ERR] NC insuffisants");
-      return repondre(`❌ Pas assez de NC 🔷 (il te faut ${tirageChoisi.nc})`);
-    }
-
-    // --- Débit NC ---
+    // Débit NC + NS royalities
     await MyNeoFunctions.updateUser(auteur_Message, {
-      nc: ficheNeo.nc - tirageChoisi.nc
+      nc: ficheNeo.nc - ncTirage,
+      ns: (ficheNeo.ns || 0) + 5
     });
 
-    console.log("🟢 [TIRAGEBL-10] NC débités");
-
-    await repondre(
-      `🔷 ${tirageChoisi.nc} NC retirés. Nouveau solde : ${ficheNeo.nc - tirageChoisi.nc} NC`
-    );
-
-    // --- Tirage des cartes ---
-    const cartes = Object.values(cardsBlueLock);
-    console.log("🟢 [TIRAGEBL-11] Total cartes =", cartes.length);
-
-    const cartesTirees = [];
-
-    for (let i = 0; i < 2; i++) {
-      let filtrées = cartes.filter(c => {
-        if (typeTirage === "deluxe") return c.rank === "B" || c.rank === "A";
-        if (typeTirage === "super") return c.rank === "A" || c.rank === "S";
-        if (typeTirage === "ultra") return c.rank === "A" || c.rank === "S" || c.rank === "SS";
+    // --- Fonction probabilités originales ---
+    function tirerCarte(type) {
+      const cartes = Object.values(cardsBlueLock);
+      let filtres = cartes.filter(c => {
+        if (type === "deluxe") {
+          if (c.rank === "B") return Math.random() <= 0.85;
+          if (c.rank === "A") return (ficheNeo.buts >= 5) && Math.random() <= 0.60;
+        }
+        if (type === "super") {
+          if (c.rank === "A") return Math.random() <= 0.80;
+          if (c.rank === "S") return (ficheNeo.buts >= 10 && ficheNeo.niveau >= 10) && (c.ovr >= 95 ? Math.random() <= 0.10 : Math.random() <= 0.50);
+        }
+        if (type === "ultra") {
+          if (c.rank === "A") return Math.random() <= 0.80;
+          if (c.rank === "S") return (ficheNeo.buts >= 10 && ficheNeo.niveau >= 10) && (c.ovr >= 95 ? Math.random() <= 0.20 : Math.random() <= 0.65);
+          if (c.rank === "SS") return (ficheNeo.buts >= 20 && ficheNeo.niveau >= 20) && (c.ovr >= 105 ? Math.random() <= 0.10 : Math.random() <= 0.30);
+        }
         return false;
       });
-
-      console.log(`🟢 [TIRAGEBL-12] Pool ${i} =`, filtrées.length);
-      cartesTirees.push(filtrées[Math.floor(Math.random() * filtrées.length)]);
+      if (filtres.length === 0) filtres = cartes;
+      return filtres[Math.floor(Math.random() * filtres.length)];
     }
 
-    console.log("🟢 [TIRAGEBL-13] Cartes tirées =", cartesTirees.map(c => c.name));
+    const cartesTirees = [tirerCarte(typeTirage), tirerCarte(typeTirage)];
 
-    await ovl.sendMessage(ms_org, {
-      video: { url: gifTirage },
-      caption: "🎲 Tirage en cours..."
-    }, { quoted: ms });
+    // --- GIF tirage avec compteur 1→100% ---
+    await ovl.sendMessage(ms_org, { video: { url: gifTirage }, caption: "⚽🔷 Tirage encore... 0%" }, { quoted: ms });
+    for (let i = 1; i <= 100; i++) {
+      await ovl.sendMessage(ms_org, { text: `⚽🔷 Tirage encore... ${i}%` });
+      await new Promise(res => setTimeout(res, 30)); // 30ms par étape, ajuste pour vitesse
+    }
 
-    // --- Placement des cartes ---
+    // --- Envoi des cartes tirées avec description ---
     for (let carte of cartesTirees) {
-      console.log("🟢 [TIRAGEBL-14] Placement carte =", carte.name);
+      await ovl.sendMessage(ms_org, {
+        image: { url: carte.image },
+        caption: `
+╭───〔 🔷 BLUE LOCK CARD ⚽ 〕
+🔹 Joueur : ${carte.name}
+🔹 Country : ${carte.country}
+🔹 Rank : ${carte.rank}
+🔹 OVR : ${carte.ovr}
+🔹 Taille : ${carte.taille}
+🔹 Pied : ${carte.pieds}
+╰───────────────────
+*BLUE🔷LOCK⚽*`
+      }, { quoted: ms });
 
-      await repondre(
-        `📌 Où veux-tu placer la carte *${carte.name}* (${carte.ovr}) ? Réponds par J1 à J15`
-      );
-
-      const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
-      console.log("🟢 [TIRAGEBL-15] Réponse placement =", rep);
-
-      const txt =
-        rep?.message?.extendedTextMessage?.text ||
-        rep?.message?.conversation ||
-        "";
-
-      const index = parseInt(txt.replace(/j/i, ""), 10) - 1;
-
-      if (index < 0 || index >= 15) {
-        console.log("🔴 [TIRAGEBL-ERR] Position invalide");
-        return repondre("❌ Position invalide.");
-      }
-
-      lineup[index] =
-        `${carte.name} (${carte.ovr}) ${getCountryEmoji(carte.country)}`;
+      // Placement automatique dans la première position libre
+      let pos = lineup.findIndex(p => !p);
+      if (pos !== -1) lineup[pos] = `${carte.name} (${carte.ovr}) ${getCountryEmoji(carte.country)}`;
     }
 
-    console.log("🟢 [TIRAGEBL-16] Mise à jour finale lineup");
+    // Update final lineup
     await MyNeoFunctions.updateUser(auteur_Message, { lineup });
 
     return repondre("✅ Tirage terminé et toutes les cartes placées avec succès ! ⚽🔷");
 
-  } catch (e) {
+  } catch(e) {
     console.error("🔴 [TIRAGEBL-FATAL]", e);
     return repondre("❌ Erreur lors du tirage : " + e.message);
   }
