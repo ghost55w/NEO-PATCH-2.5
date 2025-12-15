@@ -625,7 +625,7 @@ ovlcmd({
     const timeoutGlobal = 5 * 60 * 1000; // 5 minutes
 
     // --- GIF de tirage ---
-    const gifTirage = "https://files.catbox.moe/gaksn8.webp";
+    const gifTirage = "https://files.catbox.moe/jgwato.mp4";
     await ovl.sendMessage(ms_org, {
       video: { url: gifTirage },
       caption: "🎲 Prépare-toi pour le tirage...",
