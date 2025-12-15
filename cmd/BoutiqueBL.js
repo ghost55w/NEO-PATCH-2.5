@@ -618,25 +618,30 @@ ovlcmd({
   desc: "Lance un tirage Blue Lock (Deluxe, Super ou Ultra)"
 }, async (ms_org, ovl, { ms, auteur_Message, repondre }) => {
   try {
+    console.log("Commande +tirageBL déclenchée pour :", auteur_Message);
+
+    // --- Récupération de l'utilisateur ---
     const ficheNeo = await MyNeoFunctions.getUserData(auteur_Message);
     if (!ficheNeo) return repondre(`❌ Aucun joueur trouvé avec l'id : ${auteur_Message}`);
 
-    const lineup = ficheNeo.lineup || Array(15).fill(null);
-    const timeoutGlobal = 5 * 60 * 1000; // 5 minutes
+    // --- Préparation lineup ---
+    let lineup = ficheNeo.lineup || Array(15).fill(null);
+    const timeoutGlobal = 5 * 60 * 1000;
+    const startTime = Date.now();
 
     // --- GIF de tirage ---
     const gifTirage = "https://files.catbox.moe/jgwato.mp4";
     await ovl.sendMessage(ms_org, {
       video: { url: gifTirage },
-      caption: "🎲 Prépare-toi pour le tirage...",
+      caption: "",
       gifPlayback: true
     }, { quoted: ms });
 
-    // --- Définition des types de tirage ---
+    // --- Choix du type de tirage ---
     const tirages = [
-      { type: "Deluxe", nc: 30 },
-      { type: "Super", nc: 50 },
-      { type: "Ultra", nc: 70 }
+      { type: "deluxe", nc: 30 },
+      { type: "super", nc: 50 },
+      { type: "ultra", nc: 70 }
     ];
 
     await repondre("⚠️ Choisis ton tirage : *Deluxe*, *Super* ou *Ultra*");
@@ -644,54 +649,40 @@ ovlcmd({
     const demanderType = async (tentative = 1) => {
       if (tentative > 3) throw new Error("MaxAttempts");
       const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
-      const texte = rep.message?.extendedTextMessage?.text || rep.message?.conversation || "";
+      const texte = rep?.message?.extendedTextMessage?.text || rep?.message?.conversation || "";
       const r = texte.toLowerCase();
       if (["deluxe", "super", "ultra"].includes(r)) return r;
       await repondre("⚠️ Choix invalide. Réponds par *Deluxe*, *Super* ou *Ultra*.");
-      return await demanderType(tentative + 1);
+      return demanderType(tentative + 1);
     };
 
     const typeTirage = await demanderType();
-    const tirageChoisi = tirages.find(t => t.type.toLowerCase() === typeTirage);
+    const tirageChoisi = tirages.find(t => t.type === typeTirage);
 
-    // --- Vérification NC ---
     if ((ficheNeo.nc || 0) < tirageChoisi.nc)
-      return repondre(`❌ Tu n’as pas assez de NC 🔷 (il te faut ${tirageChoisi.nc})`);
-    await MyNeoFunctions.updateUser(auteur_Message, { nc: (ficheNeo.nc || 0) - tirageChoisi.nc });
-    await repondre(`🔷 *${tirageChoisi.nc} NC* retirés. Nouveau solde : *${(ficheNeo.nc || 0) - tirageChoisi.nc} NC*`);
+      return repondre(`❌ Pas assez de NC 🔷 (il te faut ${tirageChoisi.nc})`);
 
-    // --- Tirage cartes ---
-    function tirerCarte(type) {
-      const cartes = Object.values(cardsBlueLock);
-      let filtres = cartes.filter(c => {
-        if (type === "deluxe") {
-          if (c.rank === "B") return Math.random() <= 0.85;
-          if (c.rank === "A") return (ficheNeo.buts >= 5) && Math.random() <= 0.60;
-        }
-        if (type === "super") {
-          if (c.rank === "A") return Math.random() <= 0.80;
-          if (c.rank === "S") return (ficheNeo.buts >= 10 && ficheNeo.niveau >= 10) && (c.ovr >= 95 ? Math.random() <= 0.10 : Math.random() <= 0.50);
-        }
-        if (type === "ultra") {
-          if (c.rank === "A") return Math.random() <= 0.80;
-          if (c.rank === "S") return (ficheNeo.buts >= 10 && ficheNeo.niveau >= 10) && (c.ovr >= 95 ? Math.random() <= 0.20 : Math.random() <= 0.65);
-          if (c.rank === "SS") return (ficheNeo.buts >= 20 && ficheNeo.niveau >= 20) && (c.ovr >= 105 ? Math.random() <= 0.10 : Math.random() <= 0.30);
-        }
+    await MyNeoFunctions.updateUser(auteur_Message, { nc: ficheNeo.nc - tirageChoisi.nc });
+    await repondre(`🔷 ${tirageChoisi.nc} NC retirés. Nouveau solde : ${ficheNeo.nc - tirageChoisi.nc} NC`);
+
+    // --- Tirage des cartes ---
+    const cartesTirees = [];
+    const cartes = Object.values(cardsBlueLock);
+
+    for (let i = 0; i < 2; i++) {
+      let filtrées = cartes.filter(c => {
+        if (typeTirage === "deluxe") return c.rank === "B" || c.rank === "A";
+        if (typeTirage === "super") return c.rank === "A" || c.rank === "S";
+        if (typeTirage === "ultra") return c.rank === "A" || c.rank === "S" || c.rank === "SS";
         return false;
       });
-      if (filtres.length === 0) filtres = cartes; // fallback
-      return filtres[Math.floor(Math.random() * filtres.length)];
+      cartesTirees.push(filtrées[Math.floor(Math.random() * filtrées.length)]);
     }
-
-    const cartesTirees = [tirerCarte(typeTirage), tirerCarte(typeTirage)];
 
     await ovl.sendMessage(ms_org, { video: { url: gifTirage }, caption: "🎲 Tirage en cours..." }, { quoted: ms });
 
-    // --- Placement des cartes avec timeout global ---
-    const startTime = Date.now();
-    for (let i = 0; i < cartesTirees.length; i++) {
-      const carte = cartesTirees[i];
-
+    // --- Placement des cartes ---
+    for (let carte of cartesTirees) {
       if (Date.now() - startTime > timeoutGlobal)
         return repondre("⏱️ Temps écoulé. Tirage annulé.");
 
@@ -700,9 +691,8 @@ ovlcmd({
       const demanderEmplacement = async (tentative = 1) => {
         if (tentative > 3) throw new Error("MaxAttempts");
         const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
-        const txt = rep.message?.extendedTextMessage?.text || rep.message?.conversation || "";
-        const em = txt.toUpperCase();
-        const index = parseInt(em.replace("J", "")) - 1;
+        const txt = rep?.message?.extendedTextMessage?.text || rep?.message?.conversation || "";
+        const index = parseInt(txt.replace(/j/i, ""), 10) - 1;
 
         if (Date.now() - startTime > timeoutGlobal)
           throw new Error("Timeout");
@@ -723,14 +713,14 @@ ovlcmd({
       await ovl.sendMessage(ms_org, { image: { url: carte.image }, caption: `*${carte.name}* (${carte.ovr}) placé en J${emplacement + 1}` }, { quoted: ms });
     }
 
-    // --- Mise à jour du lineup ---
+    // --- Mise à jour finale ---
     await MyNeoFunctions.updateUser(auteur_Message, { lineup });
     await repondre("✅ Tirage terminé et toutes les cartes placées avec succès ! ⚽🔷");
 
   } catch (e) {
     if (e.message === "Timeout") return repondre("⏱️ Temps écoulé. Tirage annulé.");
     if (e.message === "MaxAttempts") return repondre("❌ Trop de tentatives échouées.");
-    console.error(e);
+    console.error("Erreur tirageBL :", e);
     return repondre("❌ Erreur lors du tirage : " + e.message);
   }
 });
