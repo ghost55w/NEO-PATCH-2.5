@@ -336,6 +336,143 @@ Merci pour l'achat ⚽🔷 !
   }
 });
 
+
+// --- LINEUP DIRECT +lineup⚽ jX = Nom ---
+ovlcmd({
+  nom_cmd: "lineup⚽",
+  react: "⚽",
+  classe: "NEO_GAMES⚽"
+}, async (ms_org, ovl, { ms, auteur_Message, arg, repondre }) => {
+  try {
+    if (!arg || arg.length < 3)
+      return repondre("⚠️ Format : +lineup⚽ j2 = Kuon");
+
+    let ficheLineup = await getLineup(auteur_Message);
+    if (!ficheLineup) return repondre("❌ Impossible de récupérer ton lineup.");
+    ficheLineup = ficheLineup.toJSON ? ficheLineup.toJSON() : ficheLineup;
+
+    const updates = {};
+    let pendingPlacement = null;
+
+    for (let i = 0; i < arg.length; i += 3) {
+      if (!/^j\d+$/i.test(arg[i]) || arg[i + 1] !== "=") continue;
+
+      let pos = parseInt(arg[i].slice(1), 10);
+      if (pos < 1 || pos > 15) continue;
+
+      const inputName = arg[i + 2];
+
+      // 🔍 Recherche joueur DB
+      const input = pureName(inputName);
+      const wantsNEL = /nel/i.test(inputName);
+      const players = Object.values(cardsBlueLock);
+
+      let found = players.filter(p => pureName(p.name) === input);
+      if (!found.length) {
+        found = players.filter(p => {
+          const pn = pureName(p.name);
+          if (!pn.includes(input)) return false;
+          if (!wantsNEL && /nel/i.test(p.name)) return false;
+          return true;
+        });
+      }
+
+      if (!found.length)
+        return repondre(`❌ Joueur introuvable : ${inputName}`);
+
+      found.sort((a, b) => b.ovr - a.ovr);
+      const p = found[0];
+      const formatted = `${p.name} (${p.ovr}) ${getCountryEmoji(p.country)}`;
+
+      // ⚠️ Position occupée
+      if (ficheLineup[`joueur${pos}`] && ficheLineup[`joueur${pos}`] !== "aucun") {
+        pendingPlacement = { player: formatted, wanted: pos };
+      } else {
+        updates[`joueur${pos}`] = formatted;
+      }
+    }
+
+    // 🔁 Demande position libre
+    if (pendingPlacement) {
+      const free = [];
+      for (let i = 1; i <= 15; i++) {
+        if (!ficheLineup[`joueur${i}`] || ficheLineup[`joueur${i}`] === "aucun") {
+          free.push(i);
+        }
+      }
+
+      if (!free.length)
+        return repondre("❌ Ton lineup est plein.");
+
+      await repondre(
+        `⚠️ Position J${pendingPlacement.wanted} occupée.\n` +
+        `Choisis une position libre pour ${pendingPlacement.player} :\n` +
+        free.map(i => `J${i}`).join(", ")
+      );
+
+      const waitFor = async (timeout = 60000) => {
+        try {
+          const r = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: timeout });
+          return (r?.message?.conversation || "").trim();
+        } catch { return ""; }
+      };
+
+      const reply = await waitFor();
+      const match = reply.match(/j(\d+)/i);
+      const newPos = match ? parseInt(match[1], 10) : null;
+
+      if (!newPos || !free.includes(newPos))
+        return repondre("❌ Position invalide.");
+
+      updates[`joueur${newPos}`] = pendingPlacement.player;
+    }
+
+    if (!Object.keys(updates).length)
+      return repondre("⚠️ Aucun changement effectué.");
+
+    await updatePlayers(auteur_Message, updates);
+
+// 🔄 Recharger lineup pour affichage
+let data = await getLineup(auteur_Message);
+data = data.toJSON ? data.toJSON() : data;
+
+// 📋 AFFICHAGE LINEUP
+const lineup = `░░ *👥SQUAD⚽🥅*: ${data.nom || "BLUE LOCK"}
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▱▱▱▱
+1  👤(AG) ${data.joueur1 || "aucun"} 
+2  👤(AC) ${data.joueur2 || "aucun"} 
+3  👤(AD) ${data.joueur3 || "aucun"} 
+4  👤(MG) ${data.joueur4 || "aucun"} 
+5  👤(MC) ${data.joueur5 || "aucun"} 
+6  👤(MD) ${data.joueur6 || "aucun"} 
+7  👤(DG) ${data.joueur7 || "aucun"}  
+8  👤(DC) ${data.joueur8 || "aucun"} 
+9  👤(DC) ${data.joueur9 || "aucun"}  
+10 👤(DD) ${data.joueur10 || "aucun"}
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▱▱▱▱
+*🔷BENCH🥅*:
+11 👤${data.joueur11 || "aucun"}
+12 👤${data.joueur12 || "aucun"}
+13 👤${data.joueur13 || "aucun"}
+14 👤${data.joueur14 || "aucun"}
+15 👤${data.joueur15 || "aucun"}
+╰───────────────────
+                    *BLUE🔷LOCK⚽*`;
+
+await ovl.sendMessage(ms_org, {
+  image: { url: "https://files.catbox.moe/p94q3m.jpg" },
+  caption: lineup
+}, { quoted: ms });
+
+return;
+
+  } catch (e) {
+    console.error("❌ LINEUP ERROR:", e);
+    return repondre(`❌ Erreur LINEUP\n${e.message}`);
+  }
+});
+
+
 // --- SUBSTITUTION LINEUP ---
 ovlcmd({
   nom_cmd: "sub",
