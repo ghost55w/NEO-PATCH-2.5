@@ -716,7 +716,7 @@ ovlcmd({
 🔹 Taille : ${carte.taille}
 🔹 Pied : ${carte.pieds}
 ╰───────────────────
-*BLUE🔷LOCK⚽*`
+                *BLUE🔷LOCK⚽*`
       }, { quoted: ms });
     }
 
