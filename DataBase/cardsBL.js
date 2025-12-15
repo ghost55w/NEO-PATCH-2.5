@@ -154,7 +154,7 @@ const cardsBlueLock = {
 }, 
 
 "igaguri Gurimu": {
-  name: "Igagauri",
+  name: "Igaguri",
   country: "Japan",
   ovr: 75,
   sho: 70,
@@ -342,6 +342,7 @@ const cardsBlueLock = {
 
 "aryu Jyubei": {
   name: "Aryu",
+  country: "Japan", 
   ovr: 77,
   sho: 80,
   dri: 70,
