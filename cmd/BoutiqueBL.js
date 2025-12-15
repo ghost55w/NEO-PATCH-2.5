@@ -612,25 +612,37 @@ ovlcmd({
 
 // --- COMMANDE TIRAGE BLUE LOCK ---
 ovlcmd({
-  nom_cmd: "tirageBL",
+  nom_cmd: "tiragebl", // 
   react: "🎲",
   classe: "BLUE_LOCK🔷",
   desc: "Lance un tirage Blue Lock (Deluxe, Super ou Ultra)"
 }, async (ms_org, ovl, { ms, auteur_Message, repondre }) => {
+
+  console.log("🟢 [TIRAGEBL-0] Commande détectée");
+
   try {
-    console.log("Commande +tirageBL déclenchée pour :", auteur_Message);
+    console.log("🟢 [TIRAGEBL-1] Auteur :", auteur_Message);
 
     // --- Récupération de l'utilisateur ---
     const ficheNeo = await MyNeoFunctions.getUserData(auteur_Message);
-    if (!ficheNeo) return repondre(`❌ Aucun joueur trouvé avec l'id : ${auteur_Message}`);
+    console.log("🟢 [TIRAGEBL-2] ficheNeo =", ficheNeo);
+
+    if (!ficheNeo) {
+      console.log("🔴 [TIRAGEBL-ERR] ficheNeo introuvable");
+      return repondre(`❌ Aucun joueur trouvé avec l'id : ${auteur_Message}`);
+    }
 
     // --- Préparation lineup ---
     let lineup = ficheNeo.lineup || Array(15).fill(null);
+    console.log("🟢 [TIRAGEBL-3] Lineup OK");
+
     const timeoutGlobal = 5 * 60 * 1000;
     const startTime = Date.now();
 
     // --- GIF de tirage ---
     const gifTirage = "https://files.catbox.moe/jgwato.mp4";
+    console.log("🟢 [TIRAGEBL-4] Envoi GIF tirage");
+
     await ovl.sendMessage(ms_org, {
       video: { url: gifTirage },
       caption: "",
@@ -644,30 +656,57 @@ ovlcmd({
       { type: "ultra", nc: 70 }
     ];
 
+    console.log("🟢 [TIRAGEBL-5] Demande type tirage");
     await repondre("⚠️ Choisis ton tirage : *Deluxe*, *Super* ou *Ultra*");
 
     const demanderType = async (tentative = 1) => {
+      console.log(`🟡 [TIRAGEBL-6] Tentative type (${tentative})`);
+
       if (tentative > 3) throw new Error("MaxAttempts");
+
       const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
-      const texte = rep?.message?.extendedTextMessage?.text || rep?.message?.conversation || "";
+      console.log("🟢 [TIRAGEBL-7] Réponse brute =", rep);
+
+      const texte =
+        rep?.message?.extendedTextMessage?.text ||
+        rep?.message?.conversation ||
+        "";
+
       const r = texte.toLowerCase();
+      console.log("🟢 [TIRAGEBL-8] Texte =", r);
+
       if (["deluxe", "super", "ultra"].includes(r)) return r;
+
       await repondre("⚠️ Choix invalide. Réponds par *Deluxe*, *Super* ou *Ultra*.");
       return demanderType(tentative + 1);
     };
 
     const typeTirage = await demanderType();
+    console.log("🟢 [TIRAGEBL-9] Type choisi =", typeTirage);
+
     const tirageChoisi = tirages.find(t => t.type === typeTirage);
 
-    if ((ficheNeo.nc || 0) < tirageChoisi.nc)
+    if ((ficheNeo.nc || 0) < tirageChoisi.nc) {
+      console.log("🔴 [TIRAGEBL-ERR] NC insuffisants");
       return repondre(`❌ Pas assez de NC 🔷 (il te faut ${tirageChoisi.nc})`);
+    }
 
-    await MyNeoFunctions.updateUser(auteur_Message, { nc: ficheNeo.nc - tirageChoisi.nc });
-    await repondre(`🔷 ${tirageChoisi.nc} NC retirés. Nouveau solde : ${ficheNeo.nc - tirageChoisi.nc} NC`);
+    // --- Débit NC ---
+    await MyNeoFunctions.updateUser(auteur_Message, {
+      nc: ficheNeo.nc - tirageChoisi.nc
+    });
+
+    console.log("🟢 [TIRAGEBL-10] NC débités");
+
+    await repondre(
+      `🔷 ${tirageChoisi.nc} NC retirés. Nouveau solde : ${ficheNeo.nc - tirageChoisi.nc} NC`
+    );
 
     // --- Tirage des cartes ---
-    const cartesTirees = [];
     const cartes = Object.values(cardsBlueLock);
+    console.log("🟢 [TIRAGEBL-11] Total cartes =", cartes.length);
+
+    const cartesTirees = [];
 
     for (let i = 0; i < 2; i++) {
       let filtrées = cartes.filter(c => {
@@ -676,51 +715,52 @@ ovlcmd({
         if (typeTirage === "ultra") return c.rank === "A" || c.rank === "S" || c.rank === "SS";
         return false;
       });
+
+      console.log(`🟢 [TIRAGEBL-12] Pool ${i} =`, filtrées.length);
       cartesTirees.push(filtrées[Math.floor(Math.random() * filtrées.length)]);
     }
 
-    await ovl.sendMessage(ms_org, { video: { url: gifTirage }, caption: "🎲 Tirage en cours..." }, { quoted: ms });
+    console.log("🟢 [TIRAGEBL-13] Cartes tirées =", cartesTirees.map(c => c.name));
+
+    await ovl.sendMessage(ms_org, {
+      video: { url: gifTirage },
+      caption: "🎲 Tirage en cours..."
+    }, { quoted: ms });
 
     // --- Placement des cartes ---
     for (let carte of cartesTirees) {
-      if (Date.now() - startTime > timeoutGlobal)
-        return repondre("⏱️ Temps écoulé. Tirage annulé.");
+      console.log("🟢 [TIRAGEBL-14] Placement carte =", carte.name);
 
-      await repondre(`📌 Où veux-tu placer la carte *${carte.name}* (${carte.ovr}) ? Réponds par J1 à J15`);
+      await repondre(
+        `📌 Où veux-tu placer la carte *${carte.name}* (${carte.ovr}) ? Réponds par J1 à J15`
+      );
 
-      const demanderEmplacement = async (tentative = 1) => {
-        if (tentative > 3) throw new Error("MaxAttempts");
-        const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
-        const txt = rep?.message?.extendedTextMessage?.text || rep?.message?.conversation || "";
-        const index = parseInt(txt.replace(/j/i, ""), 10) - 1;
+      const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
+      console.log("🟢 [TIRAGEBL-15] Réponse placement =", rep);
 
-        if (Date.now() - startTime > timeoutGlobal)
-          throw new Error("Timeout");
+      const txt =
+        rep?.message?.extendedTextMessage?.text ||
+        rep?.message?.conversation ||
+        "";
 
-        if (index >= 0 && index < 15) {
-          if (lineup[index]) {
-            await repondre("❌ Emplacement déjà occupé. Choisis un autre J1-J15.");
-            return demanderEmplacement(tentative + 1);
-          } else return index;
-        }
-        await repondre("⚠️ Réponse invalide. Choisis un emplacement entre J1 et J15.");
-        return demanderEmplacement(tentative + 1);
-      };
+      const index = parseInt(txt.replace(/j/i, ""), 10) - 1;
 
-      const emplacement = await demanderEmplacement();
-      lineup[emplacement] = `${carte.name} (${carte.ovr}) ${getCountryEmoji(carte.country)}`;
+      if (index < 0 || index >= 15) {
+        console.log("🔴 [TIRAGEBL-ERR] Position invalide");
+        return repondre("❌ Position invalide.");
+      }
 
-      await ovl.sendMessage(ms_org, { image: { url: carte.image }, caption: `*${carte.name}* (${carte.ovr}) placé en J${emplacement + 1}` }, { quoted: ms });
+      lineup[index] =
+        `${carte.name} (${carte.ovr}) ${getCountryEmoji(carte.country)}`;
     }
 
-    // --- Mise à jour finale ---
+    console.log("🟢 [TIRAGEBL-16] Mise à jour finale lineup");
     await MyNeoFunctions.updateUser(auteur_Message, { lineup });
-    await repondre("✅ Tirage terminé et toutes les cartes placées avec succès ! ⚽🔷");
+
+    return repondre("✅ Tirage terminé et toutes les cartes placées avec succès ! ⚽🔷");
 
   } catch (e) {
-    if (e.message === "Timeout") return repondre("⏱️ Temps écoulé. Tirage annulé.");
-    if (e.message === "MaxAttempts") return repondre("❌ Trop de tentatives échouées.");
-    console.error("Erreur tirageBL :", e);
+    console.error("🔴 [TIRAGEBL-FATAL]", e);
     return repondre("❌ Erreur lors du tirage : " + e.message);
   }
 });
