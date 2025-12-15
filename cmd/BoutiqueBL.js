@@ -743,7 +743,7 @@ ovlcmd({
     if (!response.toLowerCase().startsWith("oui")) return repondre("❌ Réponse invalide. Les cartes ne seront pas ajoutées.");
 
     // --- Extraction positions ---
-    const positions = response.match(/j(\d+)/gi)?.map(p => parseInt(p.replace("j",""),10)) || [];
+    const positions = response.match(/j(\d+)/gi)?.map(p => parseInt(p.toLowerCase().replace("j",""),10)) || [];
     if (positions.length !== cartesTirees.length) return repondre(`❌ Nombre de positions fourni (${positions.length}) ne correspond pas au nombre de cartes (${cartesTirees.length}). Aucune carte ajoutée.`);
 
     // --- Récupération lineup ---
