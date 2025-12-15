@@ -608,7 +608,6 @@ ovlcmd({
   }
 });
 
-
 // --- COMMANDE TIRAGE BLUE LOCK ---
 ovlcmd({
   nom_cmd: "tirageBL",
@@ -616,22 +615,20 @@ ovlcmd({
   classe: "BLUE_LOCK🔷",
   desc: "Lance un tirage Blue Lock (Deluxe, Super ou Ultra)"
 }, async (ms_org, ovl, { ms, auteur_Message, repondre }) => {
+  console.log("🟢 [TIRAGEBL-0] Commande détectée");
 
   try {
+    console.log("🟢 [TIRAGEBL-1] Auteur :", auteur_Message);
     const ficheNeo = await MyNeoFunctions.getUserData(auteur_Message);
     if (!ficheNeo) return repondre(`❌ Aucun joueur trouvé avec l'id : ${auteur_Message}`);
 
     let lineup = ficheNeo.lineup || Array(15).fill(null);
 
-    // GIF initial
+    // --- GIF initial ---
     const gifTirage = "https://files.catbox.moe/jgwato.mp4";
-    await ovl.sendMessage(ms_org, {
-      video: { url: gifTirage },
-      caption: "",
-      gifPlayback: true
-    }, { quoted: ms });
+    await ovl.sendMessage(ms_org, { video: { url: gifTirage }, caption: "", gifPlayback: true }, { quoted: ms });
 
-    // --------------- Envoi des 3 images des tirages ---------------
+    // --- 3 images des tirages ---
     const tiragesAffichage = [
       { type: "Deluxe", nc: 30, image: "https://files.catbox.moe/2bszsx.jpg", caption: "💠 Tirage Deluxe - 30 NC 🔷\nProbabilités: B 85%, A 60% (>=5 buts)" },
       { type: "Super", nc: 50, image: "https://files.catbox.moe/4ekp2h.jpg", caption: "💎 Tirage Super - 50 NC 🔷\nProbabilités: A 80%, S 50% (>=10 buts, niv10, OVR>=95 10%)" },
@@ -643,6 +640,7 @@ ovlcmd({
 
     await repondre("⚠️ Choisis ton tirage : *Deluxe*, *Super* ou *Ultra*");
 
+    // --- Demande type tirage ---
     const demanderType = async (tentative = 1) => {
       if (tentative > 3) throw new Error("MaxAttempts");
       const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
@@ -656,13 +654,13 @@ ovlcmd({
     const ncTirage = tiragesAffichage.find(t => t.type.toLowerCase() === typeTirage).nc;
     if ((ficheNeo.nc || 0) < ncTirage) return repondre(`❌ Pas assez de NC 🔷 (il te faut ${ncTirage})`);
 
-    // Débit NC + NS royalities
+    // --- Débit NC + NS royalities ---
     await MyNeoFunctions.updateUser(auteur_Message, {
       nc: ficheNeo.nc - ncTirage,
       ns: (ficheNeo.ns || 0) + 5
     });
 
-    // --- Fonction probabilités originales ---
+    // --- Fonction tirage avec probabilités ---
     function tirerCarte(type) {
       const cartes = Object.values(cardsBlueLock);
       let filtres = cartes.filter(c => {
@@ -687,14 +685,14 @@ ovlcmd({
 
     const cartesTirees = [tirerCarte(typeTirage), tirerCarte(typeTirage)];
 
-    // --- GIF tirage avec compteur 1→100% ---
+    // --- GIF tirage avec compteur simplifié (5 étapes seulement) ---
     await ovl.sendMessage(ms_org, { video: { url: gifTirage }, caption: "⚽🔷 Tirage encore... 0%" }, { quoted: ms });
-    for (let i = 1; i <= 100; i++) {
-      await ovl.sendMessage(ms_org, { text: `⚽🔷 Tirage encore... ${i}%` });
-      await new Promise(res => setTimeout(res, 30)); // 30ms par étape, ajuste pour vitesse
+    for (let i = 1; i <= 5; i++) {
+      await ovl.sendMessage(ms_org, { text: `⚽🔷 Tirage encore... ${i*20}%` });
+      await new Promise(res => setTimeout(res, 150)); // 150ms par étape = effet rapide
     }
 
-    // --- Envoi des cartes tirées avec description ---
+    // --- Envoi cartes tirées ---
     for (let carte of cartesTirees) {
       await ovl.sendMessage(ms_org, {
         image: { url: carte.image },
@@ -715,12 +713,10 @@ ovlcmd({
       if (pos !== -1) lineup[pos] = `${carte.name} (${carte.ovr}) ${getCountryEmoji(carte.country)}`;
     }
 
-    // Update final lineup
     await MyNeoFunctions.updateUser(auteur_Message, { lineup });
-
     return repondre("✅ Tirage terminé et toutes les cartes placées avec succès ! ⚽🔷");
 
-  } catch(e) {
+  } catch (e) {
     console.error("🔴 [TIRAGEBL-FATAL]", e);
     return repondre("❌ Erreur lors du tirage : " + e.message);
   }
