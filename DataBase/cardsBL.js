@@ -1254,11 +1254,14 @@ function groupCardsByPlacement(cardsArray) {
     if (!grouped[place]) grouped[place] = [];
     grouped[place].push({
       name: card.name,
+      country: data.country,
       rank: card.rank,
       ovr: card.ovr,
       category: card.category,
+      taille: card.taille,
       image: card.image,
-      price: card.price
+      pieds: card.pieds,
+      price: card.price 
     });
   }
   return grouped;
