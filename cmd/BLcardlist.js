@@ -1,6 +1,8 @@
 const { ovlcmd } = require("../lib/ovlcmd");
 const path = require("path");
-const { groupedCards } = require(path.join(__dirname, "../DataBase/cardsBlueLock"));
+const { groupedCards } = require(
+  path.join(__dirname, "../DataBase/cardsBL")
+);
 
 const formatNumber = n => {
   try { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
@@ -18,7 +20,7 @@ ovlcmd({
   try {
 
     await repondre(
-      "🌀🔷📂 Veuillez mentionner le nom du joueur Blue Lock, ex : *🔷isagi / 🔷rin(nel)*\nTapez `close` pour fermer la session.\n╰───────────────────"
+      "⚽🔷📂 Veuillez mentionner le nom du joueur Blue Lock, ex : *⚽Isagi / 🔷Rin NEL*\nTapez `close` pour fermer la session.\n╰───────────────────"
     );
 
     // 🔵 Aplatir toutes les cards
@@ -72,7 +74,7 @@ ovlcmd({
         await ovl.sendMessage(ms_org, {
           image: { url: card.image },
           caption:
-`🔷🌀 *BLUE LOCK CARD*
+`🔷⚽ *BLUE LOCK CARD*
 
 Nom : ${card.name}
 Country : ${card.country}
@@ -80,7 +82,7 @@ Rang : ${card.rank}
 OVR : ${card.ovr}
 Catégorie : ${card.category}
 Placement : ${card.placement}
-Prix : ${formatNumber(card.price)} 🧭
+Prix : ${formatNumber(card.price)} 💶
 
 ╰───────────────────
                       *🔷BLUELOCK⚽*`
@@ -100,7 +102,7 @@ Prix : ${formatNumber(card.price)} 🧭
         continue;
       }
 
-      let msg = "╭────〔 *🔷🌀 LISTE BLUE LOCK 📂* 〕\n\n";
+      let msg = "╭────〔 *🔷⚽ LISTE BLUE LOCK 📂* 〕\n\n";
       msg += "🔷📋 *Nom non reconnu*\n";
       msg += "*Voici les cartes disponibles :*\n";
       suggestions.forEach((c, i) => {
@@ -136,14 +138,14 @@ Prix : ${formatNumber(card.price)} 🧭
       await ovl.sendMessage(ms_org, {
         image: { url: chosenCard.image },
         caption:
-`🔷🌀 *BLUE LOCK CARD*
+`🔷⚽ *BLUE LOCK CARD*
 
 Nom : ${chosenCard.name}
 Rang : ${chosenCard.rank}
 OVR : ${chosenCard.ovr}
 Catégorie : ${chosenCard.category}
 Placement : ${chosenCard.placement}
-Prix : ${formatNumber(chosenCard.price)} 🧭`
+Prix : ${formatNumber(chosenCard.price)} 💶`
       }, { quoted: choiceReply });
 
     }
