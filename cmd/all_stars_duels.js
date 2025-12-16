@@ -184,3 +184,77 @@ ovlcmd({
     delete duelsEnCours[duelKey];
     repondre(`✅ Duel "${duelKey}" supprimé.`);
 });
+
+// ─── FONCTION AUTOMATIQUE POUR LES PAVÉS ⚡RAZORX™ ───
+
+function parseStatsRazorX(text) {
+    const blocMatch = text.match(/📊`Stats`:\s*([\s\S]+)/i);
+    if (!blocMatch) return [];
+
+    const lignes = blocMatch[1]
+        .split('\n')
+        .map(l => l.trim())
+        .filter(Boolean);
+
+    const actions = [];
+
+    for (const ligne of lignes) {
+        const [joueur, statsStr] = ligne.split(':').map(s => s.trim());
+        if (!joueur || !statsStr) continue;
+
+        const stats = statsStr.split(',').map(s => s.trim());
+
+        for (const st of stats) {
+            const m = st.match(/(pv|sta|energie)\s*([+-])\s*(\d+)%/i);
+            if (!m) continue;
+
+            actions.push({
+                joueur,
+                stat: m[1].toLowerCase(),
+                valeur: parseInt(m[3]) * (m[2] === '-' ? -1 : 1)
+            });
+        }
+    }
+    return actions;
+}
+
+// ─── ÉCOUTEUR GLOBAL POUR LES PAVÉS ⚡RAZORX™ ───
+ovlcmd({
+    nom: "razorx_auto",
+    isfunc: true
+}, async (ms_org, ovl, { texte, ms, repondre }) => {
+    if (!texte) return;
+    if (!texte.includes("⚡RAZORX™")) return;
+    if (!texte.includes("📊`Stats`:")) return;
+
+    const actions = parseStatsRazorX(texte);
+    if (actions.length === 0) return;
+
+    // Trouver le duel correspondant
+    const duelKey = Object.keys(duelsEnCours).find(k =>
+        actions.some(a => k.toLowerCase().includes(a.joueur.toLowerCase()))
+    );
+    if (!duelKey) return;
+
+    const duel = duelsEnCours[duelKey];
+
+    // Appliquer les modifications de stats
+    for (const act of actions) {
+        const joueur =
+            duel.equipe1.find(j => j.nom.toLowerCase() === act.joueur.toLowerCase()) ||
+            duel.equipe2.find(j => j.nom.toLowerCase() === act.joueur.toLowerCase());
+
+        if (!joueur) continue;
+
+        limiterStats(joueur.stats, act.stat, act.valeur);
+    }
+
+    // Renvoi automatique de la fiche duel mise à jour
+    const fiche = generateFicheDuel(duel);
+    await ovl.sendMessage(
+        ms_org,
+        { image: { url: duel.arene.image }, caption: fiche },
+        { quoted: ms }
+    );
+});
+       
