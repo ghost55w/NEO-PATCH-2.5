@@ -307,10 +307,10 @@ ovlcmd({
         );
     }
 
-    // ───── CONFIRMATION ALL STARS
-    if (allStarsConfirm.length) {
-        await ovl.sendMessage(ms_org, {
-            text: `✅ Stats All Stars mises à jour :\n` + allStarsConfirm.join("\n")
-        });
-    }
+   // ───── CONFIRMATION ALL STARS
+if (allStarsConfirm.length) {
+    await ovl.sendMessage(ms_org, {
+        text: "✅ stats All stars mise à jour."
+    });
+   } 
 }); 
