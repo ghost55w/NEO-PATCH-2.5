@@ -218,7 +218,7 @@ function parseStatsRazorX(text) {
     return actions;
 }
 
-// ─── ÉCOUTEUR GLOBAL POUR LES PAVÉS ⚡RAZORX™ ───
+// ─── ÉCOUTEUR GLOBAL AMÉLIORÉ POUR LES PAVÉS ⚡RAZORX™ ───
 ovlcmd({
     nom: "razorx_auto",
     isfunc: true
@@ -230,9 +230,12 @@ ovlcmd({
     const actions = parseStatsRazorX(texte);
     if (actions.length === 0) return;
 
+    // Normalisation fonction pour ignorer majuscules et espaces
+    const normalize = str => str.toLowerCase().replace(/\s+/g, '');
+
     // Trouver le duel correspondant
     const duelKey = Object.keys(duelsEnCours).find(k =>
-        actions.some(a => k.toLowerCase().includes(a.joueur.toLowerCase()))
+        actions.some(a => normalize(k).includes(normalize(a.joueur)))
     );
     if (!duelKey) return;
 
@@ -241,8 +244,8 @@ ovlcmd({
     // Appliquer les modifications de stats
     for (const act of actions) {
         const joueur =
-            duel.equipe1.find(j => j.nom.toLowerCase() === act.joueur.toLowerCase()) ||
-            duel.equipe2.find(j => j.nom.toLowerCase() === act.joueur.toLowerCase());
+            duel.equipe1.find(j => normalize(j.nom) === normalize(act.joueur)) ||
+            duel.equipe2.find(j => normalize(j.nom) === normalize(act.joueur));
 
         if (!joueur) continue;
 
@@ -257,4 +260,3 @@ ovlcmd({
         { quoted: ms }
     );
 });
-       
