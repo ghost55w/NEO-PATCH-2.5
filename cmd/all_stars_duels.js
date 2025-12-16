@@ -1,4 +1,5 @@
 const { ovlcmd } = require("../lib/ovlcmd");
+const { getData, setfiche, createFiche } = require("../DataBase/allstars_divs_fiches");
 
 const arenes = [
     { nom: 'Desert Montagneux⛰️', image: 'https://files.catbox.moe/aoximf.jpg' },
@@ -212,13 +213,14 @@ function parseStatsRazorX(text) {
 
     for (const ligne of lignes) {
         const clean = ligne.replace(/[\u2066-\u2069]/g, '');
-        const [tagPart, statsStr] = clean.split(':').map(s => s.trim());
-        if (!tagPart || !statsStr) continue;
+        const [playerPart, statsStr] = clean.split(':').map(s => s.trim());
+        if (!playerPart || !statsStr) continue;
 
-        const tagMatch = tagPart.match(/^@(\S+)/);
-        if (!tagMatch) continue;
+        // 🔥 accepte @Damian OU damian
+        const tag = playerPart.startsWith("@")
+            ? playerPart.replace("@", "")
+            : playerPart;
 
-        const tag = tagMatch[1];
         const stats = statsStr.split(',').map(s => s.trim());
 
         for (const st of stats) {
@@ -228,7 +230,9 @@ function parseStatsRazorX(text) {
             if (!m) continue;
 
             actions.push({
+                raw: playerPart, // garde l’info
                 tag,
+                isMention: playerPart.startsWith("@"),
                 stat: m[1].toLowerCase(),
                 valeur: parseInt(m[3]) * (m[2] === "-" ? -1 : 1)
             });
