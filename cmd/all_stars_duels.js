@@ -321,25 +321,26 @@ ovlcmd({
     isfunc: true
 }, async (ms_org, ovl, { texte, getJid }) => {
 
-    // 🔒 seulement ce pavé
-    if (!texte?.includes("🏆RESULTAT FINA")) return;
+    if (!texte?.includes("🏆`RESULTAT`")) return;
 
-    // ───── PARSE
-    const winnerMatch = texte.match(/\*✅Winner:\*\s*@?(\w+)(\s*✅)?/i);
-    const loserMatch  = texte.match(/\*❌Loser:\*\s*@?(\w+)(\s*❌)?/i);
-    const dureeMatch  = texte.match(/⏱️Durée:\s*(\d+)/i);
+    const clean = texte
+        .replace(/[\u2066-\u2069]/g, "")
+        .trim();
+
+    const winnerMatch = clean.match(/winner:\s*@(.+?)(\s*✅)?$/im);
+    const loserMatch  = clean.match(/loser:\s*@(.+?)(\s*❌)?$/im);
+    const dureeMatch  = clean.match(/durée:\s*(\d+)/i);
 
     if (!winnerMatch || !loserMatch || !dureeMatch) return;
 
-    const winnerTag = winnerMatch[1];
+    const winnerTag = winnerMatch[1].trim();
     const winnerBonus = !!winnerMatch[2];
 
-    const loserTag = loserMatch[1];
+    const loserTag = loserMatch[1].trim();
     const loserMalus = !!loserMatch[2];
 
     const duree = parseInt(dureeMatch[1]);
 
-    // ───── JID
     let winnerJid, loserJid;
     try {
         winnerJid = await getJid(winnerTag + "@lid", ms_org, ovl);
@@ -370,7 +371,7 @@ ovlcmd({
         );
     }
 
-    // ───── LOSER BASE
+    // ───── LOSER BASE (UNE SEULE DÉFAITE)
     await setfiche("defaite", (Number(loserData.defaite) || 0) + 1, loserJid);
     await setfiche("fans", (Number(loserData.fans) || 0) - 100, loserJid);
 
@@ -404,6 +405,6 @@ ovlcmd({
 
     // ───── CONFIRMATION
     await ovl.sendMessage(ms_org, {
-        text: "🏆 Résultat final enregistré sur les fiches All Stars."
+        text: "🏆 RAZORX™ — Résultat final appliqué selon les règles."
     });
 });
