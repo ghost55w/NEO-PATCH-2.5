@@ -1,5 +1,6 @@
 const { ovlcmd } = require("../lib/ovlcmd");
-const { groupedCards } = require("../DataBase/cardsBlueLock");
+const path = require("path");
+const { groupedCards } = require(path.join(__dirname, "../DataBase/cardsBlueLock"));
 
 const formatNumber = n => {
   try { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
@@ -20,7 +21,7 @@ ovlcmd({
       "🌀🔷📂 Veuillez mentionner le nom du joueur Blue Lock, ex : *🔷isagi / 🔷rin(nel)*\nTapez `close` pour fermer la session.\n╰───────────────────"
     );
 
-    // 🔵 Aplatir toutes les cards (comme ton modèle original)
+    // 🔵 Aplatir toutes les cards
     const allCards = [];
     for (const [placementKey, placementCards] of Object.entries(groupedCards)) {
       for (const c of placementCards) {
