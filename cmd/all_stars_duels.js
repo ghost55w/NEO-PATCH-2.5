@@ -53,7 +53,7 @@ function generateFicheDuel(duel) {
 *Sinon la victoire sera donnée par décision selon l'offensive !*
 
 ╰───────────────────
-🏆NSL PRO ESPORT ARENA® | RAZORX⚡ `;
+🏆NSL PRO ESPORT ARENA® | RAZORX⚡™ `;
 }
 
 ovlcmd({
