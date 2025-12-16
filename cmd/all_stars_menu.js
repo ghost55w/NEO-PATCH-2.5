@@ -52,7 +52,8 @@ ovlcmd(
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔░▒▒░
 +Allstars🌀 +Bluelock⚽  +Elysium💠
 
-🔷NEOVERSE🎮`;
+╰───────────────────
+                     *NEO🔷VERSE*`;
       await ovl.sendMessage(ms_org, { image: { url: lien }, caption: msg }, { quoted: ms });
     }
   }
@@ -129,8 +130,7 @@ ovlcmd(
 🌀👊🏽 
 
 ╰───────────────────
- 
-           *🔆AS JUMP🌀BATTLE ARENA*
+🏆NSL PRO ESPORT ARENA® | RAZORX⚡™
 `;
 
     await ovl.sendMessage(ms_org, { text: texte }, { quoted: ms });
