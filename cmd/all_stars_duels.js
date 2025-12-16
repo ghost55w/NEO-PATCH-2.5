@@ -185,8 +185,18 @@ ovlcmd({
     repondre(`✅ Duel "${duelKey}" supprimé.`);
 });
 
-// ─── FONCTION AUTOMATIQUE POUR LES PAVÉS ⚡RAZORX™ ───
 
+// ⚡ RAZORX™ — Utilitaires ---------------------------------
+
+// Nettoyage des pseudos (mentions WhatsApp)
+function cleanPlayerName(name) {
+    return name
+        .replace(/@/g, "")
+        .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "")
+        .trim();
+}
+
+// Parser du pavé RazorX™
 function parseStatsRazorX(text) {
     const blocMatch = text.match(/📊`Stats`:\s*([\s\S]+)/i);
     if (!blocMatch) return [];
@@ -199,19 +209,22 @@ function parseStatsRazorX(text) {
     const actions = [];
 
     for (const ligne of lignes) {
-        const [joueur, statsStr] = ligne.split(':').map(s => s.trim());
-        if (!joueur || !statsStr) continue;
+        const [joueurRaw, statsStr] = ligne.split(':').map(s => s.trim());
+        if (!joueurRaw || !statsStr) continue;
 
+        const joueur = cleanPlayerName(joueurRaw);
         const stats = statsStr.split(',').map(s => s.trim());
 
         for (const st of stats) {
-            const m = st.match(/(pv|sta|energie)\s*([+-])\s*(\d+)%/i);
+            const m = st.match(
+                /(pv|sta|energie|speed|talent|close_fight|attaques)\s*([+-])\s*(\d+)/i
+            );
             if (!m) continue;
 
             actions.push({
                 joueur,
                 stat: m[1].toLowerCase(),
-                valeur: parseInt(m[3]) * (m[2] === '-' ? -1 : 1)
+                valeur: parseInt(m[3]) * (m[2] === "-" ? -1 : 1)
             });
         }
     }
@@ -222,87 +235,54 @@ function parseStatsRazorX(text) {
 ovlcmd({
     nom: "razorx_auto",
     isfunc: true
-}, async (ms_org, ovl, { texte, ms, repondre }) => {
+}, async (ms_org, ovl, { texte, ms }) => {
     if (!texte) return;
     if (!texte.includes("⚡RAZORX™")) return;
     if (!texte.includes("📊`Stats`:")) return;
 
-    // Fonction pour parser le pavé
-    const parseStatsRazorX = (text) => {
-        const blocMatch = text.match(/📊`Stats`:\s*([\s\S]+)/i);
-        if (!blocMatch) return [];
-
-        const lignes = blocMatch[1]
-            .split('\n')
-            .map(l => l.trim())
-            .filter(Boolean);
-
-        const actions = [];
-
-        for (const ligne of lignes) {
-            const [joueur, statsStr] = ligne.split(':').map(s => s.trim());
-            if (!joueur || !statsStr) continue;
-
-            const stats = statsStr.split(',').map(s => s.trim());
-
-            for (const st of stats) {
-                const m = st.match(/(pv|sta|energie|speed|talent|strikes|attaques)\s*([+-])\s*(\d+)/i);
-                if (!m) continue;
-
-                actions.push({
-                    joueur,
-                    stat: m[1].toLowerCase(),
-                    valeur: parseInt(m[3]) * (m[2] === '-' ? -1 : 1)
-                });
-            }
-        }
-        return actions;
-    };
-
     const actions = parseStatsRazorX(texte);
     if (actions.length === 0) return;
 
-    // Trouver le duel correspondant (pour sta, pv, energie)
+    // Trouver le duel concerné (si existant)
     const duelKey = Object.keys(duelsEnCours).find(k =>
         actions.some(a => k.toLowerCase().includes(a.joueur.toLowerCase()))
     );
     const duel = duelKey ? duelsEnCours[duelKey] : null;
 
-    // Liste pour confirmation All Stars
     const allStarsUpdated = new Set();
 
     for (const act of actions) {
-        const joueurName = act.joueur.replace("@", "");
 
-        // ── Mise à jour stats duel (sta, pv, energie)
-        if (['sta', 'pv', 'energie'].includes(act.stat)) {
+        // ───────── DUEL ONLY (pv / sta / energie)
+        if (['pv', 'sta', 'energie'].includes(act.stat)) {
             if (!duel) continue;
+
             const joueurDuel =
-                duel.equipe1.find(j => j.nom.toLowerCase() === joueurName.toLowerCase()) ||
-                duel.equipe2.find(j => j.nom.toLowerCase() === joueurName.toLowerCase());
+                duel.equipe1.find(j => j.nom.toLowerCase() === act.joueur.toLowerCase()) ||
+                duel.equipe2.find(j => j.nom.toLowerCase() === act.joueur.toLowerCase());
 
             if (!joueurDuel) continue;
             limiterStats(joueurDuel.stats, act.stat, act.valeur);
         }
 
-        // ── Mise à jour All Stars (speed, talent, strikes, attaques)
-        else if (['speed', 'talent', 'strikes', 'attaques'].includes(act.stat)) {
+        // ───────── ALL STARS ONLY
+        else if (['speed', 'talent', 'close_fight', 'attaques'].includes(act.stat)) {
             try {
-                const data = await getData({ pseudo: joueurName });
-                if (!data) continue;
+                const data = await getData({ pseudo: act.joueur });
+                if (!data || !data.jid) continue;
 
                 const oldValue = Number(data[act.stat]) || 0;
                 const newValue = oldValue + act.valeur;
 
                 await setfiche(act.stat, newValue, data.jid);
-                allStarsUpdated.add(joueurName);
+                allStarsUpdated.add(act.joueur);
             } catch (err) {
-                console.error("Erreur mise à jour All Stars:", err);
+                console.error("❌ RazorX All Stars error:", err);
             }
         }
     }
 
-    // ── Renvoi fiche duel mise à jour si applicable
+    // ───────── Renvoi fiche duel mise à jour
     if (duel) {
         const fiche = generateFicheDuel(duel);
         await ovl.sendMessage(
@@ -312,11 +292,10 @@ ovlcmd({
         );
     }
 
-    // ── Message de confirmation All Stars
+    // ───────── Confirmation All Stars
     if (allStarsUpdated.size > 0) {
-        const joueursList = Array.from(allStarsUpdated).join(', ');
         await ovl.sendMessage(ms_org, {
-            text: `✅ Stats (speed, talent, strikes, attaques) mises à jour sur la fiche All Stars pour : ${joueursList}`
+            text: `✅ Stats (speed, talent, close_fight, attaques) ajoutées sur la fiche All Stars : ${[...allStarsUpdated].join(", ")}`
         });
     }
 });
