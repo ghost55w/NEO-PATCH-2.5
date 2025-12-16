@@ -196,7 +196,9 @@ function cleanPlayerName(name) {
         .trim();
 }
 
-// Parser du pavé RazorX™
+// ─────────────────────────────────────────────
+// ⚡ RAZORX™ — PARSER STATS
+// ─────────────────────────────────────────────
 function parseStatsRazorX(text) {
     const blocMatch = text.match(/📊`Stats`:\s*([\s\S]+)/i);
     if (!blocMatch) return [];
@@ -209,10 +211,14 @@ function parseStatsRazorX(text) {
     const actions = [];
 
     for (const ligne of lignes) {
-        const [joueurRaw, statsStr] = ligne.split(':').map(s => s.trim());
-        if (!joueurRaw || !statsStr) continue;
+        const clean = ligne.replace(/[\u2066-\u2069]/g, '');
+        const [tagPart, statsStr] = clean.split(':').map(s => s.trim());
+        if (!tagPart || !statsStr) continue;
 
-        const joueur = cleanPlayerName(joueurRaw);
+        const tagMatch = tagPart.match(/^@(\S+)/);
+        if (!tagMatch) continue;
+
+        const tag = tagMatch[1];
         const stats = statsStr.split(',').map(s => s.trim());
 
         for (const st of stats) {
@@ -222,7 +228,7 @@ function parseStatsRazorX(text) {
             if (!m) continue;
 
             actions.push({
-                joueur,
+                tag,
                 stat: m[1].toLowerCase(),
                 valeur: parseInt(m[3]) * (m[2] === "-" ? -1 : 1)
             });
@@ -231,71 +237,76 @@ function parseStatsRazorX(text) {
     return actions;
 }
 
-// ─── ÉCOUTEUR GLOBAL POUR LES PAVÉS ⚡RAZORX™ ───
+// ─────────────────────────────────────────────
+// ⚡ RAZORX™ — ÉCOUTEUR GLOBAL
+// ─────────────────────────────────────────────
 ovlcmd({
     nom: "razorx_auto",
     isfunc: true
-}, async (ms_org, ovl, { texte, ms }) => {
-    if (!texte) return;
-    if (!texte.includes("⚡RAZORX™")) return;
+}, async (ms_org, ovl, { texte, ms, getJid }) => {
+    if (!texte?.includes("⚡RAZORX™")) return;
     if (!texte.includes("📊`Stats`:")) return;
 
     const actions = parseStatsRazorX(texte);
-    if (actions.length === 0) return;
+    if (!actions.length) return;
 
-    // Trouver le duel concerné (si existant)
     const duelKey = Object.keys(duelsEnCours).find(k =>
-        actions.some(a => k.toLowerCase().includes(a.joueur.toLowerCase()))
+        actions.some(a => k.toLowerCase().includes(a.tag.toLowerCase()))
     );
     const duel = duelKey ? duelsEnCours[duelKey] : null;
 
-    const allStarsUpdated = new Set();
+    const allStarsConfirm = [];
 
     for (const act of actions) {
 
-        // ───────── DUEL ONLY (pv / sta / energie)
+        // ───── RÉCUP JID COMME setloup (LA CLÉ)
+        let jid;
+        try {
+            jid = await getJid(act.tag + "@lid", ms_org, ovl);
+        } catch {
+            continue;
+        }
+
+        // ───── DUEL (pv / sta / energie)
         if (['pv', 'sta', 'energie'].includes(act.stat)) {
             if (!duel) continue;
 
-            const joueurDuel =
-                duel.equipe1.find(j => j.nom.toLowerCase() === act.joueur.toLowerCase()) ||
-                duel.equipe2.find(j => j.nom.toLowerCase() === act.joueur.toLowerCase());
+            const joueur =
+                duel.equipe1.find(j => j.nom.toLowerCase() === act.tag.toLowerCase()) ||
+                duel.equipe2.find(j => j.nom.toLowerCase() === act.tag.toLowerCase());
 
-            if (!joueurDuel) continue;
-            limiterStats(joueurDuel.stats, act.stat, act.valeur);
+            if (!joueur) continue;
+            limiterStats(joueur.stats, act.stat, act.valeur);
         }
 
-        // ───────── ALL STARS ONLY
-        else if (['speed', 'talent', 'close_fight', 'attaques'].includes(act.stat)) {
-            try {
-                const data = await getData({ pseudo: act.joueur });
-                if (!data || !data.jid) continue;
+        // ───── ALL STARS (speed / talent / close_fight / attaques)
+        if (['speed', 'talent', 'close_fight', 'attaques'].includes(act.stat)) {
+            const data = await getData({ jid });
+            if (!data) continue;
 
-                const oldValue = Number(data[act.stat]) || 0;
-                const newValue = oldValue + act.valeur;
+            const oldVal = Number(data[act.stat]) || 0;
+            await setfiche(act.stat, oldVal + act.valeur, jid);
 
-                await setfiche(act.stat, newValue, data.jid);
-                allStarsUpdated.add(act.joueur);
-            } catch (err) {
-                console.error("❌ RazorX All Stars error:", err);
-            }
+            allStarsConfirm.push(`${act.stat} (${act.valeur > 0 ? '+' : ''}${act.valeur}) → @${act.tag}`);
         }
     }
 
-    // ───────── Renvoi fiche duel mise à jour
+    // ───── MAJ FICHE DUEL
     if (duel) {
-        const fiche = generateFicheDuel(duel);
         await ovl.sendMessage(
             ms_org,
-            { image: { url: duel.arene.image }, caption: fiche },
+            {
+                image: { url: duel.arene.image },
+                caption: generateFicheDuel(duel)
+            },
             { quoted: ms }
         );
     }
 
-    // ───────── Confirmation All Stars
-    if (allStarsUpdated.size > 0) {
+    // ───── CONFIRMATION ALL STARS
+    if (allStarsConfirm.length) {
         await ovl.sendMessage(ms_org, {
-            text: `✅ Stats (speed, talent, close_fight, attaques) ajoutées sur la fiche All Stars : ${[...allStarsUpdated].join(", ")}`
+            text: `✅ Stats All Stars mises à jour :\n` + allStarsConfirm.join("\n")
         });
     }
-});
+}); 
