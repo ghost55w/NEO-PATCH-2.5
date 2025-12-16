@@ -20,7 +20,7 @@ ovlcmd({
   try {
 
     await repondre(
-      "⚽🔷📂 Veuillez mentionner le nom du joueur Blue Lock, ex : *⚽Isagi / 🔷Rin NEL*\nTapez `close` pour fermer la session.\n╰───────────────────"
+      "⚽🔷📂 Veuillez mentionner le nom du joueur Blue Lock, ex : *⚽Isagi / ⚽Rin NEL*\nTapez `close` pour fermer la session.\n╰───────────────────"
     );
 
     // 🔵 Aplatir toutes les cards
@@ -58,8 +58,8 @@ ovlcmd({
         break;
       }
 
-      // 🔷 nettoyage input
-      let txt = body.replace(/^🔷\s*/i, "").trim();
+      // ⚽ nettoyage input
+      let txt = body.replace(/^⚽\s*/i, "").trim();
       if (!txt) continue;
 
       const q = normalize(txt);
