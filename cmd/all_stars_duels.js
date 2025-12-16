@@ -35,9 +35,9 @@ function limiterStats(stats, stat, valeur) {
 function generateFicheDuel(duel) {
     return `*🆚VERSUS ARENA BATTLE🏆🎮*
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔░▒▒░░▒░
-🔅 *${duel.equipe1[0].nom}*: 🫀:${duel.equipe1[0].stats.sta}% 🌀:${duel.equipe1[0].stats.energie}% ❤️:${duel.equipe1[0].stats.vie}%
+🔅 *${duel.equipe1[0].nom}*: 🫀:${duel.equipe1[0].stats.sta}% 🌀:${duel.equipe1[0].stats.energie}% ❤️:${duel.equipe1[0].stats.pv}%
                                    ~  *🆚*  ~
-🔅 *${duel.equipe2[0].nom}*: 🫀:${duel.equipe2[0].stats.sta}% 🌀:${duel.equipe2[0].stats.energie}% ❤️:${duel.equipe2[0].stats.vie}%
+🔅 *${duel.equipe2[0].nom}*: 🫀:${duel.equipe2[0].stats.sta}% 🌀:${duel.equipe2[0].stats.energie}% ❤️:${duel.equipe2[0].stats.pv}%
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
 *🌍 𝐀𝐫𝐞̀𝐧𝐞*: ${duel.arene.nom}
 *🚫 𝐇𝐚𝐧𝐝𝐢𝐜𝐚𝐩𝐞*: Boost 1 fois chaque 2 tours!
@@ -70,8 +70,8 @@ ovlcmd({
 
         if (!equipe1Str || !equipe2Str) return repondre('❌ Erreur de format !');
 
-        const equipe1 = equipe1Str.split(',').map(n => ({ nom: n.trim(), stats: { sta: 100, energie: 100, vie: 100 } }));
-        const equipe2 = equipe2Str.split(',').map(n => ({ nom: n.trim(), stats: { sta: 100, energie: 100, vie: 100 } }));
+        const equipe1 = equipe1Str.split(',').map(n => ({ nom: n.trim(), stats: { sta: 100, energie: 100, pv: 100 } }));
+        const equipe2 = equipe2Str.split(',').map(n => ({ nom: n.trim(), stats: { sta: 100, energie: 100, pv: 100 } }));
         const areneT = tirerAr();
 
         const duelKey = `${equipe1Str} vs ${equipe2Str}`;
@@ -97,7 +97,7 @@ ovlcmd({
 }, async (ms_org, ovl, { texte, repondre, ms, getJid }) => {
     if(!texte) return;
     const mots = texte.trim().split(/\s+/);
-    const statsAutorisees = ["sta", "energie", "vie"];
+    const statsAutorisees = ["sta", "energie", "pv"];
 
     if (mots.length !== 4) return;
     let [joueurId, stat, signe, valeurStr] = mots;
@@ -144,12 +144,12 @@ ovlcmd({
     const duel = duelsEnCours[duelKey];
 
     if (joueurId.toLowerCase() === 'all') {
-        duel.equipe1.forEach(j => j.stats = { sta: 100, energie: 100, vie: 100 });
-        duel.equipe2.forEach(j => j.stats = { sta: 100, energie: 100, vie: 100 });
+        duel.equipe1.forEach(j => j.stats = { sta: 100, energie: 100, pv: 100 });
+        duel.equipe2.forEach(j => j.stats = { sta: 100, energie: 100, pv: 100 });
     } else {
         const joueur = duel.equipe1.find(j => j.nom === joueurId.replace("@", "")) || duel.equipe2.find(j => j.nom === joueurId.replace("@", ""));
         if (!joueur) return repondre('❌ Joueur non trouvé.');
-        joueur.stats = { sta: 100, energie: 100, vie: 100 };
+        joueur.stats = { sta: 100, energie: 100, pv: 100 };
     }
 
     const fiche = generateFicheDuel(duel);
