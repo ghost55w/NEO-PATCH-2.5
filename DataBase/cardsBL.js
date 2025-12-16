@@ -1243,25 +1243,55 @@ function createCardFromBlueLock(name, data) {
         : "normal"
   };
 }
+// --------------------
+// 🔵 CRÉATION D’UNE CARD
+// --------------------
+function createCardFromBlueLock(name, data) {
+  return {
+    name: data.name,
+    country: data.country,
+    ovr: data.ovr,
+    sho: data.sho,
+    dri: data.dri,
+    pas: data.pas,
+    acc: data.acc,
+    phy: data.phy,
+    def: data.def,
+    goal: data.goal, // ⬅️ conservé ici si tu en as besoin ailleurs
+    image: data.image,
+    rank: data.rank,
+    taille: data.taille,
+    pieds: data.pieds,
+    category: determineCategory(data.ovr),
+    price: determinePrice(data.rank) + (data.ovr * 1000),
+    placement:
+      data.rank === "SS"
+        ? "elite"
+        : data.rank === "S"
+        ? "world_class"
+        : "normal"
+  };
+}
 
 // --------------------
-// 🔵 GROUPER PAR PLACEMENT
+// 🔵 GROUPER PAR PLACEMENT (SANS goal)
 // --------------------
 function groupCardsByPlacement(cardsArray) {
   const grouped = {};
   for (const card of cardsArray) {
     const place = card.placement;
     if (!grouped[place]) grouped[place] = [];
+
     grouped[place].push({
       name: card.name,
-      country: data.country,
       rank: card.rank,
       ovr: card.ovr,
       category: card.category,
-      taille: card.taille,
       image: card.image,
-      pieds: card.pieds,
-      price: card.price 
+      price: card.price,
+      country: card.country,
+      taille: card.taille,
+      pieds: card.pieds
     });
   }
   return grouped;
