@@ -314,3 +314,96 @@ if (allStarsConfirm.length) {
     });
    } 
 }); 
+
+// ÉCOUTEUR RAZORX⚡™ RESULTAT FINAL 
+ovlcmd({
+    nom: "razorx_result",
+    isfunc: true
+}, async (ms_org, ovl, { texte, getJid }) => {
+
+    // 🔒 seulement ce pavé
+    if (!texte?.includes("🏆RESULTAT FINAL")) return;
+
+    // ───── PARSE
+    const winnerMatch = texte.match(/\*✅Winner:\*\s*@?(\w+)(\s*✅)?/i);
+    const loserMatch  = texte.match(/\*❌Loser:\*\s*@?(\w+)(\s*❌)?/i);
+    const dureeMatch  = texte.match(/⏱️Durée:\s*(\d+)/i);
+
+    if (!winnerMatch || !loserMatch || !dureeMatch) return;
+
+    const winnerTag = winnerMatch[1];
+    const winnerBonus = !!winnerMatch[2];
+
+    const loserTag = loserMatch[1];
+    const loserMalus = !!loserMatch[2];
+
+    const duree = parseInt(dureeMatch[1]);
+
+    // ───── JID
+    let winnerJid, loserJid;
+    try {
+        winnerJid = await getJid(winnerTag + "@lid", ms_org, ovl);
+        loserJid  = await getJid(loserTag + "@lid", ms_org, ovl);
+    } catch {
+        return;
+    }
+
+    const winnerData = await getData({ jid: winnerJid });
+    const loserData  = await getData({ jid: loserJid });
+    if (!winnerData || !loserData) return;
+
+    // ───── WINNER BASE
+    await setfiche("victoire", (Number(winnerData.victoire) || 0) + 1, winnerJid);
+    await setfiche("fans", (Number(winnerData.fans) || 0) + 1000, winnerJid);
+
+    // ───── WINNER BONUS ✅
+    if (winnerBonus) {
+        await setfiche(
+            "talent",
+            (Number(winnerData.talent) || 0) + 1,
+            winnerJid
+        );
+        await setfiche(
+            "niveau",
+            capLevel((Number(winnerData.niveau) || 0) + 1),
+            winnerJid
+        );
+    }
+
+    // ───── LOSER BASE
+    await setfiche("defaite", (Number(loserData.defaite) || 0) + 1, loserJid);
+    await setfiche("fans", (Number(loserData.fans) || 0) - 100, loserJid);
+
+    // ───── LOSER MALUS ❌
+    if (loserMalus) {
+        await setfiche(
+            "talent",
+            (Number(loserData.talent) || 0) - 1,
+            loserJid
+        );
+        await setfiche(
+            "niveau",
+            capLevel((Number(loserData.niveau) || 0) - 1),
+            loserJid
+        );
+        await setfiche(
+            "fans",
+            (Number(loserData.fans) || 0) - 500,
+            loserJid
+        );
+    }
+
+    // ───── MALUS DURÉE ≤ 3
+    if (duree <= 3) {
+        await setfiche(
+            "niveau",
+            capLevel((Number(loserData.niveau) || 0) - 1),
+            loserJid
+        );
+    }
+
+    // ───── CONFIRMATION
+    await ovl.sendMessage(ms_org, {
+        text: "🏆 Résultat final enregistré sur les fiches All Stars."
+    });
+});
