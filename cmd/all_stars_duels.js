@@ -322,7 +322,7 @@ ovlcmd({
 }, async (ms_org, ovl, { texte, getJid }) => {
 
     // 🔒 seulement ce pavé
-    if (!texte?.includes("🏆RESULTAT FINAL")) return;
+    if (!texte?.includes("🏆RESULTAT FINA")) return;
 
     // ───── PARSE
     const winnerMatch = texte.match(/\*✅Winner:\*\s*@?(\w+)(\s*✅)?/i);
