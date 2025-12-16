@@ -325,9 +325,9 @@ ovlcmd({
     if (!texte?.includes("🏆RESULTAT FINA")) return;
 
     // ───── PARSE
-    const winnerMatch = texte.match(/\*✅Winner:\*\s*@?([^\s\n]+)(\s*✅)?/i);
-    const loserMatch  = texte.match(/\*❌Loser:\*\s*@?([^\s\n]+)(\s*❌)?/i);
-    const dureeMatch  = texte.match(/\*⏱️Durée:\*\s*(\d+)/i);
+    const winnerMatch = texte.match(/\*✅Winner:\*\s*@?(\w+)(\s*✅)?/i);
+    const loserMatch  = texte.match(/\*❌Loser:\*\s*@?(\w+)(\s*❌)?/i);
+    const dureeMatch  = texte.match(/⏱️Durée:\s*(\d+)/i);
 
     if (!winnerMatch || !loserMatch || !dureeMatch) return;
 
