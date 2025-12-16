@@ -325,22 +325,27 @@ function cleanPlayerName(name) {
 
 // Parser RESULTAT aligné sur le pavé RAZORX⚡™
 function parseResultRazorX(text) {
-    const clean = text.replace(/[\u2066-\u2069]/g, "");
+    // Nettoyage total WhatsApp
+    const clean = text
+        .replace(/[\u2066-\u2069]/g, "")
+        .replace(/\r/g, "")
+        .toLowerCase();
 
-    const winnerLine = clean.match(/✅winner:\s*@(.+)/i);
-    const loserLine  = clean.match(/❌loser:\s*@(.+)/i);
-    const dureeLine  = clean.match(/durée:\s*(\d+)/i);
+    const winnerLine = clean.match(/✅\s*winner\s*:\s*@([^\n]+)/);
+    const loserLine  = clean.match(/❌\s*loser\s*:\s*@([^\n]+)/);
+    const dureeLine  = clean.match(/durée\s*:\s*(\d+)/);
 
     if (!winnerLine || !loserLine || !dureeLine) return null;
 
     return {
-        winnerRaw: winnerLine[1],
-        loserRaw: loserLine[1],
-        winnerBonus: winnerLine[1].includes("✅"),
-        loserMalus: loserLine[1].includes("❌"),
-        duree: parseInt(dureeLine[1])
+        winnerRaw: winnerLine[1].trim(),
+        loserRaw: loserLine[1].trim(),
+        winnerBonus: true,   // le ✅ est déjà présent
+        loserMalus: true,    // le ❌ est déjà présent
+        duree: parseInt(dureeLine[1], 10)
     };
 }
+
 
 // ÉCOUTEUR RAZORX⚡™ RESULTAT FINAL 
 ovlcmd({
