@@ -23,18 +23,17 @@ const normalize = str =>
 // --- COMMANDE ---
 ovlcmd({
   nom_cmd: "cardsbl",
-  react: "⚽", // 🔵 maintenant le ballon
+  react: "🔷", // ✅ retour au déclencheur stable
   classe: "NEO_GAMES"
 }, async (ms_org, ovl, { auteur_Message, repondre }) => {
   try {
 
     await repondre(
-      "⚽📂 Veuillez mentionner le nom du joueur Blue Lock, ex : *⚽Isagi / ⚽Rin NEL*\n" +
+      "🔷⚽📂 Veuillez mentionner le nom du joueur Blue Lock, ex : *🔷Isagi / 🔷Rin NEL*\n" +
       "Tapez `close` pour fermer la session.\n" +
       "╰───────────────────"
     );
 
-    // 🔵 Cartes complètes
     const allCards = allCardsFull;
 
     const startTime = Date.now();
@@ -64,8 +63,8 @@ ovlcmd({
         break;
       }
 
-      // 🔷 nettoyage input
-      let txt = body.replace(/^⚽\s*/i, "").trim(); // 🔵 uniquement le ballon
+      // 🔷 nettoyage input (🔷 obligatoire)
+      let txt = body.replace(/^🔷\s*/i, "").trim();
       if (!txt) continue;
 
       const q = normalize(txt);
@@ -81,7 +80,7 @@ ovlcmd({
         await ovl.sendMessage(ms_org, {
           image: { url: card.image },
           caption:
-`⚽ *BLUE LOCK CARD*
+`🔷⚽ *BLUE LOCK CARD*
 
 Nom : ${card.name}
 Country : ${card.country}
@@ -92,7 +91,7 @@ Placement : ${card.placement}
 Prix : ${formatNumber(card.price)} 💶
 
 ╰───────────────────
-                      *⚽BLUELOCK*`
+                      *🔷BLUELOCK⚽*`
         }, { quoted: reply });
 
         continue;
@@ -109,7 +108,7 @@ Prix : ${formatNumber(card.price)} 💶
         continue;
       }
 
-      let msg = "╭────〔 *⚽🔷 LISTE BLUE LOCK 📂* 〕\n\n";
+      let msg = "╭────〔 *🔷⚽ LISTE BLUE LOCK 📂* 〕\n\n";
       msg += "🔷📋 *Nom non reconnu*\n";
       msg += "*Voici les cartes disponibles :*\n";
       suggestions.forEach((c, i) => {
@@ -145,7 +144,7 @@ Prix : ${formatNumber(card.price)} 💶
       await ovl.sendMessage(ms_org, {
         image: { url: chosenCard.image },
         caption:
-`⚽ *BLUE LOCK CARD*
+`🔷⚽ *BLUE LOCK CARD*
 
 Nom : ${chosenCard.name}
 Country : ${chosenCard.country}
