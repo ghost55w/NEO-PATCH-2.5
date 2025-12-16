@@ -315,31 +315,48 @@ if (allStarsConfirm.length) {
    } 
 }); 
 
+// Nettoyage pseudo WhatsApp (IDENTIQUE À STATS)
+function cleanPlayerName(name) {
+    return name
+        .replace(/@/g, "")
+        .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "")
+        .trim();
+}
+
+// Parser RESULTAT aligné sur le pavé RAZORX⚡™
+function parseResultRazorX(text) {
+    const clean = text.replace(/[\u2066-\u2069]/g, "");
+
+    const winnerLine = clean.match(/✅winner:\s*@(.+)/i);
+    const loserLine  = clean.match(/❌loser:\s*@(.+)/i);
+    const dureeLine  = clean.match(/durée:\s*(\d+)/i);
+
+    if (!winnerLine || !loserLine || !dureeLine) return null;
+
+    return {
+        winnerRaw: winnerLine[1],
+        loserRaw: loserLine[1],
+        winnerBonus: winnerLine[1].includes("✅"),
+        loserMalus: loserLine[1].includes("❌"),
+        duree: parseInt(dureeLine[1])
+    };
+}
+
 // ÉCOUTEUR RAZORX⚡™ RESULTAT FINAL 
 ovlcmd({
     nom: "razorx_result",
     isfunc: true
-}, async (ms_org, ovl, { texte, getJid }) => {
+}, async (ms_org, ovl, { texte, ms, getJid }) => {
 
-    if (!texte?.includes("🏆`RESULTAT`")) return;
+    if (!texte?.includes("⚡RAZORX™")) return;
+    if (!texte.includes("🏆`RESULTAT`")) return;
 
-    const clean = texte
-        .replace(/[\u2066-\u2069]/g, "")
-        .trim();
+    const result = parseResultRazorX(texte);
+    if (!result) return;
 
-    const winnerMatch = clean.match(/winner:\s*@(.+?)(\s*✅)?$/im);
-    const loserMatch  = clean.match(/loser:\s*@(.+?)(\s*❌)?$/im);
-    const dureeMatch  = clean.match(/durée:\s*(\d+)/i);
-
-    if (!winnerMatch || !loserMatch || !dureeMatch) return;
-
-    const winnerTag = winnerMatch[1].trim();
-    const winnerBonus = !!winnerMatch[2];
-
-    const loserTag = loserMatch[1].trim();
-    const loserMalus = !!loserMatch[2];
-
-    const duree = parseInt(dureeMatch[1]);
+    // 🔥 MÊME MÉTHODE QUE STATS (CLÉ DU SUCCÈS)
+    const winnerTag = cleanPlayerName(result.winnerRaw);
+    const loserTag  = cleanPlayerName(result.loserRaw);
 
     let winnerJid, loserJid;
     try {
@@ -353,12 +370,11 @@ ovlcmd({
     const loserData  = await getData({ jid: loserJid });
     if (!winnerData || !loserData) return;
 
-    // ───── WINNER BASE
+    // ───── 🏆 WINNER
     await setfiche("victoire", (Number(winnerData.victoire) || 0) + 1, winnerJid);
     await setfiche("fans", (Number(winnerData.fans) || 0) + 1000, winnerJid);
 
-    // ───── WINNER BONUS ✅
-    if (winnerBonus) {
+    if (result.winnerBonus) {
         await setfiche(
             "talent",
             (Number(winnerData.talent) || 0) + 1,
@@ -371,12 +387,11 @@ ovlcmd({
         );
     }
 
-    // ───── LOSER BASE (UNE SEULE DÉFAITE)
+    // ───── ❌ LOSER
     await setfiche("defaite", (Number(loserData.defaite) || 0) + 1, loserJid);
     await setfiche("fans", (Number(loserData.fans) || 0) - 100, loserJid);
 
-    // ───── LOSER MALUS ❌
-    if (loserMalus) {
+    if (result.loserMalus) {
         await setfiche(
             "talent",
             (Number(loserData.talent) || 0) - 1,
@@ -394,8 +409,8 @@ ovlcmd({
         );
     }
 
-    // ───── MALUS DURÉE ≤ 3
-    if (duree <= 3) {
+    // ───── ⏱️ DURÉE ≤ 3
+    if (result.duree <= 3) {
         await setfiche(
             "niveau",
             capLevel((Number(loserData.niveau) || 0) - 1),
@@ -403,8 +418,7 @@ ovlcmd({
         );
     }
 
-    // ───── CONFIRMATION
     await ovl.sendMessage(ms_org, {
-        text: "🏆 RAZORX™ — Résultat final appliqué selon les règles."
-    });
+        text: "🏆 RAZORX™ — ✅Résultat appliqué (JID confirmé)."
+    }, { quoted: ms });
 });
