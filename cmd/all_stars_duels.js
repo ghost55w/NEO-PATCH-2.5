@@ -218,7 +218,7 @@ function parseStatsRazorX(text) {
     return actions;
 }
 
-// ─── ÉCOUTEUR GLOBAL AMÉLIORÉ POUR LES PAVÉS ⚡RAZORX™ ───
+// ─── ÉCOUTEUR GLOBAL POUR LES PAVÉS ⚡RAZORX™ ───
 ovlcmd({
     nom: "razorx_auto",
     isfunc: true
@@ -227,36 +227,96 @@ ovlcmd({
     if (!texte.includes("⚡RAZORX™")) return;
     if (!texte.includes("📊`Stats`:")) return;
 
+    // Fonction pour parser le pavé
+    const parseStatsRazorX = (text) => {
+        const blocMatch = text.match(/📊`Stats`:\s*([\s\S]+)/i);
+        if (!blocMatch) return [];
+
+        const lignes = blocMatch[1]
+            .split('\n')
+            .map(l => l.trim())
+            .filter(Boolean);
+
+        const actions = [];
+
+        for (const ligne of lignes) {
+            const [joueur, statsStr] = ligne.split(':').map(s => s.trim());
+            if (!joueur || !statsStr) continue;
+
+            const stats = statsStr.split(',').map(s => s.trim());
+
+            for (const st of stats) {
+                const m = st.match(/(pv|sta|energie|speed|talent|strikes|attaques)\s*([+-])\s*(\d+)/i);
+                if (!m) continue;
+
+                actions.push({
+                    joueur,
+                    stat: m[1].toLowerCase(),
+                    valeur: parseInt(m[3]) * (m[2] === '-' ? -1 : 1)
+                });
+            }
+        }
+        return actions;
+    };
+
     const actions = parseStatsRazorX(texte);
     if (actions.length === 0) return;
 
-    // Normalisation fonction pour ignorer majuscules et espaces
-    const normalize = str => str.toLowerCase().replace(/\s+/g, '');
-
-    // Trouver le duel correspondant
+    // Trouver le duel correspondant (pour sta, pv, energie)
     const duelKey = Object.keys(duelsEnCours).find(k =>
-        actions.some(a => normalize(k).includes(normalize(a.joueur)))
+        actions.some(a => k.toLowerCase().includes(a.joueur.toLowerCase()))
     );
-    if (!duelKey) return;
+    const duel = duelKey ? duelsEnCours[duelKey] : null;
 
-    const duel = duelsEnCours[duelKey];
+    // Liste pour confirmation All Stars
+    const allStarsUpdated = new Set();
 
-    // Appliquer les modifications de stats
     for (const act of actions) {
-        const joueur =
-            duel.equipe1.find(j => normalize(j.nom) === normalize(act.joueur)) ||
-            duel.equipe2.find(j => normalize(j.nom) === normalize(act.joueur));
+        const joueurName = act.joueur.replace("@", "");
 
-        if (!joueur) continue;
+        // ── Mise à jour stats duel (sta, pv, energie)
+        if (['sta', 'pv', 'energie'].includes(act.stat)) {
+            if (!duel) continue;
+            const joueurDuel =
+                duel.equipe1.find(j => j.nom.toLowerCase() === joueurName.toLowerCase()) ||
+                duel.equipe2.find(j => j.nom.toLowerCase() === joueurName.toLowerCase());
 
-        limiterStats(joueur.stats, act.stat, act.valeur);
+            if (!joueurDuel) continue;
+            limiterStats(joueurDuel.stats, act.stat, act.valeur);
+        }
+
+        // ── Mise à jour All Stars (speed, talent, strikes, attaques)
+        else if (['speed', 'talent', 'strikes', 'attaques'].includes(act.stat)) {
+            try {
+                const data = await getData({ pseudo: joueurName });
+                if (!data) continue;
+
+                const oldValue = Number(data[act.stat]) || 0;
+                const newValue = oldValue + act.valeur;
+
+                await setfiche(act.stat, newValue, data.jid);
+                allStarsUpdated.add(joueurName);
+            } catch (err) {
+                console.error("Erreur mise à jour All Stars:", err);
+            }
+        }
     }
 
-    // Renvoi automatique de la fiche duel mise à jour
-    const fiche = generateFicheDuel(duel);
-    await ovl.sendMessage(
-        ms_org,
-        { image: { url: duel.arene.image }, caption: fiche },
-        { quoted: ms }
-    );
+    // ── Renvoi fiche duel mise à jour si applicable
+    if (duel) {
+        const fiche = generateFicheDuel(duel);
+        await ovl.sendMessage(
+            ms_org,
+            { image: { url: duel.arene.image }, caption: fiche },
+            { quoted: ms }
+        );
+    }
+
+    // ── Message de confirmation All Stars
+    if (allStarsUpdated.size > 0) {
+        const joueursList = Array.from(allStarsUpdated).join(', ');
+        await ovl.sendMessage(ms_org, {
+            text: `✅ Stats (speed, talent, strikes, attaques) mises à jour sur la fiche All Stars pour : ${joueursList}`
+        });
+    }
 });
