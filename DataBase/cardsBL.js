@@ -1284,12 +1284,12 @@ function groupCardsByPlacement(cardsArray) {
 
     grouped[place].push({
       name: card.name,
+      country: card.country,
       rank: card.rank,
       ovr: card.ovr,
       category: card.category,
       image: card.image,
       price: card.price,
-      country: card.country,
       taille: card.taille,
       pieds: card.pieds
     });
