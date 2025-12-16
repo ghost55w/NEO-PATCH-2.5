@@ -53,7 +53,7 @@ function generateFicheDuel(duel) {
 *Sinon la victoire sera donnée par décision selon l'offensive !*
 
 ╰───────────────────
-                 *AS JUMP🌀BATTLE ARENA🔅*`;
+🏆NSL PRO ESPORT ARENA® | RAZORX⚡ `;
 }
 
 ovlcmd({
@@ -225,7 +225,7 @@ function parseStatsRazorX(text) {
 
         for (const st of stats) {
             const m = st.match(
-                /(pv|sta|energie|speed|talent|close_fight|attaques)\s*([+-])\s*(\d+)/i
+                /(pv|sta|energie|speed|talent|strikes|attaques)\s*([+-])\s*(\d+)/i
             );
             if (!m) continue;
 
@@ -284,7 +284,7 @@ ovlcmd({
         }
 
         // ───── ALL STARS (speed / talent / close_fight / attaques)
-        if (['speed', 'talent', 'close_fight', 'attaques'].includes(act.stat)) {
+        if (['speed', 'talent', 'strikes', 'attaques'].includes(act.stat)) {
             const data = await getData({ jid });
             if (!data) continue;
 
