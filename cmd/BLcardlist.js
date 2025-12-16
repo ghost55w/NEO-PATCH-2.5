@@ -1,35 +1,41 @@
 const { ovlcmd } = require("../lib/ovlcmd");
 const path = require("path");
-const { groupedCards } = require(
+const { allCardsFull } = require(
   path.join(__dirname, "../DataBase/cardsBL")
 );
 
+// --- UTILITAIRES ---
 const formatNumber = n => {
-  try { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
-  catch { return n; }
+  try {
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  } catch {
+    return n;
+  }
 };
 
 const normalize = str =>
-  (str || "").toLowerCase().replace(/[\s\-\_\(\)]/g, "");
+  (str || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\s\-\_\(\)]/g, "");
 
+// --- COMMANDE ---
 ovlcmd({
   nom_cmd: "cardsbl",
-  react: "🔷",
+  react: "⚽", // 🔵 maintenant le ballon
   classe: "NEO_GAMES"
 }, async (ms_org, ovl, { auteur_Message, repondre }) => {
   try {
 
     await repondre(
-      "⚽🔷📂 Veuillez mentionner le nom du joueur Blue Lock, ex : *⚽Isagi / ⚽Rin NEL*\nTapez `close` pour fermer la session.\n╰───────────────────"
+      "⚽📂 Veuillez mentionner le nom du joueur Blue Lock, ex : *⚽Isagi / ⚽Rin NEL*\n" +
+      "Tapez `close` pour fermer la session.\n" +
+      "╰───────────────────"
     );
 
-    // 🔵 Aplatir toutes les cards
-    const allCards = [];
-    for (const [placementKey, placementCards] of Object.entries(groupedCards)) {
-      for (const c of placementCards) {
-        allCards.push({ ...c, placement: placementKey });
-      }
-    }
+    // 🔵 Cartes complètes
+    const allCards = allCardsFull;
 
     const startTime = Date.now();
     const timeout = 60000;
@@ -58,8 +64,8 @@ ovlcmd({
         break;
       }
 
-      // ⚽ nettoyage input
-      let txt = body.replace(/^⚽\s*/i, "").trim();
+      // 🔷 nettoyage input
+      let txt = body.replace(/^⚽\s*/i, "").trim(); // 🔵 uniquement le ballon
       if (!txt) continue;
 
       const q = normalize(txt);
@@ -70,11 +76,12 @@ ovlcmd({
         allCards.find(c => normalize(c.name).startsWith(q)) ||
         allCards.find(c => normalize(c.name).includes(q));
 
+      // 🟢 CARTE TROUVÉE
       if (card) {
         await ovl.sendMessage(ms_org, {
           image: { url: card.image },
           caption:
-`🔷⚽ *BLUE LOCK CARD*
+`⚽ *BLUE LOCK CARD*
 
 Nom : ${card.name}
 Country : ${card.country}
@@ -85,13 +92,13 @@ Placement : ${card.placement}
 Prix : ${formatNumber(card.price)} 💶
 
 ╰───────────────────
-                      *🔷BLUELOCK⚽*`
+                      *⚽BLUELOCK*`
         }, { quoted: reply });
 
         continue;
       }
 
-      // 🔵 suggestions sur le perso
+      // 🔵 suggestions
       const perso = txt.split(/[\s\(\)]/)[0];
       const suggestions = allCards.filter(c =>
         normalize(c.name).includes(normalize(perso))
@@ -102,7 +109,7 @@ Prix : ${formatNumber(card.price)} 💶
         continue;
       }
 
-      let msg = "╭────〔 *🔷⚽ LISTE BLUE LOCK 📂* 〕\n\n";
+      let msg = "╭────〔 *⚽🔷 LISTE BLUE LOCK 📂* 〕\n\n";
       msg += "🔷📋 *Nom non reconnu*\n";
       msg += "*Voici les cartes disponibles :*\n";
       suggestions.forEach((c, i) => {
@@ -138,9 +145,10 @@ Prix : ${formatNumber(card.price)} 💶
       await ovl.sendMessage(ms_org, {
         image: { url: chosenCard.image },
         caption:
-`🔷⚽ *BLUE LOCK CARD*
+`⚽ *BLUE LOCK CARD*
 
 Nom : ${chosenCard.name}
+Country : ${chosenCard.country}
 Rang : ${chosenCard.rank}
 OVR : ${chosenCard.ovr}
 Catégorie : ${chosenCard.category}
@@ -152,6 +160,5 @@ Prix : ${formatNumber(chosenCard.price)} 💶`
 
   } catch (err) {
     console.log("CARDS BL ERROR:", err);
-    return;
   }
 });
