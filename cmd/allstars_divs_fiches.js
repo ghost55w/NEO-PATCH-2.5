@@ -46,7 +46,7 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 ▔▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
 ◇ *Pseudo👤*: ${data.pseudo}
 ◇ *Classement continental🌍:* ${data.classement}
-◇ *Niveau XP⏫*: ${data.niveu_xp} ▲
+◇ *Niveau XP⏫*: ${data.niveau} ▲
 ◇ *Division🛡️*: ${data.division}
 ◇ *Rank 🎖️*: ${data.rang}
 ◇ *Classe🎖️*: ${data.classe}
@@ -72,19 +72,19 @@ function add_fiche(nom_joueur, jid, image_oc, joueur_div) {
 
 ░▒░▒░ STATS 📊
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
-✅ Cleans: ${data.cleans}
-❌ Erreurs: ${data.erreurs}
+
 📈 Note: ${data.note}/100
 ⌬ *Talent⭐:* ▱▱▱▱▬▬▬ ${data.talent}
 ⌬ *Speed💬:* ▱▱▱▱▬▬▬  ${data.speed}
-⌬ *Strikes👊🏻:* ▱▱▱▱▬▬▬ ${data.close_fight}
+⌬ *Strikes👊🏻:* ▱▱▱▱▬▬▬ ${data.strikes}
 ⌬ *Attaques🌀:* ▱▱▱▱▬▬▬ ${data.attaques}
 
 ░▒░▒░ CARDS 🎴: ${countCards(data.cards)}
 ▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
 🎴 ${data.cards.split("\n").join(" • ")}
+
 ╰───────────────────
-*🏆NSL PRO ESPORTS ARENA®*`;
+🏆NSL PRO ESPORT ARENA® | RAZORX⚡`;
 
         await ovl.sendMessage(ms_org, {
           video: { url: 'https://files.catbox.moe/0qzigf.mp4' },
