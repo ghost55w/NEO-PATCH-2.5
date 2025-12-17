@@ -305,10 +305,16 @@ ovlcmd({
             let victoires = Number(data.victoires) || 0;
             let defaites = Number(data.defaites) || 0;
 
-            if (type === "victoire") {
-                await setfiche("victoires", victoires + 1, jid);
-                fans += 1000;
-                talent += symbol === "✅" ? 2 : 1;
+            if (type === "victoire") {    
+    await setfiche("victoires", victoires + 1, jid);    
+    fans += 1000;    
+
+    // Talent UNIQUEMENT si victoire + ✅
+    if (symbol === "✅") {
+        talent += 2;
+        niveau += 1;
+    }
+}
                 if (symbol === "✅") niveau += 1;
             } else {
                 await setfiche("defaites", defaites + 1, jid);
