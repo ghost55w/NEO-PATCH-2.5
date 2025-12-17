@@ -238,72 +238,93 @@ ovlcmd({
     nom: "razorx_auto",
     isfunc: true
 }, async (ms_org, ovl, { texte, ms, getJid }) => {
+
     if (!texte?.includes("⚡RAZORX™")) return;
-    if (!texte.includes("📊`Stats`:")) return;
 
-    const actions = parseStatsRazorX(texte);
-    if (!actions.length) return;
-
-    const duelKey = Object.keys(duelsEnCours).find(k =>
-        actions.some(a => k.toLowerCase().includes(a.tag.toLowerCase()))
-    );
-    const duel = duelKey ? duelsEnCours[duelKey] : null;
-
+    let duel = null;
     const allStarsConfirm = [];
 
-    for (const act of actions) {
+    // ───────────────── STATS
+    if (texte.includes("📊`Stats`:")) {
+        const actions = parseStatsRazorX(texte);
+        if (actions.length) {
 
-        // ───── RÉCUP JID COMME setloup (LA CLÉ)
-        let jid;
-        try {
-            jid = await getJid(act.tag + "@lid", ms_org, ovl);
-        } catch {
-            continue;
-        }
+            const duelKey = Object.keys(duelsEnCours).find(k =>
+                actions.some(a => k.toLowerCase().includes(a.tag.toLowerCase()))
+            );
+            duel = duelKey ? duelsEnCours[duelKey] : null;
 
-        // ───── DUEL (pv / sta / energie)
-        if (['pv', 'sta', 'energie'].includes(act.stat)) {
-            if (!duel) continue;
+            for (const act of actions) {
+                let jid;
+                try {
+                    jid = await getJid(act.tag + "@lid", ms_org, ovl);
+                } catch { continue; }
 
-            const joueur =
-                duel.equipe1.find(j => j.nom.toLowerCase() === act.tag.toLowerCase()) ||
-                duel.equipe2.find(j => j.nom.toLowerCase() === act.tag.toLowerCase());
+                // DUEL
+                if (['pv', 'sta', 'energie'].includes(act.stat)) {
+                    if (!duel) continue;
+                    const joueur =
+                        duel.equipe1.find(j => j.nom.toLowerCase() === act.tag.toLowerCase()) ||
+                        duel.equipe2.find(j => j.nom.toLowerCase() === act.tag.toLowerCase());
+                    if (!joueur) continue;
+                    limiterStats(joueur.stats, act.stat, act.valeur);
+                }
 
-            if (!joueur) continue;
-            limiterStats(joueur.stats, act.stat, act.valeur);
-        }
-
-        // ───── ALL STARS (speed / talent / close_fight / attaques)
-        if (['speed', 'talent', 'strikes', 'attaques'].includes(act.stat)) {
-            const data = await getData({ jid });
-            if (!data) continue;
-
-            const oldVal = Number(data[act.stat]) || 0;
-            await setfiche(act.stat, oldVal + act.valeur, jid);
-
-            allStarsConfirm.push(`${act.stat} (${act.valeur > 0 ? '+' : ''}${act.valeur}) → @${act.tag}`);
+                // ALL STARS
+                if (['speed', 'talent', 'strikes', 'attaques'].includes(act.stat)) {
+                    const data = await getData({ jid });
+                    if (!data) continue;
+                    const oldVal = Number(data[act.stat]) || 0;
+                    await setfiche(act.stat, oldVal + act.valeur, jid);
+                    allStarsConfirm.push(`${act.stat} (${act.valeur > 0 ? '+' : ''}${act.valeur}) → @${act.tag}`);
+                }
+            }
         }
     }
 
-    // ───── MAJ FICHE DUEL
+    // ───────────────── RESULTAT
+    if (texte.includes("🏆`RESULTAT`")) {
+        const result = parseResultRazorX(texte);
+        if (result) {
+            let winnerJid, loserJid;
+            try {
+                winnerJid = await getJid(result.winner + "@lid", ms_org, ovl);
+                loserJid  = await getJid(result.loser + "@lid", ms_org, ovl);
+            } catch { return; }
+
+            const winnerData = await getData({ jid: winnerJid });
+            const loserData  = await getData({ jid: loserJid });
+            if (!winnerData || !loserData) return;
+
+            // WINNER
+            await setfiche("victoire", (Number(winnerData.victoire) || 0) + 1, winnerJid);
+            await setfiche("fans", (Number(winnerData.fans) || 0) + 1000, winnerJid);
+            await setfiche("talent", (Number(winnerData.talent) || 0) + 1, winnerJid);
+
+            // LOSER
+            await setfiche("defaite", (Number(loserData.defaite) || 0) + 1, loserJid);
+            await setfiche("fans", (Number(loserData.fans) || 0) - 600, loserJid);
+            await setfiche("talent", (Number(loserData.talent) || 0) - 1, loserJid);
+        }
+    }
+
+    // ───────────────── ENVOI FICHE DUEL
     if (duel) {
         await ovl.sendMessage(
             ms_org,
-            {
-                image: { url: duel.arene.image },
-                caption: generateFicheDuel(duel)
-            },
+            { image: { url: duel.arene.image }, caption: generateFicheDuel(duel) },
             { quoted: ms }
         );
     }
 
-   // ───── CONFIRMATION ALL STARS
-if (allStarsConfirm.length) {
-    await ovl.sendMessage(ms_org, {
-        text: "✅ stats All stars mise à jour."
-    });
-   } 
-}); 
+    // ───────────────── CONFIRMATION ALL STARS
+    if (allStarsConfirm.length) {
+        await ovl.sendMessage(ms_org, {
+            text: "✅ stats All Stars mises à jour." 
+        });
+    }
+
+});
 
 // Nettoyage pseudo WhatsApp (IDENTIQUE À STATS)
 function cleanPlayerName(name) {
