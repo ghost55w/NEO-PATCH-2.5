@@ -18,12 +18,12 @@ ovlcmd(
       });
 
       const liens = [
-        'https://files.catbox.moe/2drg5o.jpg',
-        'https://files.catbox.moe/2ylpnf.jpg',
-        'https://files.catbox.moe/jgw6tp.jpg',
-        'https://files.catbox.moe/kylflr.jpg',
-        'https://files.catbox.moe/4ezvm1.jpg', 
-        'https://files.catbox.moe/tfa6fr.jpg'
+        'https://files.catbox.moe/m4hcvo.png',
+        'https://files.catbox.moe/f4s7wt.png',
+        'https://files.catbox.moe/5aeqp4.jpg',
+        'https://files.catbox.moe/0s6n1h.png',
+        'https://files.catbox.moe/w55if9.png', 
+        'https://files.catbox.moe/jg6zpw.png'
       ];
 
       for (const lien of liens) {
