@@ -278,76 +278,81 @@ ovlcmd({
     }
 
     // ─────────────── RESULTAT ───────────────
-    if (texte.includes("🏆`RESULTAT`")) {
-        const blocMatch = texte.match(/🏆`RESULTAT`:\s*([\s\S]+)/i);
-        if (!blocMatch) return;
+if (texte.includes("🏆`RESULTAT`")) {
+    const blocMatch = texte.match(/🏆`RESULTAT`:\s*([\s\S]+)/i);
+    if (!blocMatch) return;
 
-        const lignes = blocMatch[1]
-            .split('\n')
-            .map(l => l.trim())
-            .filter(Boolean);
+    const lignes = blocMatch[1]
+        .split('\n')
+        .map(l => l.trim())
+        .filter(Boolean);
 
-        // Lecture durée si présente
-        const dureeMatch = texte.match(/⏱️Durée\s*:\s*(\d+)/i);
-        const duree = dureeMatch ? parseInt(dureeMatch[1], 10) : null;
+    const dureeMatch = texte.match(/⏱️Durée\s*:\s*(\d+)/i);
+    const duree = dureeMatch ? parseInt(dureeMatch[1], 10) : null;
 
-        for (const ligne of lignes) {
-            const cleanLine = ligne.replace(/[\u2066-\u2069\u200e\u200f\u202a-\u202e]/g, '').trim();
+    for (const ligne of lignes) {
+        const cleanLine = ligne.replace(/[\u2066-\u2069\u200e\u200f\u202a-\u202e]/g, '').trim();
 
-            // Pattern : @tag : victoire ou defaite (valeur facultative)
-            const m = cleanLine.match(/@?([^\s:]+)\s*:\s*(victoire|defaite)(?:\s*\(\+?(\d+)\))?/i);
-            if (!m) continue;
+        // Pattern : @tag : victoire / victoire + ✅ / défaite / défaite + ❌
+        const m = cleanLine.match(/@?([^\s:]+)\s*:\s*(victoire|defaite|défaite)(?:\s*\+\s*([✅❌]))?/i);
+        if (!m) continue;
 
-            const tag = m[1].trim();
-            const type = m[2].toLowerCase();
-            const valeur = m[3] ? parseInt(m[3], 10) : 1;
+        const tag = m[1].trim();
+        let type = m[2].toLowerCase();
+        const confirmSymbol = m[3] || null;
 
-            let jid;
-            try { jid = await getJid(tag + "@lid", ms_org, ovl); } catch { continue; }
-            const data = await getData({ jid });
-            if (!data) continue;
+        if (type === "défaite") type = "defaite";
 
-            // Lecture des valeurs actuelles pour ne pas écraser
-            const niveauActuel = Number(data.niveau) || 0;
-            const fansActuel = Number(data.fans) || 0;
-            const talentActuel = Number(data.talent) || 0;
-            const victoiresActuelles = Number(data.victoires) || 0;
-            const defaitesActuelles = Number(data.defaites) || 0;
+        let jid;
+        try { jid = await getJid(tag + "@lid", ms_org, ovl); } catch { continue; }
+        const data = await getData({ jid });
+        if (!data) continue;
 
-            let newNiveau = niveauActuel;
-            let newFans = fansActuel;
-            let newTalent = talentActuel;
+        const niveauActuel = Number(data.niveau) || 0;
+        const fansActuel = Number(data.fans) || 0;
+        const talentActuel = Number(data.talent) || 0;
+        const victoiresActuelles = Number(data.victoires) || 0;
+        const defaitesActuelles = Number(data.defaites) || 0;
 
-            if (type === "victoire") {
-                await setfiche("victoires", victoiresActuelles + valeur, jid);
-                newFans += 1000 * valeur;
-                newTalent += 1 * valeur;
-                newNiveau += 1 * valeur;
-            } else if (type === "defaite") {
-                await setfiche("defaites", defaitesActuelles + valeur, jid);
-                newFans -= 600 * valeur;
-                newTalent -= 1 * valeur;
-                newNiveau -= 1 * valeur;
+        let newNiveau = niveauActuel;
+        let newFans = fansActuel;
+        let newTalent = talentActuel;
 
-                // Malus supplémentaire si KO rapide
-                if (duree !== null && duree <= 3) {
-                    newNiveau -= 1;
-                }
+        if (type === "victoire") {
+            await setfiche("victoires", victoiresActuelles + 1, jid);
+            newFans += 1000;
+
+            if (confirmSymbol === "✅") {
+                newNiveau += 1;
+                newTalent += 2;
+            } else {
+                newTalent += 1;
+            }
+        } else if (type === "defaite") {
+            await setfiche("defaites", defaitesActuelles + 1, jid);
+
+            if (confirmSymbol === "❌") {
+                newFans -= 200;
+                newNiveau -= 1;
+                newTalent -= 1;
+            } else {
+                newFans -= 100;
             }
 
-            // Bornes pour ne pas dépasser les limites
-            newNiveau = Math.max(0, Math.min(20, newNiveau));
-            newFans = Math.max(0, newFans);
-            newTalent = Math.max(0, newTalent);
-
-            // Mise à jour fiche
-            await setfiche("niveau", newNiveau, jid);
-            await setfiche("fans", newFans, jid);
-            await setfiche("talent", newTalent, jid);
+            // Malus supplémentaire si KO rapide
+            if (duree !== null && duree <= 3) newNiveau -= 1;
         }
 
-        await ovl.sendMessage(ms_org, {
-            text: "✅ Résultat appliqué et fiches All Stars mises à jour."
-        });
+        newNiveau = Math.max(0, Math.min(20, newNiveau));
+        newFans = Math.max(0, newFans);
+        newTalent = Math.max(0, newTalent);
+
+        await setfiche("niveau", newNiveau, jid);
+        await setfiche("fans", newFans, jid);
+        await setfiche("talent", newTalent, jid);
     }
-});
+
+    await ovl.sendMessage(ms_org, {
+        text: "✅ Résultat appliqué et fiches All Stars mises à jour."
+    });
+} 
