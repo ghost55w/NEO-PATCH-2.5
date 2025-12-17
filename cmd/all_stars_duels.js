@@ -241,112 +241,116 @@ ovlcmd({
 
     if (!texte?.includes("⚡RAZORX™")) return;
 
-    // ───────────────── STATS
+    // ─────────────── STATS ───────────────
     if (texte.includes("📊`Stats`:")) {
         const actions = parseStatsRazorX(texte);
-        if (!actions.length) return;
+        if (actions.length) {
+            const duelKey = Object.keys(duelsEnCours).find(k =>
+                actions.some(a => k.toLowerCase().includes(a.tag.toLowerCase()))
+            );
+            const duel = duelKey ? duelsEnCours[duelKey] : null;
+            const allStarsConfirm = [];
 
-        const duelKey = Object.keys(duelsEnCours).find(k =>
-            actions.some(a => k.toLowerCase().includes(a.tag.toLowerCase()))
-        );
-        const duel = duelKey ? duelsEnCours[duelKey] : null;
+            for (const act of actions) {
+                let jid;
+                try { jid = await getJid(act.tag + "@lid", ms_org, ovl); } catch { continue; }
 
-        const allStarsConfirm = [];
+                // DUEL (pv / sta / energie)
+                if (['pv', 'sta', 'energie'].includes(act.stat)) {
+                    if (!duel) continue;
+                    const joueur =
+                        duel.equipe1.find(j => j.nom.toLowerCase() === act.tag.toLowerCase()) ||
+                        duel.equipe2.find(j => j.nom.toLowerCase() === act.tag.toLowerCase());
+                    if (!joueur) continue;
+                    limiterStats(joueur.stats, act.stat, act.valeur);
+                }
 
-        for (const act of actions) {
-            let jid;
-            try { jid = await getJid(act.tag + "@lid", ms_org, ovl); } 
-            catch { continue; }
-
-            // DUEL (pv / sta / energie)
-            if (['pv', 'sta', 'energie'].includes(act.stat)) {
-                if (!duel) continue;
-
-                const joueur =
-                    duel.equipe1.find(j => j.nom.toLowerCase() === act.tag.toLowerCase()) ||
-                    duel.equipe2.find(j => j.nom.toLowerCase() === act.tag.toLowerCase());
-
-                if (!joueur) continue;
-                limiterStats(joueur.stats, act.stat, act.valeur);
+                // ALL STARS (speed / talent / strikes / attaques)
+                if (['speed', 'talent', 'strikes', 'attaques'].includes(act.stat)) {
+                    const data = await getData({ jid });
+                    if (!data) continue;
+                    const oldVal = Number(data[act.stat]) || 0;
+                    await setfiche(act.stat, oldVal + act.valeur, jid);
+                    allStarsConfirm.push(`${act.stat} (${act.valeur > 0 ? '+' : ''}${act.valeur}) → @${act.tag}`);
+                }
             }
 
-            // ALL STARS (speed / talent / strikes / attaques)
-            if (['speed', 'talent', 'strikes', 'attaques'].includes(act.stat)) {
-                const data = await getData({ jid });
-                if (!data) continue;
-
-                const oldVal = Number(data[act.stat]) || 0;
-                await setfiche(act.stat, oldVal + act.valeur, jid);
-
-                allStarsConfirm.push(`${act.stat} (${act.valeur > 0 ? '+' : ''}${act.valeur}) → @${act.tag}`);
+            if (allStarsConfirm.length) {
+                await ovl.sendMessage(ms_org, { text: "✅ Stats All Stars mises à jour." });
             }
-        }
-
-        // Confirmation All Stars
-        if (allStarsConfirm.length) {
-            await ovl.sendMessage(ms_org, {
-                text: "✅ Stats All Stars mises à jour."
-            });
         }
     }
 
-    // ───────────────── RESULTAT (même pipeline)
+    // ─────────────── RESULTAT ───────────────
     if (texte.includes("🏆`RESULTAT`")) {
-        const result = parseResultRazorX(texte);
-        if (!result) return;
+        const blocMatch = texte.match(/🏆`RESULTAT`:\s*([\s\S]+)/i);
+        if (!blocMatch) return;
 
-        let winnerJid, loserJid;
+        const lignes = blocMatch[1]
+            .split('\n')
+            .map(l => l.trim())
+            .filter(Boolean);
 
-        try {
-            winnerJid = await getJid(result.winner + "@lid", ms_org, ovl);
-            loserJid  = await getJid(result.loser + "@lid", ms_org, ovl);
-        } catch {
-            return;
-        }
+        // Lecture durée si présente
+        const dureeMatch = texte.match(/⏱️Durée\s*:\s*(\d+)/i);
+        const duree = dureeMatch ? parseInt(dureeMatch[1], 10) : null;
 
-        const winnerData = await getData({ jid: winnerJid });
-        const loserData  = await getData({ jid: loserJid });
-        if (!winnerData || !loserData) return;
+        for (const ligne of lignes) {
+            // Pattern : @tag : victoire ou defaite (+1)
+            const m = ligne.match(/@?([^\s:]+)\s*:\s*(victoire|defaite)\s*\(\s*\+?(\d+)/i);
+            if (!m) continue;
 
-        // 🏆 WINNER — gains
-        await setfiche("victoire", (Number(winnerData.victoire) || 0) + 1, winnerJid);
-        await setfiche("fans", (Number(winnerData.fans) || 0) + 1000, winnerJid);
-        await setfiche("talent", (Number(winnerData.talent) || 0) + 1, winnerJid);
-        await setfiche("niveau", capLevel((Number(winnerData.niveau) || 0) + 1), winnerJid);
+            const tag = m[1].trim();
+            const type = m[2].toLowerCase(); // "victoire" ou "defaite"
+            const valeur = parseInt(m[3], 10);
 
-        // ❌ LOSER — malus
-        await setfiche("defaite", (Number(loserData.defaite) || 0) + 1, loserJid);
-        await setfiche("fans", (Number(loserData.fans) || 0) - 600, loserJid);
-        await setfiche("talent", (Number(loserData.talent) || 0) - 1, loserJid);
-        await setfiche("niveau", capLevel((Number(loserData.niveau) || 0) - 1), loserJid);
+            let jid;
+            try { jid = await getJid(tag + "@lid", ms_org, ovl); } catch { continue; }
+            const data = await getData({ jid });
+            if (!data) continue;
 
-        // ⏱️ KO RAPIDE — malus supplémentaire si durée ≤ 3
-        if (result.duree <= 3) {
-            await setfiche("niveau", capLevel((Number(loserData.niveau) || 0) - 1), loserJid);
+            // Récupère les valeurs initiales
+            const niveauInitial = Number(data.niveau) || 0;
+            const fansInitial = Number(data.fans) || 0;
+            const talentInitial = Number(data.talent) || 0;
+            const victoireInitial = Number(data.victoire) || 0;
+            const defaiteInitial = Number(data.defaite) || 0;
+
+            let newNiveau = niveauInitial;
+            let newFans = fansInitial;
+            let newTalent = talentInitial;
+
+            if (type === "victoire") {
+                await setfiche("victoire", victoireInitial + valeur, jid);
+                newFans += 1000 * valeur;
+                newTalent += 1 * valeur;
+                newNiveau += 1 * valeur;
+            } else if (type === "defaite") {
+                await setfiche("defaite", defaiteInitial + valeur, jid);
+                newFans -= 600 * valeur;
+                newTalent -= 1 * valeur;
+                newNiveau -= 1 * valeur;
+
+                // Malus supplémentaire si KO rapide
+                if (duree !== null && duree <= 3) {
+                    newNiveau -= 1;
+                }
+            }
+
+            // Bornes
+            newNiveau = Math.max(0, Math.min(20, newNiveau));
+            newFans = Math.max(0, newFans);
+            newTalent = Math.max(0, newTalent);
+
+            // Mise à jour fiche
+            await setfiche("niveau", newNiveau, jid);
+            await setfiche("fans", newFans, jid);
+            await setfiche("talent", newTalent, jid);
         }
 
         // Confirmation RESULTAT
         await ovl.sendMessage(ms_org, {
-            text: `✅ Résultat appliqué : @${result.winner} ✅ / @${result.loser} ❌`
+            text: "✅ Résultat appliqué et fiches All Stars mises à jour."
         });
     }
 });
-
-// ─────────── Parser RESULTAT
-function parseResultRazorX(text) {
-    const clean = text
-        .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "")
-        .replace(/\r/g, "");
-
-    const winnerMatch = clean.match(/@?([^\s:]+)\s*:\s*winner/i);
-    const loserMatch  = clean.match(/@?([^\s:]+)\s*:\s*loser/i);
-    const dureeMatch  = clean.match(/durée\s*:\s*(\d+)/i);
-
-    if (!winnerMatch || !loserMatch || !dureeMatch) return null;
-
-    return {
-        winner: winnerMatch[1].trim(),
-        loser: loserMatch[1].trim(),
-        duree: parseInt(dureeMatch[1], 10)
-    };
-}
