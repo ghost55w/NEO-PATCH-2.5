@@ -1,4 +1,4 @@
-const { ovlcmd } = require('ovlcmd');
+const { ovlcmd } = require('../lib/ovlcmd');
 const axios = require('axios');
 const joueurs = new Map();
 
