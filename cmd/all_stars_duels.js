@@ -314,17 +314,16 @@ ovlcmd({
         talent += 2;
         niveau += 1;
     }
+} else {
+    await setfiche("defaites", defaites + 1, jid);
+    fans -= symbol === "❌" ? 200 : 100;
+    
+    if (symbol === "❌") {
+        niveau -= 1;
+        talent -= 1;
+    }
+    if (duree !== null && duree <= 3) niveau -= 1;
 }
-                if (symbol === "✅") niveau += 1;
-            } else {
-                await setfiche("defaites", defaites + 1, jid);
-                fans -= symbol === "❌" ? 200 : 100;
-                if (symbol === "❌") {
-                    niveau -= 1;
-                    talent -= 1;
-                }
-                if (duree !== null && duree <= 3) niveau -= 1;
-            }
 
             niveau = Math.max(0, Math.min(20, niveau));
             fans = Math.max(0, fans);
