@@ -325,18 +325,20 @@ function cleanPlayerName(name) {
 
 // Parser RESULTAT aligné sur le pavé RAZORX⚡™
 function parseResultRazorX(text) {
-    // Nettoyage total WhatsApp
     const clean = text
-        .replace(/[\u2066-\u2069]/g, "")
-        .replace(/\r/g, "")
-        .toLowerCase();
+        .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "")
+        .replace(/\r/g, "");
 
-    const winnerLine = clean.match(/✅\s*winner\s*:\s*@([^\n]+)/);
-    const loserLine  = clean.match(/❌\s*loser\s*:\s*@([^\n]+)/);
-    const dureeLine  = clean.match(/durée\s*:\s*(\d+)/);
+    const winner = clean.match(/winner\s*:/i);
+    const loser  = clean.match(/loser\s*:/i);
+    const duree  = clean.match(/durée\s*:\s*(\d+)/i);
 
-    if (!winnerLine || !loserLine || !dureeLine) return null;
+    if (!winner || !loser || !duree) return null;
 
+    return {
+        duree: parseInt(duree[1], 10)
+    };
+}    
     return {
         winnerRaw: winnerLine[1].trim(),
         loserRaw: loserLine[1].trim(),
@@ -351,7 +353,7 @@ function parseResultRazorX(text) {
 ovlcmd({
     nom: "razorx_result",
     isfunc: true
-}, async (ms_org, ovl, { texte, ms, getJid }) => {
+}, async (ms_org, ovl, { texte, ms }) => {
 
     if (!texte?.includes("⚡RAZORX™")) return;
     if (!texte.includes("🏆`RESULTAT`")) return;
@@ -359,62 +361,35 @@ ovlcmd({
     const result = parseResultRazorX(texte);
     if (!result) return;
 
-    // 🔥 MÊME MÉTHODE QUE STATS (CLÉ DU SUCCÈS)
-    const winnerTag = cleanPlayerName(result.winnerRaw);
-    const loserTag  = cleanPlayerName(result.loserRaw);
+    const mentioned =
+        ms?.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
 
-    let winnerJid, loserJid;
-    try {
-        winnerJid = await getJid(winnerTag + "@lid", ms_org, ovl);
-        loserJid  = await getJid(loserTag + "@lid", ms_org, ovl);
-    } catch {
+    // ❌ sécurité
+    if (mentioned.length < 2) {
+        console.log("❌ JID manquant dans RESULTAT");
         return;
     }
+
+    const winnerJid = mentioned[0];
+    const loserJid  = mentioned[1];
 
     const winnerData = await getData({ jid: winnerJid });
     const loserData  = await getData({ jid: loserJid });
     if (!winnerData || !loserData) return;
 
-    // ───── 🏆 WINNER
+    // 🏆 WINNER
     await setfiche("victoire", (Number(winnerData.victoire) || 0) + 1, winnerJid);
     await setfiche("fans", (Number(winnerData.fans) || 0) + 1000, winnerJid);
+    await setfiche("talent", (Number(winnerData.talent) || 0) + 1, winnerJid);
+    await setfiche("niveau", capLevel((Number(winnerData.niveau) || 0) + 1), winnerJid);
 
-    if (result.winnerBonus) {
-        await setfiche(
-            "talent",
-            (Number(winnerData.talent) || 0) + 1,
-            winnerJid
-        );
-        await setfiche(
-            "niveau",
-            capLevel((Number(winnerData.niveau) || 0) + 1),
-            winnerJid
-        );
-    }
-
-    // ───── ❌ LOSER
+    // ❌ LOSER
     await setfiche("defaite", (Number(loserData.defaite) || 0) + 1, loserJid);
-    await setfiche("fans", (Number(loserData.fans) || 0) - 100, loserJid);
+    await setfiche("fans", (Number(loserData.fans) || 0) - 600, loserJid);
+    await setfiche("talent", (Number(loserData.talent) || 0) - 1, loserJid);
+    await setfiche("niveau", capLevel((Number(loserData.niveau) || 0) - 1), loserJid);
 
-    if (result.loserMalus) {
-        await setfiche(
-            "talent",
-            (Number(loserData.talent) || 0) - 1,
-            loserJid
-        );
-        await setfiche(
-            "niveau",
-            capLevel((Number(loserData.niveau) || 0) - 1),
-            loserJid
-        );
-        await setfiche(
-            "fans",
-            (Number(loserData.fans) || 0) - 500,
-            loserJid
-        );
-    }
-
-    // ───── ⏱️ DURÉE ≤ 3
+    // ⏱️ KO RAPIDE
     if (result.duree <= 3) {
         await setfiche(
             "niveau",
@@ -424,6 +399,6 @@ ovlcmd({
     }
 
     await ovl.sendMessage(ms_org, {
-        text: "🏆 RAZORX™ — ✅Résultat appliqué (JID confirmé)."
+        text: "🏆 RAZORX™ — Résultat appliqué (JID WhatsApp confirmé)."
     }, { quoted: ms });
-});
+}); 
