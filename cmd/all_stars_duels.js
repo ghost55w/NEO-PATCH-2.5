@@ -277,7 +277,14 @@ ovlcmd({
                     allStarsConfirm.push(`${act.stat} (${act.valeur > 0 ? '+' : ''}${act.valeur}) → @${act.tag}`);
                 }
             }
-
+// 🔁 Renvoi fiche duel APRÈS application des stats
+if (duel) {
+    const fiche = generateFicheDuel(duel);
+    await ovl.sendMessage(ms_org, {
+        image: { url: duel.arene.image },
+        caption: fiche
+    }, { quoted: ms });
+                                   }
             if (allStarsConfirm.length) {
                 await ovl.sendMessage(ms_org, { text: "✅ Stats All Stars mises à jour." });
             }
