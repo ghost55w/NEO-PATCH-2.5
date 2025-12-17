@@ -217,59 +217,61 @@ ovlcmd({
     nom: "razorx_auto",
     isfunc: true
 }, async (ms_org, ovl, { texte, ms, getJid }) => {
-
     if (!texte?.includes("⚡RAZORX™")) return;
 
     //---------------- STATS ----------------
     if (texte.includes("📊`Stats`:")) {
         const actions = parseStatsRazorX(texte);
-        if (!actions.length) return;
+        if (!actions.length) {
+            // Si pas d'actions du tout, ne rien faire
+        } else {
+            const duelKey = Object.keys(duelsEnCours).find(k =>
+                actions.some(a => k.toLowerCase().includes(a.tag.toLowerCase()))
+            );
+            const duel = duelKey ? duelsEnCours[duelKey] : null;
 
-        const duelKey = Object.keys(duelsEnCours).find(k =>
-            actions.some(a => k.toLowerCase().includes(a.tag.toLowerCase()))
-        );
-        const duel = duelKey ? duelsEnCours[duelKey] : null;
+            let duelTouched = false;
+            let allStarsTouched = false;
 
-        let duelTouched = false;
-        let allStarsTouched = false;
+            for (const act of actions) {
+                // Stats duel
+                if (['pv', 'sta', 'energie'].includes(act.stat) && duel) {
+                    const joueur =
+                        duel.equipe1.find(j => j.nom.toLowerCase() === act.tag.toLowerCase()) ||
+                        duel.equipe2.find(j => j.nom.toLowerCase() === act.tag.toLowerCase());
+                    if (!joueur) continue;
 
-        for (const act of actions) {
+                    limiterStats(joueur.stats, act.stat, act.valeur);
+                    duelTouched = true;
+                }
 
-            //---------------- DUEL
-            if (['pv', 'sta', 'energie'].includes(act.stat) && duel) {
-                const joueur =
-                    duel.equipe1.find(j => j.nom.toLowerCase() === act.tag.toLowerCase()) ||
-                    duel.equipe2.find(j => j.nom.toLowerCase() === act.tag.toLowerCase());
-                if (!joueur) continue;
+                // Stats All Stars
+                if (act.isMention && ['speed', 'talent', 'strikes', 'attaques'].includes(act.stat)) {
+                    let jid;
+                    try { jid = await getJid(act.tag + "@lid", ms_org, ovl); } catch { continue; }
 
-                limiterStats(joueur.stats, act.stat, act.valeur);
-                duelTouched = true;
+                    const data = await getData({ jid });
+                    if (!data) continue;
+
+                    const oldVal = Number(data[act.stat]) || 0;
+                    await setfiche(act.stat, oldVal + act.valeur, jid);
+                    allStarsTouched = true;
+                }
             }
 
-            //---------------- ALL STARS (uniquement si tag)
-            if (act.isMention && ['speed', 'talent', 'strikes', 'attaques'].includes(act.stat)) {
-                let jid;
-                try { jid = await getJid(act.tag + "@lid", ms_org, ovl); } catch { continue; }
-
-                const data = await getData({ jid });
-                if (!data) continue;
-
-                const oldVal = Number(data[act.stat]) || 0;
-                await setfiche(act.stat, oldVal + act.valeur, jid);
-                allStarsTouched = true;
+            // Envoi message duel seulement si duel touché
+            if (duelTouched && duel) {
+                const fiche = generateFicheDuel(duel);
+                await ovl.sendMessage(ms_org, {
+                    image: { url: duel.arene.image },
+                    caption: fiche
+                }, { quoted: ms });
             }
-        }
 
-        if (duelTouched && duel) {
-            const fiche = generateFicheDuel(duel);
-            await ovl.sendMessage(ms_org, {
-                image: { url: duel.arene.image },
-                caption: fiche
-            }, { quoted: ms });
-        }
-
-        if (allStarsTouched) {
-            await ovl.sendMessage(ms_org, { text: "✅ Stats All Stars mises à jour." });
+            // Envoi message All Stars seulement si touché
+            if (allStarsTouched) {
+                await ovl.sendMessage(ms_org, { text: "✅ Stats All Stars mises à jour." });
+            }
         }
     }
 
