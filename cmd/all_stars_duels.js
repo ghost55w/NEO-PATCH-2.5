@@ -202,25 +202,20 @@ function parseStatsRazorX(text) {
     const actions = [];
 
     for (const ligne of lignes) {
-        const clean = ligne.replace(/[\u2066-\u2069]/g, '');
-        const [playerPart, statsStr] = clean.split(':').map(s => s.trim());
+        // Nettoyage complet des caractères invisibles et spéciaux
+        const cleanLine = ligne.replace(/[\u2066-\u2069\u200e\u200f\u202a-\u202e]/g, '').trim();
+        const [playerPart, statsStr] = cleanLine.split(':').map(s => s.trim());
         if (!playerPart || !statsStr) continue;
 
-        // 🔥 accepte @Damian OU damian
-        const tag = playerPart.startsWith("@")
-            ? playerPart.replace("@", "")
-            : playerPart;
-
+        const tag = playerPart.startsWith("@") ? playerPart.replace("@", "") : playerPart;
         const stats = statsStr.split(',').map(s => s.trim());
 
         for (const st of stats) {
-            const m = st.match(
-                /(pv|sta|energie|speed|talent|strikes|attaques)\s*([+-])\s*(\d+)/i
-            );
+            const m = st.match(/(pv|sta|energie|speed|talent|strikes|attaques)\s*([+-])\s*(\d+)/i);
             if (!m) continue;
 
             actions.push({
-                raw: playerPart, // garde l’info
+                raw: playerPart,
                 tag,
                 isMention: playerPart.startsWith("@"),
                 stat: m[1].toLowerCase(),
@@ -228,6 +223,7 @@ function parseStatsRazorX(text) {
             });
         }
     }
+
     return actions;
 }
 
@@ -296,37 +292,39 @@ ovlcmd({
         const duree = dureeMatch ? parseInt(dureeMatch[1], 10) : null;
 
         for (const ligne of lignes) {
-            // Pattern : @tag : victoire ou defaite (+1)
-            const m = ligne.match(/@?([^\s:]+)\s*:\s*(victoire|defaite)\s*\(\s*\+?(\d+)/i);
+            const cleanLine = ligne.replace(/[\u2066-\u2069\u200e\u200f\u202a-\u202e]/g, '').trim();
+
+            // Pattern : @tag : victoire ou defaite (valeur facultative)
+            const m = cleanLine.match(/@?([^\s:]+)\s*:\s*(victoire|defaite)(?:\s*\(\+?(\d+)\))?/i);
             if (!m) continue;
 
             const tag = m[1].trim();
-            const type = m[2].toLowerCase(); // "victoire" ou "defaite"
-            const valeur = parseInt(m[3], 10);
+            const type = m[2].toLowerCase();
+            const valeur = m[3] ? parseInt(m[3], 10) : 1;
 
             let jid;
             try { jid = await getJid(tag + "@lid", ms_org, ovl); } catch { continue; }
             const data = await getData({ jid });
             if (!data) continue;
 
-            // Récupère les valeurs initiales
-            const niveauInitial = Number(data.niveau) || 0;
-            const fansInitial = Number(data.fans) || 0;
-            const talentInitial = Number(data.talent) || 0;
-            const victoireInitial = Number(data.victoire) || 0;
-            const defaiteInitial = Number(data.defaite) || 0;
+            // Lecture des valeurs actuelles pour ne pas écraser
+            const niveauActuel = Number(data.niveau) || 0;
+            const fansActuel = Number(data.fans) || 0;
+            const talentActuel = Number(data.talent) || 0;
+            const victoiresActuelles = Number(data.victoires) || 0;
+            const defaitesActuelles = Number(data.defaites) || 0;
 
-            let newNiveau = niveauInitial;
-            let newFans = fansInitial;
-            let newTalent = talentInitial;
+            let newNiveau = niveauActuel;
+            let newFans = fansActuel;
+            let newTalent = talentActuel;
 
             if (type === "victoire") {
-                await setfiche("victoire", victoireInitial + valeur, jid);
+                await setfiche("victoires", victoiresActuelles + valeur, jid);
                 newFans += 1000 * valeur;
                 newTalent += 1 * valeur;
                 newNiveau += 1 * valeur;
             } else if (type === "defaite") {
-                await setfiche("defaite", defaiteInitial + valeur, jid);
+                await setfiche("defaites", defaitesActuelles + valeur, jid);
                 newFans -= 600 * valeur;
                 newTalent -= 1 * valeur;
                 newNiveau -= 1 * valeur;
@@ -337,7 +335,7 @@ ovlcmd({
                 }
             }
 
-            // Bornes
+            // Bornes pour ne pas dépasser les limites
             newNiveau = Math.max(0, Math.min(20, newNiveau));
             newFans = Math.max(0, newFans);
             newTalent = Math.max(0, newTalent);
@@ -348,7 +346,6 @@ ovlcmd({
             await setfiche("talent", newTalent, jid);
         }
 
-        // Confirmation RESULTAT
         await ovl.sendMessage(ms_org, {
             text: "✅ Résultat appliqué et fiches All Stars mises à jour."
         });
