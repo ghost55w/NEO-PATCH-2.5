@@ -248,7 +248,7 @@ function detectMissLocal(text) {
 
   // ------------------ Par défaut ------------------
   return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN" };
-  }
+  
   // Normalisation
   let t = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, '');
   t = t.replace(/['’`]/g, '');
