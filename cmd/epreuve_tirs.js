@@ -155,6 +155,7 @@ tir_zone parmi les zones officielles
 async function analyserTir(texte, repondre) {
   try {
     const fullText = `${promptSystem}\n"${texte}"`;
+
     const response = await axios.post(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCtDv8matHBhGOQF_bN4zPO-J9-60vnwFE',
       {
@@ -164,18 +165,47 @@ async function analyserTir(texte, repondre) {
       },
       { headers: { 'Content-Type': 'application/json' } }
     );
+
     const data = response.data;
-    if (data.candidates && data.candidates.length > 0) {
-      const reponseTexte = data.candidates[0]?.content?.parts?.[0]?.text || "";
-      console.log(JSON.parse(reponseTexte.replace(/```json|```/g, '').trim()));
-      return JSON.parse(reponseTexte.replace(/```json|```/g, '').trim());
+    if (!data.candidates || data.candidates.length === 0) return null;
+
+    let texteReponse = data.candidates[0]?.content?.parts?.[0]?.text || "";
+
+    // Nettoyage markdown Gemini
+    texteReponse = texteReponse.replace(/```json|```/g, '').trim();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(texteReponse);
+    } catch (e) {
+      console.error("❌ JSON invalide Gemini :", texteReponse);
+      return null;
     }
+
+    // --- SÉCURISATION DES CHAMPS ---
+    if (!parsed.tir_type) parsed.tir_type = "MISSED";
+    if (!parsed.tir_zone) parsed.tir_zone = "AUCUNE";
+    if (!parsed.tir_pied) parsed.tir_pied = "AUCUN";
+
+    // Normalisation MISSED
+    if (parsed.tir_type === "MISSED") {
+      parsed.tir_zone = "AUCUNE";
+      parsed.tir_pied = "AUCUN";
+    }
+
+    console.log("🎯 Analyse tir :", parsed);
+    return {
+      tir_type: parsed.tir_type,
+      tir_zone: parsed.tir_zone,
+      tir_pied: parsed.tir_pied
+    };
+
   } catch (err) {
     console.error("Erreur Gemini :", err);
   }
+
   return null;
 }
-
 
 ovlcmd({
   nom_cmd: 'exercice1',
