@@ -356,3 +356,4 @@ if (texte.includes("🏆`RESULTAT`")) {
         text: "✅ Résultat appliqué et fiches All Stars mises à jour."
     });
 } 
+}); 
