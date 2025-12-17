@@ -213,20 +213,25 @@ function calcChanceGoal(tir) {
 function detectMissLocal(text) {
   if (!text) return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN" };
 
-  let t = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, '');
-  t = t.replace(/['’`]/g, '');
-  t = t.replace(/\s+/g, ' ').trim();
+  // Normalisation + tolérance linguistique
+  let t = text.toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/['’`]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  t = t
+    .replace(/\bl'?interieur du pied\b/g, 'interieur du pied')
+    .replace(/\bl'?exterieur du pied\b/g, 'exterieur du pied')
+    .replace(/corps decale (sur la |a la |à la )?(gauche|droite)/g, 'corps decale $2');
 
   const hasAll = (arr) => arr.every(k => t.includes(k));
   const hasOne = (arr) => arr.some(k => t.includes(k));
 
   // ---------- TIR DIRECT ----------
   const d = KEYWORDS.tir_direct;
-  if (
-    hasAll(d.required) &&
-    hasOne(d.pied) &&
-    hasOne(d.zone)
-  ) {
+  if (hasAll(d.required) && hasOne(d.pied) && hasOne(d.zone)) {
     return {
       tir_type: "tir direct",
       tir_pied: d.pied.find(p => t.includes(p)),
@@ -236,13 +241,7 @@ function detectMissLocal(text) {
 
   // ---------- TIR ENROULÉ ----------
   const e = KEYWORDS.tir_enroule;
-  if (
-    hasAll(e.required) &&
-    hasOne(e.pied) &&
-    hasOne(e.zone) &&
-    hasOne(e.angle) &&
-    hasOne(e.corps)
-  ) {
+  if (hasAll(e.required) && hasOne(e.pied) && hasOne(e.zone) && hasOne(e.angle) && hasOne(e.corps)) {
     return {
       tir_type: "tir enroulé",
       tir_pied: e.pied.find(p => t.includes(p)),
@@ -254,13 +253,7 @@ function detectMissLocal(text) {
 
   // ---------- TIR TRIVELA ----------
   const tr = KEYWORDS.tir_trivela;
-  if (
-    hasAll(tr.required) &&
-    hasOne(tr.pied) &&
-    hasOne(tr.zone) &&
-    hasOne(tr.angle) &&
-    hasOne(tr.corps)
-  ) {
+  if (hasAll(tr.required) && hasOne(tr.pied) && hasOne(tr.zone) && hasOne(tr.angle) && hasOne(tr.corps)) {
     return {
       tir_type: "tir trivela",
       tir_pied: tr.pied.find(p => t.includes(p)),
@@ -270,21 +263,9 @@ function detectMissLocal(text) {
     };
   }
 
+  // ---------- PAR DÉFAUT ----------
   return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN" };
 }
-
-  
-  // Normalisation
-  let t = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, '');
-  t = t.replace(/['’`]/g, '');
-  t = t.replace(/\s+/g, ' ').trim();
-
-t = t
-  .replace(/\bl'?interieur du pied\b/g, 'interieur du pied')
-  .replace(/\bl'?exterieur du pied\b/g, 'exterieur du pied')
-  .replace(/corps decale (sur la |a la |à la )?(gauche|droite)/g, 'corps decale $2');
-
-  
 
 //---------------- COMMANDE DEBUT EXERCICE ----------------
 ovlcmd({
