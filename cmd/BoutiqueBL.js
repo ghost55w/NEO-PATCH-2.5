@@ -626,8 +626,8 @@ ovlcmd({
     // --- 3 images des tirages ---
     const tiragesAffichage = [
       { type: "Deluxe", nc: 30, image: "https://files.catbox.moe/2bszsx.jpg", caption: "🎉🎊🎁`EVENT BLUELOCK`🎉🎁🎊\n🎰Tirage Deluxe🌀 - 30 NC 🔷\nRequis: (5 Goals⚽)\n╰───────────────────\n                      *🔷BLUELOCK⚽*" },
-      { type: "Super", nc: 50, image: "https://files.catbox.moe/wr01iy.jpg", caption: "🎉🎊🎁`EVENT BLUELOCK`🎉🎁🎊\n🎰Tirage Super💫 - 50 NC 🔷\nRequis: (10 Goals⚽ / niveau 10 ▲ )\n╰───────────────────\n                      *🔷BLUELOCK⚽*" },
-      { type: "Ultra", nc: 70, image: "https://files.catbox.moe/4jggq1.jpg", caption: "🎉🎊🎁`EVENT BLUELOCK`🎉🎁🎊\n🎰Tirage Ultra🌟 - 70 NC 🔷\nRequis: (20 Goals⚽ / niveau 20 ▲ )\n╰───────────────────\n                      *🔷BLUELOCK⚽*" },
+      { type: "Super", nc: 50, image: "https://files.catbox.moe/4jggq1.jpg", caption: "🎉🎊🎁`EVENT BLUELOCK`🎉🎁🎊\n🎰Tirage Super💫 - 50 NC 🔷\nRequis: (10 Goals⚽ / niveau 10 ▲ )\n╰───────────────────\n                      *🔷BLUELOCK⚽*" },
+      { type: "Ultra", nc: 70, image: "https://files.catbox.moe/wr01iy.jpg", caption: "🎉🎊🎁`EVENT BLUELOCK`🎉🎁🎊\n🎰Tirage Ultra🌟 - 70 NC 🔷\nRequis: (20 Goals⚽ / niveau 20 ▲ )\n╰───────────────────\n                      *🔷BLUELOCK⚽*" },
     ];
 
     for (const t of tiragesAffichage) {
