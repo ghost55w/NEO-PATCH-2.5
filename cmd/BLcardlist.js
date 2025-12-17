@@ -60,8 +60,15 @@ ovlcmd({
         reply.message.conversation ||
         reply.body ||
         "";
-
-      if (!body) continue;
+      
+if (!body) continue;      
+      // ❌ ignorer tout message qui ne commence pas par 🔷 ou close
+if (
+  !body.trim().toLowerCase().startsWith("🔷") &&
+  body.trim().toLowerCase() !== "close"
+) {
+  continue;
+}
 
       // ❌ fermeture session
       if (body.trim().toLowerCase() === "close") {
