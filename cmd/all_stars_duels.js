@@ -210,8 +210,8 @@ function parseStatsRazorX(text) {
         const tag = playerPart.startsWith("@") ? playerPart.replace("@", "") : playerPart;
         const stats = statsStr.split(',').map(s => s.trim());
 
-        for (const st of stats) {
-            const m = st.match(/(pv|sta|energie|speed|talent|strikes|attaques)\s*([+-])\s*(\d+)/i);
+        for (const st of stats) 
+        {const m = st.match(/(pv|sta|energie|speed|talent|strikes|attaques)\s*([+-])\s*(\d+)%?/i);
             if (!m) continue;
 
             actions.push({
@@ -251,6 +251,13 @@ ovlcmd({
                 let jid;
                 try { jid = await getJid(act.tag + "@lid", ms_org, ovl); } catch { continue; }
 
+                  if (duel) {
+    const fiche = generateFicheDuel(duel);
+    await ovl.sendMessage(ms_org, {
+        image: { url: duel.arene.image },
+        caption: fiche
+    }, { quoted: ms });
+                  }  
                 // DUEL (pv / sta / energie)
                 if (['pv', 'sta', 'energie'].includes(act.stat)) {
                     if (!duel) continue;
@@ -290,6 +297,9 @@ if (texte.includes("🏆`RESULTAT`")) {
     const dureeMatch = texte.match(/⏱️Durée\s*:\s*(\d+)/i);
     const duree = dureeMatch ? parseInt(dureeMatch[1], 10) : null;
 
+     if (!lignes.some(l => /victoire|defaite|défaite/i.test(l))) {
+    return; // aucun résultat valide → on ne fait rien
+}   
     for (const ligne of lignes) {
         const cleanLine = ligne.replace(/[\u2066-\u2069\u200e\u200f\u202a-\u202e]/g, '').trim();
 
