@@ -187,16 +187,6 @@ ovlcmd({
 });
 
 
-// ⚡ RAZORX™ — Utilitaires ---------------------------------
-
-// Nettoyage des pseudos (mentions WhatsApp)
-function cleanPlayerName(name) {
-    return name
-        .replace(/@/g, "")
-        .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "")
-        .trim();
-}
-
 // ─────────────────────────────────────────────
 // ⚡ RAZORX™ — PARSER STATS
 // ─────────────────────────────────────────────
@@ -322,7 +312,6 @@ function cleanPlayerName(name) {
         .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069]/g, "")
         .trim();
 }
-
 // Parser RESULTAT aligné sur le pavé RAZORX⚡™
 function parseResultRazorX(text) {
     const clean = text
@@ -338,16 +327,7 @@ function parseResultRazorX(text) {
     return {
         duree: parseInt(duree[1], 10)
     };
-}    
-    return {
-        winnerRaw: winnerLine[1].trim(),
-        loserRaw: loserLine[1].trim(),
-        winnerBonus: true,   // le ✅ est déjà présent
-        loserMalus: true,    // le ❌ est déjà présent
-        duree: parseInt(dureeLine[1], 10)
-    };
 }
-
 
 // ÉCOUTEUR RAZORX⚡™ RESULTAT FINAL 
 ovlcmd({
