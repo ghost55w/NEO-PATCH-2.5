@@ -172,16 +172,140 @@ function calcChanceGoal(tir) {
 function detectMissLocal(text) {
   if (!text) return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN" };
 
+  let t = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, '');
+  t = t.replace(/['’`]/g, '');
+  t = t.replace(/\s+/g, ' ').trim();
+
+  const piedsValides = [
+    "pointe du pied droit","pointe du pied gauche",
+    "interieur du pied droit","interieur du pied gauche",
+    "cou de pied droit","cou de pied gauche",
+    "exterieur du pied droit","exterieur du pied gauche"
+  ];
+  const zonesValides = [
+    "ras du sol gauche","ras du sol droite",
+    "mi-hauteur gauche","mi-hauteur droite",
+    "lucarne gauche","lucarne droite"
+  ];
+  const anglesValides = ["40°","50°","60°"];
+
+  // ------------------ Tir Direct ------------------
+  if (t.includes("tir direct")) {
+    const pied = piedsValides.find(p => t.includes(p)) || "AUCUN";
+    const zone = zonesValides.find(z => t.includes(z)) || "AUCUNE";
+    if (pied === "AUCUN" || zone === "AUCUNE") 
+      return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN" };
+    return { tir_type: "tir direct", tir_pied: pied, tir_zone: zone };
+  }
+
+  // ------------------ Tir Enroulé ------------------
+  if (t.includes("tir enroule")) {
+    const pied = piedsValides.filter(p => p.includes("interieur")).find(p => t.includes(p)) || "AUCUN";
+    const zone = zonesValides.find(z => t.includes(z)) || "AUCUNE";
+    const angle = anglesValides.find(a => t.includes(a));
+    const courbe = t.includes("courbe");
+    const corpsDecaleGauche = t.includes("corps decale gauche");
+    const corpsDecaleDroite = t.includes("corps decale droite");
+
+    // Vérification des conditions
+    if (pied === "AUCUN" || zone === "AUCUNE" || !angle || !courbe) 
+      return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN" };
+
+    // Pied droit → zone droite uniquement, pied gauche → zone gauche uniquement
+    if ((pied.includes("droit") && zone.includes("gauche")) || (pied.includes("gauche") && zone.includes("droite")))
+      return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN" };
+
+    // Corps décalé doit être du même côté que le pied
+    if ((pied.includes("droit") && !corpsDecaleDroite) || (pied.includes("gauche") && !corpsDecaleGauche))
+      return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN" };
+
+    return { tir_type: "tir enroulé", tir_pied: pied, tir_zone: zone, angle_corps: parseInt(angle), courbe: true };
+  }
+
+  // ------------------ Tir Trivela ------------------
+  if (t.includes("tir trivela")) {
+    const pied = piedsValides.filter(p => p.includes("exterieur")).find(p => t.includes(p)) || "AUCUN";
+    const zone = zonesValides.find(z => t.includes(z)) || "AUCUNE";
+    const angle = anglesValides.find(a => t.includes(a));
+    const courbe = t.includes("courbe");
+    const corpsDecaleGauche = t.includes("corps decale gauche");
+    const corpsDecaleDroite = t.includes("corps decale droite");
+
+    // Vérification des conditions
+    if (pied === "AUCUN" || zone === "AUCUNE" || !angle || !courbe)
+      return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN" };
+
+    // Pied droit → zone gauche uniquement, pied gauche → zone droite uniquement (décalage côté opposé)
+    if ((pied.includes("droit") && zone.includes("droite")) || (pied.includes("gauche") && zone.includes("gauche")))
+      return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN" };
+
+    // Corps décalé doit être du côté opposé au pied
+    if ((pied.includes("droit") && !corpsDecaleGauche) || (pied.includes("gauche") && !corpsDecaleDroite))
+      return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN" };
+
+    return { tir_type: "tir trivela", tir_pied: pied, tir_zone: zone, angle_corps: parseInt(angle), courbe: true };
+  }
+
+  // ------------------ Par défaut ------------------
+  return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN" };
+  }
   // Normalisation
   let t = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, '');
   t = t.replace(/['’`]/g, '');
   t = t.replace(/\s+/g, ' ').trim();
 
   //---------------- MOTS-CLÉS PAR TYPE ----------------
-  const tirDirect = ["tir direct","pointe du pied","interieur du pied","cou de pied","ras du sol","mi-hauteur","lucarne"];
-  const tirEnroule = ["tir enroule","interieur du pied","corps decale","angle 40","angle 50","angle 60","courbe","gauche","droite","lucarne","mi-hauteur","ras du sol"];
-  const tirTrivela = ["tir trivela","exterieur du pied","corps decale","angle 40","angle 50","angle 60","courbe","gauche","droite","lucarne","mi-hauteur","ras du sol"];
+  const tirDirect = [
+  "tir direct",
+  "pointe du pied droit",
+  "pointe du pied gauche",
+  "interieur du pied droit",
+  "interieur du pied gauche",
+  "cou de pied droit",
+  "cou de pied gauche",
+  "ras du sol gauche",
+  "ras du sol droit",
+  "mi-hauteur gauche",
+  "mi-hauteur droite",
+  "lucarne gauche",
+  "lucarne droite"
+];
 
+const tirEnroule = [
+  "tir enroule",
+  "interieur du pied droit",
+  "interieur du pied gauche",
+  "corps decale gauche",
+  "corps decale droite",
+  "40°",
+  "50°",
+  "60°",
+  "courbe",
+  "ras du sol gauche",
+  "ras du sol droite",
+  "mi-hauteur gauche",
+  "mi-hauteur droite",
+  "lucarne gauche",
+  "lucarne droite"
+];
+
+const tirTrivela = [
+  "tir trivela",
+  "exterieur du pied droit",
+  "exterieur du pied gauche",
+  "corps decale gauche",
+  "corps decale droite",
+  "40°",
+  "50°",
+  "60°",
+  "courbe",
+  "ras du sol gauche",
+  "ras du sol droite",
+  "mi-hauteur gauche",
+  "mi-hauteur droite",
+  "lucarne gauche",
+  "lucarne droite"
+];
   function checkTir(requiredKeywords) {
     return requiredKeywords.every(k => t.includes(k));
   }
