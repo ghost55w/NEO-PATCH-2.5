@@ -155,19 +155,30 @@ tir_zone parmi les zones officielles
 async function analyserTir(texte, repondre) {
   try {
     const fullText = `${promptSystem}\n"${texte}"`;
-
     const response = await axios.post(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCtDv8matHBhGOQF_bN4zPO-J9-60vnwFE',
       {
-        contents: [
-          { parts: [{ text: fullText }] }
-        ]
+        contents: [{ parts: [{ text: fullText }] }]
       },
       { headers: { 'Content-Type': 'application/json' } }
     );
 
     const data = response.data;
-    if (!data.candidates || data.candidates.length === 0) return null;
+    if (data?.candidates?.length > 0) {
+      const raw = data.candidates[0]?.content?.parts?.[0]?.text || "";
+      const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+
+      return {
+        tir_type: parsed.tir_type || "MISSED",
+        tir_zone: parsed.tir_zone || "AUCUNE",
+        tir_pied: parsed.tir_pied || null
+      };
+    }
+  } catch (err) {
+    console.error("Erreur Gemini :", err);
+  }
+  return null;
+}
 
     let texteReponse = data.candidates[0]?.content?.parts?.[0]?.text || "";
 
@@ -301,78 +312,121 @@ ovlcmd({
 
   // --- DÉTECTION LOCALE ULTRA-TOLÉRANTE ---
   function detectMissLocal(text) {
-    const t = (text || "").toLowerCase().trim();
+  const t = (text || "").toLowerCase().trim();
 
-    const motsClesTir = ["tir", "tire", "frappe", "direct", "enroul", "enroulé", "trivela"];
-    const contientTir = motsClesTir.some(m => t.includes(m));
+  // --- MOTS CLÉS DE TIR ---
+  const motsClesTir = [
+    "tir direct", "tir enroulé",
+    "tir trivela"
+  ];
+  const contientTir = motsClesTir.some(m => t.includes(m));
 
-    const zones = ["ras du sol gauche", "ras du sol droite", "mi-hauteur gauche", "mi-hauteur droite", "lucarne gauche", "lucarne droite"];
-    const contientZone = zones.some(z => t.includes(z));
+  // --- ZONES OBLIGATOIRES ---
+  const zones = [
+    "ras du sol gauche", "ras du sol droite",
+    "mi-hauteur gauche", "mi-hauteur droite",
+    "lucarne gauche", "lucarne droite"
+  ];
+  const contientZone = zones.some(z => t.includes(z));
 
-    if (!contientZone || !contientTir) return { tir_type: "MISSED", tir_zone: "AUCUNE" };
+  // --- PIED OBLIGATOIRE (tir_pied) ---
+  const pieds = [
+    "intérieur du pied droit", "intérieur du pied gauche",
+    "pointe de pied droit", "pointe de pied gauche",
+    "cou de pied droit", "cou de pied gauche",
+    "extérieur du pied droit", "extérieur du pied gauche"
+  ];
+  const contientPied = pieds.some(p => t.includes(p));
 
-    return null;
+  // ❌ MANQUE UN ÉLÉMENT → MISSED
+  if (!contientTir || !contientZone || !contientPied) {
+    return {
+      tir_type: "MISSED",
+      tir_zone: "AUCUNE",
+      tir_pied: "AUCUN"
+    };
   }
+  return null;
+}
 
   // --- Fonction pour gérer la répétition après 3 tirs différents ---
-  function estTirRepeté(tir_info, tir_courant) {
-    const indexDernierIdentique = [...tir_info].reverse().findIndex(
-      t => t.tir_type === tir_courant.tir_type && t.tir_zone === tir_courant.tir_zone
+function estTirRepeté(tir_info, tir_courant) {
+  const indexDernierIdentique = [...tir_info]
+    .reverse()
+    .findIndex(
+      t =>
+        t.tir_type === tir_courant.tir_type &&
+        t.tir_zone === tir_courant.tir_zone
     );
-    if (indexDernierIdentique === -1) return false;
-    const derniersTirs = tir_info.slice(-(indexDernierIdentique));
-    const tirsDifferents = derniersTirs.filter(
-      t => t.tir_type !== tir_courant.tir_type || t.tir_zone !== tir_courant.tir_zone
-    );
-    return tirsDifferents.length < 3;
+
+  if (indexDernierIdentique === -1) return false;
+
+  const derniersTirs = tir_info.slice(-(indexDernierIdentique));
+  const tirsDifferents = derniersTirs.filter(
+    t =>
+      t.tir_type !== tir_courant.tir_type ||
+      t.tir_zone !== tir_courant.tir_zone
+  );
+
+  return tirsDifferents.length < 3;
+}
+
+    // Tir différent → on compte
+    tirsDifferents++;
   }
 
-  // --- Étape 1 : Vérification locale ---
-  let analyse = detectMissLocal(texte);
+  // Aucun tir identique trouvé avant → pas une répétition
+  return false;
+}
 
-  if (analyse && analyse.tir_type === "MISSED") {
-    clearTimeout(joueur.timer);
-    joueur.en_cours = false;
-    await ovl.sendMessage(ms_org, {
-      video: { url: "https://files.catbox.moe/9k5b3v.mp4" },
-      gifPlayback: true,
-      caption: "❌MISSED! : Tir manqué, vous avez échoué à l'exercice. Fermeture de la session..."
-    });
-    return envoyerResultats(ms_org, ovl, joueur);
-  }
+// --- Étape 1 : Vérification locale ---
+let analyse = detectMissLocal(texte);
 
-  // --- Étape 2 : analyse Gemini si pas de MISS local ---
-  if (!analyse) {
-    analyse = await analyserTir(texte, repondre);
-  }
+if (analyse && analyse.tir_type === "MISSED") {
+  clearTimeout(joueur.timer);
+  joueur.en_cours = false;
+  await ovl.sendMessage(ms_org, {
+    video: { url: "https://files.catbox.moe/9k5b3v.mp4" },
+    gifPlayback: true,
+    caption: "❌ MISSED : tir invalide (zone ou pied non précisé)."
+  });
+  return envoyerResultats(ms_org, ovl, joueur);
+}
 
-  if (!analyse || !analyse.tir_type || !analyse.tir_zone) return;
+// --- Étape 2 : Analyse Gemini ---
+if (!analyse) {
+  analyse = await analyserTir(texte, repondre);
+}
 
-  if (analyse.tir_type === "MISSED") {
-    clearTimeout(joueur.timer);
-    joueur.en_cours = false;
-    await ovl.sendMessage(ms_org, {
-      video: { url: "https://files.catbox.moe/9k5b3v.mp4" },
-      gifPlayback: true,
-      caption: "❌MISSED! : Tir manqué, vous avez échoué à l'exercice. Fermeture de la session..."
-    });
-    return envoyerResultats(ms_org, ovl, joueur);
-  }
+if (!analyse || analyse.tir_type === "MISSED") {
+  clearTimeout(joueur.timer);
+  joueur.en_cours = false;
+  await ovl.sendMessage(ms_org, {
+    video: { url: "https://files.catbox.moe/9k5b3v.mp4" },
+    gifPlayback: true,
+    caption: "❌ MISSED : tir non conforme aux règles."
+  });
+  return envoyerResultats(ms_org, ovl, joueur);
+}
 
-  // --- Étape 3 : Vérification répétition ---
-  const tir_courant = { tir_type: analyse.tir_type, tir_zone: analyse.tir_zone };
-  const tir_repeté = estTirRepeté(joueur.tir_info, tir_courant);
+// --- Étape 3 : Vérification répétition (sans tir_pied) ---
+const tir_courant = {
+  tir_type: analyse.tir_type,
+  tir_zone: analyse.tir_zone
+};
 
-  if (tir_repeté) {
-    clearTimeout(joueur.timer);
-    joueur.en_cours = false;
-    await ovl.sendMessage(ms_org, {
-      video: { url: "https://files.catbox.moe/9k5b3v.mp4" },
-      gifPlayback: true,
-      caption: "❌MISSED! : Tir manqué, vous avez échoué à l'exercice . Fermeture de la session❌"
-    });    
-return envoyerResultats(ms_org, ovl, joueur);
-  }
+const tir_repeté = estTirRepeté(joueur.tir_info, tir_courant);
+
+if (tir_repeté) {
+  clearTimeout(joueur.timer);
+  joueur.en_cours = false;
+  await ovl.sendMessage(ms_org, {
+    video: { url: "https://files.catbox.moe/9k5b3v.mp4" },
+    gifPlayback: true,
+    caption: "❌ MISSED : Tir manqué fin de l'exercice."
+  });
+  return envoyerResultats(ms_org, ovl, joueur);
+}
 
   // Tir valide (pas répétition)
   joueur.tir_info.push(tir_courant);
