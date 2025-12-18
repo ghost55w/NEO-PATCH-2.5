@@ -84,8 +84,8 @@ function normalize(text) {
 const SYNONYMES = {
   "interieur du pied droit": ["interieur du pied droit","l'interieur du pied droit","l'intérieur pied droit"],
 "interieur du pied gauche": ["interieur du pied gauche","l'interieur du pied gauche","l'intérieur pied gauche"],
-  "pointe du pied droit": ["pointe du pied droit","pointe de pied droit","la pointe du pied droit],
-  "pointe du pied gauche": ["pointe du pied gauche","pointe de pied gauche","la pointe du pied gauche],
+  "pointe du pied droit": ["pointe du pied droit","pointe de pied droit","la pointe du pied droit"],
+  "pointe du pied gauche": ["pointe du pied gauche","pointe de pied gauche","la pointe du pied gauche"],
   "exterieur du pied droit": ["exterieur du pied droit","exterieur pied droit","extérieur du pied droit"],
   "exterieur du pied gauche": ["exterieur du pied gauche","exterieur pied gauche","extérieur du pied gauche"],
   "tir direct": ["tir direct"],
