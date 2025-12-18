@@ -210,76 +210,58 @@ function calcChanceGoal(tir) {
 }
 
 //---------------- DETECTION LOCAL DU TIR ----------------
-function detectMissLocal(text) {
-  if (!text) return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN", courbe: null, angle_corps: null };
+function detectMissLocal(texte) {
+  if (!texte) return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN" };
 
-  // Normalisation du texte
-  let t = text.toLowerCase()
+  const t = texte.toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, '')   // enlever accents
-    .replace(/['’`]/g, '')             // enlever apostrophes
-    .replace(/\s+/g, ' ')              // espaces multiples -> simple
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/['’`]/g, '')
+    .replace(/\s+/g, ' ')
     .trim();
 
-  // Tolérances linguistiques
-  t = t
-    .replace(/\bl'?interieur du pied\b/g, 'interieur du pied')
-    .replace(/\bl'?exterieur du pied\b/g, 'exterieur du pied')
-    .replace(/corps decale (sur la |a la |à la )?(gauche|droite)/g, 'corps decale $2')
-    .replace(/mi[- ]hauteur/g, 'mi-hauteur');
-
-  const zones = [
-    "ras du sol gauche","ras du sol droite",
-    "mi-hauteur gauche","mi-hauteur droite",
-    "lucarne gauche","lucarne droite"
-  ];
-
-  const pieds = [
-    "interieur du pied droit","interieur du pied gauche",
-    "pointe du pied droit","pointe du pied gauche",
-    "cou de pied droit","cou de pied gauche",
-    "exterieur du pied droit","exterieur du pied gauche"
-  ];
-
-  const angles = t.match(/(\d+)\s*°/)?.map(a => parseInt(a)) || [];
-  const courbeMatch = t.match(/courbe\s*(de)?\s*(\d+(?:m|cm))/);
-  const corpsMatch = t.match(/corps decale (gauche|droite)/);
-
-  // Chercher pied et zone dans le texte
-  const pied = pieds.find(p => t.includes(p)) || null;
-  const zone = zones.find(z => t.includes(z)) || null;
-  const angle_corps = angles[0] || null;
-  const courbe = courbeMatch ? courbeMatch[2] : null;
-  const corps = corpsMatch ? corpsMatch[1] : null;
-
   // ---------- TIR DIRECT ----------
-  if (t.includes("tir direct") && pied && zone) {
-    // Cou de pied valide uniquement si ballon à 50cm mentionné
-    if ((pied.includes("cou de pied") && !t.includes("50cm") && !t.includes("50cmh"))) {
-      return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN", courbe: null, angle_corps: null };
-    }
-    return { tir_type: "tir direct", tir_pied: pied, tir_zone: zone, courbe: null, angle_corps: null };
+  const tirDirectRegex = /tir direct de (interieur du pied droit|interieur du pied gauche|pointe du pied droit|pointe du pied gauche|cou de pied droit|cou de pied gauche) visant (ras du sol gauche|ras du sol droite|mi-hauteur gauche|mi-hauteur droite|lucarne gauche|lucarne droite)/i;
+  let match = t.match(tirDirectRegex);
+  if(match){
+    const [, tir_pied, tir_zone] = match;
+    return { tir_type: "tir direct", tir_pied, tir_zone };
   }
 
   // ---------- TIR ENROULÉ ----------
-  if (t.includes("tir enroule") && pied?.includes("interieur du pied") && zone && angle_corps && courbe && corps) {
-    // Pied doit correspondre au côté
-    if ((pied.includes("droit") && zone.endsWith("droite")) || (pied.includes("gauche") && zone.endsWith("gauche"))) {
-      return { tir_type: "tir enroulé", tir_pied: pied, tir_zone: zone, angle_corps, courbe };
-    }
+  const tirEnrouleRegex = /tir enroule de (interieur du pied droit|interieur du pied gauche) corps decale (\d+)° sur (gauche|droite) avec une courbe de (\d+(?:m|cm)) visant (ras du sol gauche|ras du sol droite|mi-hauteur gauche|mi-hauteur droite|lucarne gauche|lucarne droite)/i;
+  match = t.match(tirEnrouleRegex);
+  if(match){
+    const [, tir_pied, angle, corps, courbe, tir_zone] = match;
+    return {
+      tir_type: "tir enroulé",
+      tir_pied,
+      angle_corps: parseInt(angle),
+      corps,
+      courbe,
+      tir_zone
+    };
   }
 
   // ---------- TIR TRIVELA ----------
-  if (t.includes("tir trivela") && pied?.includes("exterieur du pied") && zone && angle_corps && courbe && corps) {
-    // Pied et corps opposés
-    if ((pied.includes("droit") && corps === "gauche") || (pied.includes("gauche") && corps === "droite")) {
-      return { tir_type: "tir trivela", tir_pied: pied, tir_zone: zone, angle_corps, courbe };
-    }
+  const tirTrivelaRegex = /tir trivela de (exterieur du pied droit|exterieur du pied gauche) corps decale (\d+)° sur (gauche|droite) avec une courbe de (\d+(?:m|cm)) visant (ras du sol gauche|ras du sol droite|mi-hauteur gauche|mi-hauteur droite|lucarne gauche|lucarne droite)/i;
+  match = t.match(tirTrivelaRegex);
+  if(match){
+    const [, tir_pied, angle, corps, courbe, tir_zone] = match;
+    return {
+      tir_type: "tir trivela",
+      tir_pied,
+      angle_corps: parseInt(angle),
+      corps,
+      courbe,
+      tir_zone
+    };
   }
 
   // ---------- PAR DÉFAUT ----------
-  return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN", courbe: null, angle_corps: null };
-}
+  return { tir_type: "MISSED", tir_zone: "AUCUNE", tir_pied: "AUCUN" };
+} 
+
 
 //---------------- COMMANDE DEBUT EXERCICE ----------------
 ovlcmd({
