@@ -11,19 +11,19 @@ const MODELES_TIRS = [
     texte: "Isagi fait un tir enroulé de l'intérieur du pied droit le corps décalé de 60° sur la droite avec une courbe de 1m visant la lucarne droite",
     tir_type: "tir enroulé",
     tir_pied: "interieur du pied droit",
-    angle_corps: 60,
+    angle_corps: [40,50,60],
     corps: "droite",
-    courbe: "1m",
+    courbe: ["50cm","0.5m","1m"],
     tir_zone: "lucarne droite"
   },
   {
-  texte: "Rin fait un tir trivela de l'extérieur du pied droit le corps décalé de 60° sur la gauche avec une courbe de 1m visant la lucarne droite",
-  tir_type: "tir trivela",
-  tir_pied: "exterieur du pied droit",
-  angle_corps: 60,
-  corps: "gauche",
-  courbe: "1m",
-  tir_zone: "lucarne droite"
+    texte: "Rin fait un tir trivela de l'extérieur du pied droit le corps décalé de 60° sur la gauche avec une courbe de 1m visant la lucarne droite",
+    tir_type: "tir trivela",
+    tir_pied: "exterieur du pied droit",
+    angle_corps: [40,50,60],
+    corps: "gauche",
+    courbe: ["50cm","0.5m","1m"],
+    tir_zone: "lucarne droite"
   }, 
   {
     texte: "Rin fait un tir direct de la pointe du pied gauche visant la lucarne gauche",
@@ -34,41 +34,77 @@ const MODELES_TIRS = [
     courbe: null,
     tir_zone: "lucarne gauche"
   }
-  // Ajouter tous tes modèles préétablis ici
 ];
 
-//---------------- DÉTECTION PAR MODÈLE ----------------
-function detectTirParModel(text) {
-  const t = text.toLowerCase().trim();
-  for (const model of MODELES_TIRS) {
-    const m = model.texte.toLowerCase();
-    const similarity = getSimilarity(t, m);
-    if (similarity >= 0.7) {
-      return { ...model };
-    }
-  }
-  return { tir_type:"MISSED", tir_pied:"AUCUN", tir_zone:"AUCUNE", angle_corps:null, corps:null, courbe:null };
+//---------------- NORMALISATION ----------------
+function normalize(text) {
+  return text
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s]/g, "")
+    .trim();
 }
 
-//---------------- FONCTION SIMILARITÉ SIMPLE ----------------
-function getSimilarity(a, b) {
-  const wordsA = a.split(/\s+/);
-  const wordsB = b.split(/\s+/);
-  const intersection = wordsA.filter(w => wordsB.includes(w)).length;
-  const union = Math.max(wordsA.length, wordsB.length);
-  return intersection / union;
+//---------------- SYNONYMES ----------------
+const SYNONYMES = {
+  "interieur du pied droit": ["interieur du pied droit","interieur pied droit","int pied droit"],
+  "interieur du pied gauche": ["interieur du pied gauche","interieur pied gauche","int pied gauche"],
+  "pointe du pied droit": ["pointe du pied droit","pointe pied droit"],
+  "pointe du pied gauche": ["pointe du pied gauche","pointe pied gauche"],
+  "exterieur du pied droit": ["exterieur du pied droit","exterieur pied droit"],
+  "exterieur du pied gauche": ["exterieur du pied gauche","exterieur pied gauche"],
+  "tir direct": ["tir direct"],
+  "tir enroulé": ["tir enroulé","tir enroule"],
+  "tir trivela": ["tir trivela"],
+  "lucarne droite": ["lucarne droite"],
+  "lucarne gauche": ["lucarne gauche"],
+  "droite": ["droite"],
+  "gauche": ["gauche"]
+};
+
+//---------------- DÉTECTION STRICTE PAR ÉLÉMENTS CLÉS ----------------
+function detectTirParElements(text) {
+  const t = normalize(text);
+
+  for (const model of MODELES_TIRS) {
+    if (!model.tir_type) continue;
+    if (!SYNONYMES[model.tir_type].some(s => t.includes(normalize(s)))) continue;
+
+    let match = true;
+    if (model.tir_pied && !SYNONYMES[model.tir_pied].some(s => t.includes(normalize(s)))) match = false;
+    if (model.tir_zone && !SYNONYMES[model.tir_zone].some(s => t.includes(normalize(s)))) match = false;
+
+    // Vérifie angle_corps
+    if (model.angle_corps) {
+      const angleMatch = t.match(/(\d+)\s?°/);
+      if (!angleMatch || !model.angle_corps.includes(parseInt(angleMatch[1]))) match = false;
+    }
+
+    // Vérifie corps
+    if (model.corps && !SYNONYMES[model.corps].some(s => t.includes(normalize(s)))) match = false;
+
+    // Vérifie courbe
+    if (model.courbe) {
+      if (!model.courbe.some(c => t.includes(normalize(c)))) match = false;
+    }
+
+    if (match) return { ...model };
+  }
+
+  return { tir_type:"MISSED", tir_pied:"AUCUN", tir_zone:"AUCUNE", angle_corps:null, corps:null, courbe:null };
 }
 
 //---------------- PROBABILITE DE GOAL ----------------
 function calcChanceGoal(tir) {
+  if (!tir.tir_type || tir.tir_type === "MISSED") return 0;
   if (tir.tir_type === "tir direct") return 0.9;
   if (tir.tir_type === "tir enroulé" || tir.tir_type === "tir trivela") {
     let chance = 0.7;
-    if(tir.courbe) chance = 0.85;
-    if(tir.angle_corps) {
-      if(tir.angle_corps === 60) chance = Math.max(chance,0.85);
-      else if(tir.angle_corps === 50) chance = Math.max(chance,0.75);
-      else if(tir.angle_corps === 40) chance = Math.max(chance,0.5);
+    if (tir.courbe) chance = 0.85;
+    if (tir.angle_corps) {
+      if (tir.angle_corps === 60) chance = Math.max(chance, 0.85);
+      else if (tir.angle_corps === 50) chance = Math.max(chance, 0.75);
+      else if (tir.angle_corps === 40) chance = Math.max(chance, 0.5);
     }
     return chance;
   }
@@ -85,22 +121,17 @@ ovlcmd({
   try {
     const texteDebut = `*🔷ÉPREUVE DE TIRS⚽🥅*
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
-
                    🔷⚽RÈGLES:
 Dans cet exercice l'objectif est de marquer 18 buts en 18 tirs max dans le temps imparti ❗20 mins⌛ face à un gardien Robot qui mémorise vos tirs pour bloquer le même tir de suite. ⚠Vous devez marquer au moins 6 buts sinon vous êtes éliminé ❌. 
-
 ⚠SI VOUS RATEZ UN TIR, FIN DE L'EXERCICE ❌.
- 
+
           ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔ 
                        🔷RANKING🏆 
- 
            ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔                        
 🥉Novice: 5 buts⚽ (25 pts) 
 🥈Pro: 10 buts⚽ (50 pts) 
 🥇Classe mondiale: 15 buts⚽🏆(100 pts) 
-
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔░ ░                         
-
 Souhaitez-vous lancer l'exercice ? :
 ✅ Oui
 ❌ Non
@@ -138,8 +169,7 @@ ovlcmd({
   const joueur = joueurs.get(auteur_Message);
   if(!joueur || !joueur.en_cours) return;
 
-  // Détection par modèle
-  const analyse = detectTirParModel(texte);
+  const analyse = detectTirParElements(texte);
 
   if(!analyse || analyse.tir_type === "MISSED") {
     clearTimeout(joueur.timer);
@@ -150,6 +180,22 @@ ovlcmd({
       caption:"❌MISSED : Tir manqué fin de l'exercice !"
     });
     return envoyerResultats(ms_org, ovl, joueur);
+  }
+
+  // Gestion des répétitions de zone
+  const lastZones = joueur.tir_info.slice(-2).map(t => t.tir_zone);
+  if (lastZones[0] && lastZones[0] === lastZones[1] && lastZones[0] === analyse.tir_zone) {
+    const previousZones = joueur.tir_info.slice(-4).map(t => t.tir_zone);
+    if (previousZones.includes(analyse.tir_zone)) {
+      clearTimeout(joueur.timer);
+      joueur.en_cours = false;
+      await ovl.sendMessage(ms_org, {
+        video:{ url:"https://files.catbox.moe/9k5b3v.mp4" },
+        gifPlayback:true,
+        caption:"❌MISSED : Zone répétée trop tôt !"
+      });
+      return envoyerResultats(ms_org, ovl, joueur);
+    }
   }
 
   const chance = calcChanceGoal(analyse);
@@ -167,13 +213,12 @@ ovlcmd({
       caption:`✅⚽GOAL : ${joueur.but} but${joueur.but>1?'s':''} 🎯\n⚠️ Il vous reste ${restants} tirs ⌛`
     });
 
-    // Vérifier si défi à lancer
+    // Défi
     if(joueur.but >= joueur.prochainDefi && !joueur.tirDefiEnCours) {
       joueur.tirDefiEnCours = true;
-      // Exemple simple de défi
       joueur.typeDefi = Math.random() < 0.5 ? "tir spécial" : "tir rapide";
       await ovl.sendMessage(ms_org, { caption: `⚠️ Défi activé : ${joueur.typeDefi.toUpperCase()} !` });
-      joueur.prochainDefi += Math.floor(Math.random()*2)+2; // prochain défi après 2-3 tirs réussis
+      joueur.prochainDefi += Math.floor(Math.random()*2)+2;
     }
 
     if(joueur.but >= 15) {
@@ -215,4 +260,4 @@ async function envoyerResultats(ms_org, ovl, joueur) {
 
   await ovl.sendMessage(ms_org, { image: { url: "https://files.catbox.moe/1xnoc6.jpg" }, caption: result, mentions: [joueur.id] });
   joueurs.delete(joueur.id);
-  }
+                                     }
