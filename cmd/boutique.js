@@ -32,8 +32,7 @@ async function getAdjustedPrice(cardName, basePrice) {
     if (cardsList.includes(cardName)) ownersCount++;
   }
 
-  if (ownersCount >= 2) return Math.floor(basePrice * 1.5);
-  return basePrice;
+  return ownersCount >= 2 ? Math.floor(basePrice * 1.5) : basePrice;
 }
 
 // --- COMMANDE BOUTIQUE ---
@@ -53,9 +52,7 @@ ovlcmd({
       image: { url: 'https://files.catbox.moe/i87tdr.png' },
       caption: `╭────〔 *🛍️BOUTIQUE🛒* 〕     
 😃Bienvenue dans la boutique NEO🛍️Store🛒, pour faire un achat il vous suffit de taper comme ceci : 🛍️achat: sasuke(Hebi)/ 🛍️vente: sasuke(Hebi). Après cela attendez la validation de votre achat ou de votre vente. #Happy202️⃣6️⃣🎊🎄
-
-╰───────────────────
-*🔷NEO🛍️STORE*`
+╰─────────────────── *🔷NEO🛍️STORE*`
     }, { quoted: ms });
 
     const waitFor = async (timeout = 120000) => {
@@ -66,10 +63,12 @@ ovlcmd({
 
     const allCards = [];
     for (const [placementKey, placementCards] of Object.entries(cards)) {
-      for (const c of placementCards) allCards.push({ ...c, placement: placementKey });
+      for (const c of placementCards) {
+        allCards.push({ ...c, placement: placementKey });
+      }
     }
 
-    let userInput = await waitFor(120000);
+    let userInput = await waitFor();
     if (!userInput) return repondre("❌ Temps écoulé. Session fermée.");
 
     while (true) {
@@ -82,60 +81,61 @@ ovlcmd({
           break;
         }
 
-        const cleanedInput = userInput.replace(/[^a-zA-Z]/g,"").toLowerCase();
+        const cleanedInput = userInput.replace(/[^a-zA-Z]/g, "").toLowerCase();
         let mode = null;
         if (cleanedInput.startsWith("vente")) mode = "vente";
-        else if (cleanedInput.startsWith("achat")) mode = "achat";
+        if (cleanedInput.startsWith("achat")) mode = "achat";
         if (!mode) {
-          userInput = await waitFor(120000);
+          userInput = await waitFor();
           continue;
         }
 
-        let parts = userInput.split(":");
+        const parts = userInput.split(":");
         if (parts.length < 2) {
-          userInput = await waitFor(120000);
+          userInput = await waitFor();
           continue;
         }
 
-        let query = parts.slice(1).join(":").trim();
+        const query = parts.slice(1).join(":").trim();
         if (!query) {
           await repondre("❌ Tu dois écrire un nom après ':'");
-          userInput = await waitFor(120000);
+          userInput = await waitFor();
           continue;
         }
 
-        const q = query.toLowerCase().replace(/[\s\-\_]/g, "");
-        let card = allCards.find(c =>
-          c.name.toLowerCase().replace(/[\s\-\_]/g, "") === q
-        ) || allCards.find(c => c.name.toLowerCase().includes(q));
+        const q = query.toLowerCase().replace(/[\s\-_]/g, "");
+        const card = allCards.find(c =>
+          c.name.toLowerCase().replace(/[\s\-_]/g, "") === q ||
+          c.name.toLowerCase().includes(query.toLowerCase())
+        );
 
         if (!card) {
           await repondre(`❌ Aucune carte trouvée pour : ${query}`);
-          userInput = await waitFor(120000);
+          userInput = await waitFor();
           continue;
         }
 
-        let basePrix = parseInt((card.price || "").replace(/[^\d]/g, "")) || 0;
-        let golds = parseInt(fiche.golds || 0);
-        let nc = parseInt(userData.nc || 0);
+        const basePrix = parseInt((card.price || "").replace(/[^\d]/g, "")) || 0;
+        const golds = parseInt(fiche.golds || 0);
+        const nc = parseInt(userData.nc || 0);
 
-        // --- ACHAT ---
+        // ---------------- ACHAT ----------------
         if (mode === "achat") {
 
-          let userLevel = parseInt(fiche.niveu_xp || 0);
-          let cardGrade = card.grade?.toUpperCase() || "";
+          const userLevel = parseInt(fiche.niveu_xp || 0);
+          const cardGrade = (card.grade || "").toUpperCase();
 
           if (["SS-", "SS", "SS+"].includes(cardGrade) && userLevel < 10) {
             await repondre(`❌ Niveau insuffisant pour acheter cette carte (niveau requis : 10▲). Ton niveau : ${userLevel}▲
 ╰───────────────────`);
-            userInput = await waitFor(120000);
+            userInput = await waitFor();
             continue;
           }
 
           if (cardGrade === "OR" && userLevel < 5) {
             await repondre(`❌ Niveau insuffisant pour acheter cette carte OR (niveau requis : 5▲). Ton niveau : ${userLevel}▲
 ╰───────────────────`);
-            userInput = await waitFor(120000);
+            userInput = await waitFor();
             continue;
           }
 
@@ -153,149 +153,64 @@ ovlcmd({
 ╰──────────────────`
           }, { quoted: ms });
 
-          const conf = (await waitFor(60000))?.toLowerCase() || "";
-          if (!["oui", "+coupon"].some(c => conf.includes(c))) {
+          const conf = (await waitFor(60000)).toLowerCase();
+          if (!conf.includes("oui")) {
             await repondre("❌ Réponse invalide.");
-            userInput = await waitFor(120000);
+            userInput = await waitFor();
             continue;
           }
 
-          let finalPrice = basePrix;
-          let couponUsed = false;
-
-          if (conf.includes("+coupon")) {
-            const userCoupons = parseInt(userData.coupons || 0);
-            if (userCoupons < 100) {
-              await repondre("❌ Pas assez de coupons.");
-              userInput = await waitFor(120000);
-              continue;
-            }
-            finalPrice = Math.floor(finalPrice / 2);
-            couponUsed = true;
-            await MyNeoFunctions.updateUser(auteur_Message, { coupons: userCoupons - 100 });
-          }
-
-          finalPrice = await getAdjustedPrice(card.name, finalPrice);
+          let finalPrice = await getAdjustedPrice(card.name, basePrix);
 
           if (card.currency === "golds" && golds < finalPrice) {
             await repondre("❌ Pas assez de fonds");
-            userInput = await waitFor(120000);
+            userInput = await waitFor();
             continue;
           }
 
           if (card.currency === "nc" && nc < finalPrice) {
             await repondre("❌ Pas assez de fonds");
-            userInput = await waitFor(120000);
+            userInput = await waitFor();
             continue;
           }
 
-          let np = parseInt(userData.np || 0);
-          if (np < 1) {
-            await repondre("❌ Pas assez de NP");
-            userInput = await waitFor(120000);
-            continue;
-          }
-
-          await MyNeoFunctions.updateUser(auteur_Message, { np: np - 1 });
+          await MyNeoFunctions.updateUser(auteur_Message, { np: (userData.np || 0) - 1 });
 
           if (card.currency === "golds")
             await setfiche("golds", golds - finalPrice, auteur_Message);
           else
             await MyNeoFunctions.updateUser(auteur_Message, { nc: nc - finalPrice });
 
-          let currentCards = (fiche.cards || "").split("\n").map(x => x.trim()).filter(Boolean);
-          if (!currentCards.includes(card.name)) currentCards.push(card.name);
-          await setfiche("cards", currentCards.join("\n"), auteur_Message);
+          const cardsList = (fiche.cards || "").split("\n").filter(Boolean);
+          if (!cardsList.includes(card.name)) cardsList.push(card.name);
+          await setfiche("cards", cardsList.join("\n"), auteur_Message);
 
-          let currentNS = parseInt(userData.ns || 0) + 5;
-          await MyNeoFunctions.updateUser(auteur_Message, { ns: currentNS });
+          await MyNeoFunctions.updateUser(auteur_Message, { ns: (userData.ns || 0) + 5 });
 
           await ovl.sendMessage(ms_org, {
             image: { url: card.image },
             caption: `╭───〔 🌀🛍️ REÇU D’ACHAT 〕─     
 👤 Client: ${fiche.code_fiche}
 🎴 Carte ajoutée: ${card.name}
-💳 Paiement: 1 NP + ${formatNumber(finalPrice)} ${icon} ${couponUsed ? "✅ Coupon utilisé 100🎟️" : ""}
+💳 Paiement: 1 NP + ${formatNumber(finalPrice)} ${icon}
 👑 +5 NS ajouté ! Royalities xp 👑🎉🍾🥂
 
 Merci pour ton achat !
 ╰───────────────────`
           }, { quoted: ms });
-
         }
 
-        // --- VENTE ---
-        else if (mode === "vente") {
+        userInput = await waitFor();
 
-          function cleanName(name) {
-            return name
-              .toLowerCase()
-              .normalize("NFD")
-              .replace(/[\u0300-\u036f]/g, "")
-              .replace(/([\p{Emoji_Presentation}\p{Emoji}\u200d])/gu, "")
-              .replace(/[^a-z0-9]/gi, "")
-              .trim();
-          }
-
-          let currentCards = (fiche.cards || "").split("\n").map(x => x.trim()).filter(Boolean);
-          let idx = currentCards.findIndex(c =>
-            cleanName(c).includes(cleanName(card.name))
-          );
-
-          if (idx === -1) {
-            await repondre("❌ Tu ne possèdes pas cette carte");
-            userInput = await waitFor(120000);
-            continue;
-          }
-
-          const icon = getCurrencyIcon(card.currency);
-
-          await ovl.sendMessage(ms_org, {
-            image: { url: card.image },
-            caption: `🛍️🎴 Carte: ${card.name}   
-🔅Grade: ${card.grade}
-🔅Catégorie: ${card.category}
-🔅Placement: ${card.placement}
-
-💰 Prix de vente: ${Math.floor(basePrix / 2)} ${icon}
-
-✔️ Confirmer vente ? (oui/non)
-╰───────────────────`
-          }, { quoted: ms });
-
-          const confVente = (await waitFor(60000))?.toLowerCase() || "";
-          if (!confVente.includes("oui")) {
-            await repondre("❌ Vente annulée.");
-            userInput = await waitFor(120000);
-            continue;
-          }
-
-          currentCards.splice(idx, 1);
-          await setfiche("cards", currentCards.join("\n"), auteur_Message);
-          await setfiche("golds", parseInt(fiche.golds || 0) + Math.floor(basePrix / 2), auteur_Message);
-
-          await ovl.sendMessage(ms_org, {
-            image: { url: card.image },
-            caption: `╭───〔 🌀🛍️ REÇU DE VENTE 〕─   
-👤 Client: ${fiche.code_fiche}
-🎴 Carte retirée: ${card.name}
-💳 Tu as reçu: ${formatNumber(Math.floor(basePrix / 2))} ${icon}
-
-╰───────────────────`
-          }, { quoted: ms });
-        }
-
-        userInput = await waitFor(120000);
-
-      } catch (innerErr) {
-        console.log("Erreur session boutique interne:", innerErr);
+      } catch (err) {
+        console.log("Erreur session boutique:", err);
         await repondre("🛍️Boutique en attente… tape `close` pour fermer.");
-        userInput = await waitFor(120000);
+        userInput = await waitFor();
       }
     }
 
   } catch (e) {
     console.log("Erreur boutique critique:", e);
-    return repondre("🛍️Boutique en attente… tape \"close\" pour fermer.");
+    repondre("🛍️Boutique en attente… tape \"close\" pour fermer.");
   }
 });
