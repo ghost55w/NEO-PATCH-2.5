@@ -3,36 +3,71 @@ const joueurs = new Map();
 
 //---------------- ZONES ET PIEDS ----------------
 const ZONES = ["ras du sol gauche","ras du sol droite","mi-hauteur gauche","mi-hauteur droite","lucarne gauche","lucarne droite"];
-const PIEDS = ["interieur du pied droit","interieur du pied gauche","pointe du pied droit","pointe du pied gauche","cou de pied droit","cou de pied gauche","exterieur du pied droit","exterieur du pied gauche"];
+const PIEDS = ["interieur du pied droit","interieur du pied gauche","pointe du pied droit","pointe du pied gauche","cou de pied droit","cou de pied gauche","exterieur du pied droit","exterieur du pied gauche","extérieur du pied droit","extérieur du pied gauche"];
 
 //---------------- MODÈLES DE TIRS ----------------
 const MODELES_TIRS = [
+  // ----- TIRS DIRECTS -----
   {
-    texte: "Isagi fait un tir enroulé de l'intérieur du pied droit le corps décalé de 60° sur la droite avec une courbe de 1m visant la lucarne droite",
+  texte: "Tir direct",
+  tir_type: "tir direct",
+  tir_pied: [
+    "pointe du pied droit",
+    "pointe du pied gauche",
+    "interieur du pied droit",
+    "interieur du pied gauche",
+    "cou de pied droit",
+    "cou de pied gauche"
+  ],
+  decalage_corps: null,
+  corps: null,
+  courbe: null,
+  tir_zone: [
+    "lucarne gauche",
+    "lucarne droite",
+    "mi-hauteur gauche",
+    "mi-hauteur droite",
+    "ras du sol gauche",
+    "ras du sol droite"
+  ]
+  }, 
+  // ----- TIRS ENROULÉS -----
+  {
+    texte: "Tir enroulé interieur pied droit",
     tir_type: "tir enroulé",
-    tir_pied: "interieur du pied droit",
-    angle_corps: [40,50,60],
-    corps: "droite",
+    tir_pied: ["interieur du pied droit","l'intérieur du pied droit"],
+    decalage_corps: [40, 50, 60],
+    corps: ["droite"], // corps doit correspondre au pied
     courbe: ["50cm","0.5m","1m"],
-    tir_zone: "lucarne droite"
+    tir_zone: ["lucarne gauche","lucarne droite","mi-hauteur gauche","mi-hauteur droite"]
   },
   {
-    texte: "Rin fait un tir trivela de l'extérieur du pied droit le corps décalé de 60° sur la gauche avec une courbe de 1m visant la lucarne droite",
-    tir_type: "tir trivela",
-    tir_pied: "exterieur du pied droit",
-    angle_corps: [40,50,60],
-    corps: "gauche",
+    texte: "Tir enroulé interieur pied gauche",
+    tir_type: "tir enroulé",
+    tir_pied: ["interieur du pied gauche","l'intérieur du pied gauche"],
+    decalage_corps: [40, 50, 60],
+    corps: ["gauche"],
     courbe: ["50cm","0.5m","1m"],
-    tir_zone: "lucarne droite"
-  }, 
+    tir_zone: ["lucarne gauche","lucarne droite","mi-hauteur gauche","mi-hauteur droite"]
+  },
+  // ----- TIRS TRIVELA -----
   {
-    texte: "Rin fait un tir direct de la pointe du pied gauche visant la lucarne gauche",
-    tir_type: "tir direct",
-    tir_pied: "pointe du pied gauche",
-    angle_corps: null,
-    corps: null,
-    courbe: null,
-    tir_zone: "lucarne gauche"
+    texte: "Tir trivela exterieur pied droit",
+    tir_type: "tir trivela",
+    tir_pied: ["exterieur du pied droit","extérieur du pied droit"],
+    decalage_corps: [40, 50, 60],
+    corps: ["droite"],
+    courbe: ["50cm","0.5m","1m"],
+    tir_zone: ["lucarne gauche","lucarne droite","mi-hauteur gauche","mi-hauteur droite"]
+  },
+  {
+    texte: "Tir trivela exterieur pied gauche",
+    tir_type: "tir trivela",
+    tir_pied: ["exterieur du pied gauche","extérieur du pied gauche"],
+    decalage_corps: [40, 50, 60],
+    corps: ["gauche"],
+    courbe: ["50cm","0.5m","1m"],
+    tir_zone: ["lucarne gauche","lucarne droite","mi-hauteur gauche","mi-hauteur droite"]
   }
 ];
 
@@ -47,12 +82,12 @@ function normalize(text) {
 
 //---------------- SYNONYMES ----------------
 const SYNONYMES = {
-  "interieur du pied droit": ["interieur du pied droit","interieur pied droit","int pied droit"],
-  "interieur du pied gauche": ["interieur du pied gauche","interieur pied gauche","int pied gauche"],
-  "pointe du pied droit": ["pointe du pied droit","pointe pied droit"],
-  "pointe du pied gauche": ["pointe du pied gauche","pointe pied gauche"],
-  "exterieur du pied droit": ["exterieur du pied droit","exterieur pied droit"],
-  "exterieur du pied gauche": ["exterieur du pied gauche","exterieur pied gauche"],
+  "interieur du pied droit": ["interieur du pied droit","l'interieur du pied droit","l'intérieur pied droit"],
+"interieur du pied gauche": ["interieur du pied gauche","l'interieur du pied gauche","l'intérieur pied gauche"],
+  "pointe du pied droit": ["pointe du pied droit","pointe de pied droit","la pointe du pied droit],
+  "pointe du pied gauche": ["pointe du pied gauche","pointe de pied gauche","la pointe du pied gauche],
+  "exterieur du pied droit": ["exterieur du pied droit","exterieur pied droit","extérieur du pied droit"],
+  "exterieur du pied gauche": ["exterieur du pied gauche","exterieur pied gauche","extérieur du pied gauche"],
   "tir direct": ["tir direct"],
   "tir enroulé": ["tir enroulé","tir enroule"],
   "tir trivela": ["tir trivela"],
@@ -71,27 +106,29 @@ function detectTirParElements(text) {
     if (!SYNONYMES[model.tir_type].some(s => t.includes(normalize(s)))) continue;
 
     let match = true;
-    if (model.tir_pied && !SYNONYMES[model.tir_pied].some(s => t.includes(normalize(s)))) match = false;
-    if (model.tir_zone && !SYNONYMES[model.tir_zone].some(s => t.includes(normalize(s)))) match = false;
 
-    // Vérifie angle_corps
-    if (model.angle_corps) {
+    // Vérifie le pied
+    if (model.tir_pied && !model.tir_pied.some(p => SYNONYMES[p] ? SYNONYMES[p].some(s => t.includes(normalize(s))) : t.includes(normalize(p)))) match = false;
+
+    // Vérifie la zone
+    if (model.tir_zone && !model.tir_zone.some(z => SYNONYMES[z] ? SYNONYMES[z].some(s => t.includes(normalize(s))) : t.includes(normalize(z)))) match = false;
+
+    // Vérifie le décalage du corps
+    if (model.decalage_corps) {
       const angleMatch = t.match(/(\d+)\s?°/);
-      if (!angleMatch || !model.angle_corps.includes(parseInt(angleMatch[1]))) match = false;
+      if (!angleMatch || !model.decalage_corps.includes(parseInt(angleMatch[1]))) match = false;
     }
 
-    // Vérifie corps
-    if (model.corps && !SYNONYMES[model.corps].some(s => t.includes(normalize(s)))) match = false;
+    // Vérifie le corps
+    if (model.corps && !model.corps.some(c => SYNONYMES[c] ? SYNONYMES[c].some(s => t.includes(normalize(s))) : t.includes(normalize(c)))) match = false;
 
-    // Vérifie courbe
-    if (model.courbe) {
-      if (!model.courbe.some(c => t.includes(normalize(c)))) match = false;
-    }
+    // Vérifie la courbe
+    if (model.courbe && !model.courbe.some(c => t.includes(normalize(c)))) match = false;
 
     if (match) return { ...model };
   }
 
-  return { tir_type:"MISSED", tir_pied:"AUCUN", tir_zone:"AUCUNE", angle_corps:null, corps:null, courbe:null };
+  return { tir_type:"MISSED", tir_pied:"AUCUN", tir_zone:"AUCUNE", decalage_corps:null, corps:null, courbe:null };
 }
 
 //---------------- PROBABILITE DE GOAL ----------------
@@ -101,10 +138,10 @@ function calcChanceGoal(tir) {
   if (tir.tir_type === "tir enroulé" || tir.tir_type === "tir trivela") {
     let chance = 0.7;
     if (tir.courbe) chance = 0.85;
-    if (tir.angle_corps) {
-      if (tir.angle_corps === 60) chance = Math.max(chance, 0.85);
-      else if (tir.angle_corps === 50) chance = Math.max(chance, 0.75);
-      else if (tir.angle_corps === 40) chance = Math.max(chance, 0.5);
+    if (tir.decalage_corps) {
+      if (tir.decalage_corps === 60) chance = Math.max(chance, 0.85);
+      else if (tir.decalage_corps === 50) chance = Math.max(chance, 0.75);
+      else if (tir.decalage_corps === 40) chance = Math.max(chance, 0.5);
     }
     return chance;
   }
@@ -260,4 +297,4 @@ async function envoyerResultats(ms_org, ovl, joueur) {
 
   await ovl.sendMessage(ms_org, { image: { url: "https://files.catbox.moe/1xnoc6.jpg" }, caption: result, mentions: [joueur.id] });
   joueurs.delete(joueur.id);
-                                     }
+      }
