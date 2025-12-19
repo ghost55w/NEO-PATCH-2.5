@@ -4,7 +4,7 @@ const { MyNeoFunctions } = require("../DataBase/myneo_lineup_team");
 const { getData, setfiche } = require("../DataBase/allstars_divs_fiches");
 const config = require("../set");
 
-// --- UTILITAIRES ---
+//-------- UTILITAIRES
 const formatNumber = n => {
     try {
         return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -13,7 +13,15 @@ const formatNumber = n => {
     }
 };
 
-// --- COMMANDE BOUTIQUE ---
+//-------- NORMALISATION (ANTI BUG CARTES)
+const normalize = str =>
+    String(str)
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/g, "");
+
+//-------- COMMANDE BOUTIQUE
 ovlcmd({
     nom_cmd: "boutique",
     react: "🛒",
@@ -25,7 +33,7 @@ ovlcmd({
         let fiche = await getData({ jid: auteur_Message });
         if (!userData || !fiche) return repondre("❌ Impossible de récupérer ta fiche.");
 
-        // --- TEXTE D'ACCUEIL ---
+        //-------- TEXTE D'ACCUEIL
         await ovl.sendMessage(ms_org, {
             image: { url: 'https://files.catbox.moe/i87tdr.png' },
             caption: `╭────〔 *🛍️BOUTIQUE🛒* 〕  
@@ -39,7 +47,7 @@ Après cela attendez la validation de votre achat ou de votre vente.
                           *🔷NEO🛍️STORE*`
         }, { quoted: ms });
 
-        // --- ATTENTE MESSAGE UTILISATEUR ---
+        //-------- ATTENTE MESSAGE
         const waitFor = async (timeout = 120000) => {
             const r = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: timeout });
             const txt =
@@ -49,7 +57,7 @@ Après cela attendez la validation de votre achat ou de votre vente.
             return txt ? txt.trim() : "";
         };
 
-        // --- LISTE DE TOUTES LES CARTES ---
+        //-------- LISTE CARTES
         const allCards = [];
         for (const [placementKey, placementCards] of Object.entries(cards)) {
             for (const c of placementCards) {
@@ -68,7 +76,7 @@ Après cela attendez la validation de votre achat ou de votre vente.
                     break;
                 }
 
-                // --- DÉTECTION MODE ---
+                //-------- DÉTECTION MODE
                 const cleanedInput = userInput.replace(/[^a-zA-Z]/g, "").toLowerCase();
                 let mode = null;
                 if (cleanedInput.startsWith("achat")) mode = "achat";
@@ -102,11 +110,12 @@ Après cela attendez la validation de votre achat ou de votre vente.
                     continue;
                 }
 
+                //-------- FONDS (NETTOYÉS)
                 let basePrix = parseInt((card.price || "").replace(/[^\d]/g, "")) || 0;
-                let golds = parseInt(fiche.golds || 0);
-                let nc = parseInt(userData.nc || 0);
+                let golds = parseInt(String(fiche.golds || "0").replace(/[^\d]/g, "")) || 0;
+                let nc = parseInt(String(userData.nc || "0").replace(/[^\d]/g, "")) || 0;
 
-                // --- CONFIRMATION ---
+                //-------- CONFIRMATION
                 await ovl.sendMessage(ms_org, {
                     image: { url: card.image },
                     caption: `🎴 Carte: ${card.name}
@@ -126,9 +135,7 @@ Après cela attendez la validation de votre achat ou de votre vente.
                     continue;
                 }
 
-                // ==================================================
-                // ==================== ACHAT =======================
-                // ==================================================
+                //-------- ACHAT
                 if (mode === "achat") {
 
                     let np = parseInt(userData.np || 0);
@@ -161,24 +168,23 @@ Après cela attendez la validation de votre achat ou de votre vente.
                         continue;
                     }
 
-                    // Déduction NP
                     await MyNeoFunctions.updateUser(auteur_Message, { np: np - 1 });
 
-                    // Déduction monnaie
                     if (golds >= finalPrice)
                         await setfiche("golds", golds - finalPrice, auteur_Message);
                     else
                         await MyNeoFunctions.updateUser(auteur_Message, { nc: nc - finalPrice });
 
-                    // Ajout carte
                     const cardsList = (fiche.cards || "")
                         .split("\n")
                         .map(x => x.trim())
                         .filter(Boolean);
-                    if (!cardsList.includes(card.name)) cardsList.push(card.name);
+
+                    if (!cardsList.some(c => normalize(c) === normalize(card.name)))
+                        cardsList.push(card.name);
+
                     await setfiche("cards", cardsList.join("\n"), auteur_Message);
 
-                    // +5 NS
                     await MyNeoFunctions.updateUser(auteur_Message, {
                         ns: (userData.ns || 0) + 5
                     });
@@ -198,9 +204,7 @@ Merci pour ton achat !
                     }, { quoted: ms });
                 }
 
-                // ==================================================
-                // ==================== VENTE =======================
-                // ==================================================
+                //-------- VENTE
                 else if (mode === "vente") {
 
                     let cardsList = (fiche.cards || "")
@@ -209,8 +213,9 @@ Merci pour ton achat !
                         .filter(Boolean);
 
                     const index = cardsList.findIndex(
-                        c => c.toLowerCase() === card.name.toLowerCase()
+                        c => normalize(c) === normalize(card.name)
                     );
+
                     if (index === -1) {
                         await repondre("❌ Tu ne possèdes pas cette carte.");
                         userInput = await waitFor();
@@ -225,7 +230,7 @@ Merci pour ton achat !
 
                     await setfiche(
                         "golds",
-                        parseInt(fiche.golds || 0) + finalSalePrice,
+                        golds + finalSalePrice,
                         auteur_Message
                     );
 
@@ -240,7 +245,6 @@ Merci pour ton achat !
                     }, { quoted: ms });
                 }
 
-                // Reload data
                 userData = await MyNeoFunctions.getUserData(auteur_Message);
                 fiche = await getData({ jid: auteur_Message });
                 userInput = await waitFor();
