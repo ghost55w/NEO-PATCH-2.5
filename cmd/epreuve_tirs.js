@@ -7,165 +7,165 @@ const PIEDS = ["interieur du pied droit","interieur du pied gauche","pointe du p
 
 //---------------- MODÈLES DE TIRS ----------------
 const MODELES_TIRS = [
-{
-texte: "Tir direct",
-tir_type: "tir direct",
-tir_pied: [
-"pointe du pied droit",
-"pointe du pied gauche",
-"interieur du pied droit",
-"interieur du pied gauche",
-"cou de pied droit",
-"cou de pied gauche"
-],
-decalage_corps: null,
-corps: null,
-courbe: null,
-tir_zone: [
-"lucarne gauche",
-"lucarne droite",
-"mi-hauteur gauche",
-"mi-hauteur droite",
-"ras du sol gauche",
-"ras du sol droite"
-]
-},
-{
-texte: "Tir enroulé interieur pied droit",
-tir_type: "tir enroulé",
-tir_pied: ["interieur du pied droit","l'intérieur du pied droit"],
-decalage_corps: [40, 50, 60],
-corps: ["droite"],
-courbe: ["50cm","0.5m","1m"],
-tir_zone: ["lucarne gauche","lucarne droite","mi-hauteur gauche","mi-hauteur droite"]
-},
-{
-texte: "Tir enroulé interieur pied gauche",
-tir_type: "tir enroulé",
-tir_pied: ["interieur du pied gauche","l'intérieur du pied gauche"],
-decalage_corps: [40, 50, 60],
-corps: ["gauche"],
-courbe: ["50cm","0.5m","1m"],
-tir_zone: ["lucarne gauche","lucarne droite","mi-hauteur gauche","mi-hauteur droite"]
-},
-{
-texte: "Tir trivela exterieur pied droit",
-tir_type: "tir trivela",
-tir_pied: ["exterieur du pied droit","extérieur du pied droit"],
-decalage_corps: [40, 50, 60],
-corps: ["droite"],
-courbe: ["50cm","0.5m","1m"],
-tir_zone: ["lucarne gauche","lucarne droite","mi-hauteur gauche","mi-hauteur droite"]
-},
-{
-texte: "Tir trivela exterieur pied gauche",
-tir_type: "tir trivela",
-tir_pied: ["exterieur du pied gauche","extérieur du pied gauche"],
-decalage_corps: [40, 50, 60],
-corps: ["gauche"],
-courbe: ["50cm","0.5m","1m"],
-tir_zone: ["lucarne gauche","lucarne droite","mi-hauteur gauche","mi-hauteur droite"]
-}
+  {
+    texte: "Tir direct",
+    tir_type: "tir direct",
+    tir_pied: [
+      "pointe du pied droit",
+      "pointe du pied gauche",
+      "interieur du pied droit",
+      "interieur du pied gauche",
+      "cou de pied droit",
+      "cou de pied gauche"
+    ],
+    decalage_corps: null,
+    corps: null,
+    courbe: null,
+    tir_zone: [
+      "lucarne gauche",
+      "lucarne droite",
+      "mi-hauteur gauche",
+      "mi-hauteur droite",
+      "ras du sol gauche",
+      "ras du sol droite"
+    ]
+  },
+  {
+    texte: "Tir enroulé interieur pied droit",
+    tir_type: "tir enroulé",
+    tir_pied: ["interieur du pied droit","l'intérieur du pied droit"],
+    decalage_corps: [40, 50, 60],
+    corps: ["droite"],
+    courbe: ["50cm","0.5m","1m"],
+    tir_zone: ["lucarne gauche","lucarne droite","mi-hauteur gauche","mi-hauteur droite"]
+  },
+  {
+    texte: "Tir enroulé interieur pied gauche",
+    tir_type: "tir enroulé",
+    tir_pied: ["interieur du pied gauche","l'intérieur du pied gauche"],
+    decalage_corps: [40, 50, 60],
+    corps: ["gauche"],
+    courbe: ["50cm","0.5m","1m"],
+    tir_zone: ["lucarne gauche","lucarne droite","mi-hauteur gauche","mi-hauteur droite"]
+  },
+  {
+    texte: "Tir trivela exterieur pied droit",
+    tir_type: "tir trivela",
+    tir_pied: ["exterieur du pied droit","extérieur du pied droit"],
+    decalage_corps: [40, 50, 60],
+    corps: ["droite"],
+    courbe: ["50cm","0.5m","1m"],
+    tir_zone: ["lucarne gauche","lucarne droite","mi-hauteur gauche","mi-hauteur droite"]
+  },
+  {
+    texte: "Tir trivela exterieur pied gauche",
+    tir_type: "tir trivela",
+    tir_pied: ["exterieur du pied gauche","extérieur du pied gauche"],
+    decalage_corps: [40, 50, 60],
+    corps: ["gauche"],
+    courbe: ["50cm","0.5m","1m"],
+    tir_zone: ["lucarne gauche","lucarne droite","mi-hauteur gauche","mi-hauteur droite"]
+  }
 ];
 
 //---------------- NORMALISATION (FIX °) ----------------
 function normalize(text) {
-return text
-.toLowerCase()
-.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-.replace(/[^\w\s°]/g, "") // ← garde °
-.trim();
+  return text
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\s°]/g, "")
+    .trim();
 }
 
 //---------------- SYNONYMES ----------------
 const SYNONYMES = {
-"interieur du pied droit": ["interieur du pied droit","linterieur du pied droit","l interieur du pied droit"],
-"interieur du pied gauche": ["interieur du pied gauche","linterieur du pied gauche","l interieur du pied gauche"],
-"pointe du pied droit": ["pointe du pied droit","pointe de pied droit"],
-"pointe du pied gauche": ["pointe du pied gauche","pointe de pied gauche"],
-"exterieur du pied droit": ["exterieur du pied droit","extérieur du pied droit"],
-"exterieur du pied gauche": ["exterieur du pied gauche","extérieur du pied gauche"],
-"tir direct": ["tir direct"],
-"tir enroulé": ["tir enroulé","tir enroule"],
-"tir trivela": ["tir trivela"],
-"lucarne droite": ["lucarne droite"],
-"lucarne gauche": ["lucarne gauche"],
-"droite": ["droite"],
-"gauche": ["gauche"]
+  "interieur du pied droit": ["interieur du pied droit","linterieur du pied droit","l interieur du pied droit"],
+  "interieur du pied gauche": ["interieur du pied gauche","linterieur du pied gauche","l interieur du pied gauche"],
+  "pointe du pied droit": ["pointe du pied droit","pointe de pied droit"],
+  "pointe du pied gauche": ["pointe du pied gauche","pointe de pied gauche"],
+  "exterieur du pied droit": ["exterieur du pied droit","extérieur du pied droit"],
+  "exterieur du pied gauche": ["exterieur du pied gauche","extérieur du pied gauche"],
+  "tir direct": ["tir direct"],
+  "tir enroulé": ["tir enroulé","tir enroule"],
+  "tir trivela": ["tir trivela"],
+  "lucarne droite": ["lucarne droite"],
+  "lucarne gauche": ["lucarne gauche"],
+  "droite": ["droite"],
+  "gauche": ["gauche"]
 };
 
 //---------------- DÉTECTION DU TIR (FIX COMPLÈTE) ----------------
 function detectTirParElements(text) {
-const t = normalize(text);
+  const t = normalize(text);
 
-for (const model of MODELES_TIRS) {
-if (!SYNONYMES[model.tir_type]?.some(s => t.includes(normalize(s)))) continue;
+  for (const model of MODELES_TIRS) {
+    if (!SYNONYMES[model.tir_type]?.some(s => t.includes(normalize(s)))) continue;
 
-let pied = null;
-for (const p of model.tir_pied || []) {
-const syns = SYNONYMES[p] || [p];
-if (syns.some(s => t.includes(normalize(s)))) {
-pied = p;
-break;
-}
-}
-if (!pied) continue;
+    let pied = null;
+    for (const p of model.tir_pied || []) {
+      const syns = SYNONYMES[p] || [p];
+      if (syns.some(s => t.includes(normalize(s)))) {
+        pied = p;
+        break;
+      }
+    }
+    if (!pied) continue;
 
-let zone = null;
-for (const z of model.tir_zone || []) {
-const syns = SYNONYMES[z] || [z];
-if (syns.some(s => t.includes(normalize(s)))) {
-zone = z;
-break;
-}
-}
-if (!zone) continue;
+    let zone = null;
+    for (const z of model.tir_zone || []) {
+      const syns = SYNONYMES[z] || [z];
+      if (syns.some(s => t.includes(normalize(s)))) {
+        zone = z;
+        break;
+      }
+    }
+    if (!zone) continue;
 
-let angle = null;
-if (model.decalage_corps) {
-const m = t.match(/(\d+)\s?°/);
-if (!m) continue;
-angle = parseInt(m[1]);
-if (!model.decalage_corps.includes(angle)) continue;
-}
+    let angle = null;
+    if (model.decalage_corps) {
+      const m = t.match(/(\d+)\s?°/);
+      if (!m) continue;
+      angle = parseInt(m[1]);
+      if (!model.decalage_corps.includes(angle)) continue;
+    }
 
-let corps = null;
-if (model.corps) {
-if (!model.corps.some(c => t.includes(c))) continue;
-corps = model.corps[0];
-}
+    let corps = null;
+    if (model.corps) {
+      if (!model.corps.some(c => t.includes(c))) continue;
+      corps = model.corps[0];
+    }
 
-let courbe = null;
-if (model.courbe) {
-courbe = model.courbe.find(c => t.includes(c.replace("m","")));
-if (!courbe) continue;
-}
+    let courbe = null;
+    if (model.courbe) {
+      courbe = model.courbe.find(c => t.includes(c.replace("m","")));
+      if (!courbe) continue;
+    }
 
-return {
-tir_type: model.tir_type,
-tir_pied: pied,
-tir_zone: zone,
-decalage_corps: angle,
-corps,
-courbe
-};
-}
+    return {
+      tir_type: model.tir_type,
+      tir_pied: pied,
+      tir_zone: zone,
+      decalage_corps: angle,
+      corps,
+      courbe
+    };
+  }
 
-return { tir_type:"MISSED", tir_pied:"AUCUN", tir_zone:"AUCUNE", decalage_corps:null, corps:null, courbe:null };
+  return { tir_type:"MISSED", tir_pied:"AUCUN", tir_zone:"AUCUNE", decalage_corps:null, corps:null, courbe:null };
 }
 
 //---------------- PROBABILITE DE GOAL ----------------
 function calcChanceGoal(tir) {
-if (!tir.tir_type || tir.tir_type === "MISSED") return 0;
-if (tir.tir_type === "tir direct") return 0.9;
+  if (!tir.tir_type || tir.tir_type === "MISSED") return 0;
+  if (tir.tir_type === "tir direct") return 0.9;
 
-let chance = 0.7;
-if (tir.courbe) chance = 0.85;
-if (tir.decalage_corps === 60) chance = Math.max(chance, 0.85);
-else if (tir.decalage_corps === 50) chance = Math.max(chance, 0.75);
-else if (tir.decalage_corps === 40) chance = Math.max(chance, 0.5);
+  let chance = 0.7;
+  if (tir.courbe) chance = 0.85;
+  if (tir.decalage_corps === 60) chance = Math.max(chance, 0.85);
+  else if (tir.decalage_corps === 50) chance = Math.max(chance, 0.75);
+  else if (tir.decalage_corps === 40) chance = Math.max(chance, 0.5);
 
-return chance;
+  return chance;
 }
 
 //---------------- COMMANDE DEBUT EXERCICE ----------------
@@ -174,7 +174,7 @@ ovlcmd({
   classe: 'BLUELOCK⚽',
   react: '⚽',
   desc: "Lance l'épreuve du loup"
-}, async (ms_org, ovl, { repondre, auteur_Message } => {
+}, async (ms_org, ovl, { repondre, auteur_Message }) => {
   try {
     const texteDebut = `*🔷ÉPREUVE DE TIRS⚽🥅*
 ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░▒░
@@ -317,4 +317,4 @@ async function envoyerResultats(ms_org, ovl, joueur) {
 
   await ovl.sendMessage(ms_org, { image: { url: "https://files.catbox.moe/1xnoc6.jpg" }, caption: result, mentions: [joueur.id] });
   joueurs.delete(joueur.id);
-      }
+}
