@@ -2,7 +2,7 @@ const { ovlcmd } = require('../lib/ovlcmd');
 const joueurs = new Map();
 
 //---------------- ZONES ET PIEDS ----------------
-const ZONES = ["ras du sol gauche","ras du sol droite","mi-hauteur gauche","mi-hauteur droite","lucarne gauche","lucarne droite"];
+const ZONES = ["ras du sol gauche","ras du sol droite","ras du sol droit","mi-hauteur gauche","mi-hauteur droite","mi-hauteur droit","lucarne gauche","lucarne droite"];
 const PIEDS = ["interieur du pied droit","interieur du pied gauche","pointe du pied droit","pointe du pied gauche","cou de pied droit","cou de pied gauche","exterieur du pied droit","exterieur du pied gauche","extérieur du pied droit","extérieur du pied gauche"];
 
 //---------------- MODÈLES DE TIRS ----------------
