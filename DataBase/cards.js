@@ -367,7 +367,7 @@ const cards = {
   "Tanjiro(debut)_bronze_sparking_sm_100k.jpg": "https://files.catbox.moe/aq59kx.jpg",
   "Tanjiro_bronze_ultra_s_300k.jpg": "https://files.catbox.moe/y3pnjx.jpg",
   "TanktopMarcel_bronze_sparking_sm_100k.jpg": "https://files.catbox.moe/xxfbj7.jpg",
-  "Tatako_argent_sparking_sm_500k.jpg": "https://files.catbox.moe/d1ypx9.jpg",
+  "Takako_argent_sparking_sm_500k.jpg": "https://files.catbox.moe/d1ypx9.jpg",
   "Tatsumaki_or_legend_sm_1m.jpg": "https://files.catbox.moe/4puqzw.jpg",
   "Teach_argent_legend_sm_1M.jpg": "https://files.catbox.moe/khap3e.jpg",
   "Temari_bronze_sparking_sm_100k.jpg": "https://files.catbox.moe/lvnx8y.jpg",
