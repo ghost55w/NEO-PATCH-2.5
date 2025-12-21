@@ -1,6 +1,8 @@
 const { Sequelize, DataTypes } = require("sequelize");
 const config = require("../set");
+const { ovlcmd } = require("../lib/ovlcmd");
 
+//---------------- DATABASE ----------------
 const db = config.DATABASE;
 const sequelize = db
   ? new Sequelize(db, {
@@ -19,6 +21,7 @@ const sequelize = db
       logging: false,
     });
 
+//---------------- MYNEO ----------------
 const MyNeo = sequelize.define("MyNeo", {
   id: { type: DataTypes.STRING, primaryKey: true },
   users: { type: DataTypes.STRING, defaultValue: "aucun" },
@@ -27,6 +30,10 @@ const MyNeo = sequelize.define("MyNeo", {
   ns: { type: DataTypes.INTEGER, defaultValue: 0 },
   nc: { type: DataTypes.INTEGER, defaultValue: 0 },
   np: { type: DataTypes.INTEGER, defaultValue: 0 },
+
+  // ✅ LIMITE NP (TOGGLE)
+  np_limit: { type: DataTypes.BOOLEAN, defaultValue: false },
+
   coupons: { type: DataTypes.INTEGER, defaultValue: 0 },
   gift_box: { type: DataTypes.INTEGER, defaultValue: 0 },
   all_stars: { type: DataTypes.STRING, defaultValue: "aucun" },
@@ -34,6 +41,7 @@ const MyNeo = sequelize.define("MyNeo", {
   elysium: { type: DataTypes.STRING, defaultValue: "+ElysiumMe💠" },
 });
 
+//---------------- BLUE LOCK ----------------
 const BlueLockStats = sequelize.define(
   "BlueLockStats",
   {
@@ -60,6 +68,7 @@ const BlueLockStats = sequelize.define(
   }
 );
 
+//---------------- TEAM ----------------
 const Team = sequelize.define(
   "Team",
   {
@@ -80,11 +89,13 @@ const Team = sequelize.define(
   }
 );
 
+//---------------- SYNC ----------------
 (async () => {
   await sequelize.sync();
   console.log("✅ Toutes les tables ont été synchronisées avec succès.");
 })();
 
+//---------------- MYNEO FUNCTIONS ----------------
 const MyNeoFunctions = {
   async getUserData(id) {
     try {
@@ -122,8 +133,24 @@ const MyNeoFunctions = {
       return "❌ Erreur lors de la mise à jour.";
     }
   },
+
+  // ✅ AJOUT NP AVEC LIMITE
+  async addNP(id, amount) {
+    const user = await MyNeo.findByPk(id);
+    if (!user) return;
+
+    let newNP = user.np + amount;
+
+    if (user.np_limit && newNP > 20) {
+      newNP = 20;
+    }
+
+    await user.update({ np: newNP });
+    return newNP;
+  },
 };
 
+//---------------- BLUE LOCK FUNCTIONS ----------------
 const BlueLockFunctions = {
   async saveUser(jid, data = {}) {
     const exists = await BlueLockStats.findByPk(jid);
@@ -156,7 +183,6 @@ const BlueLockFunctions = {
     const updated = signe === "+" ? oldVal + newValue : oldVal - newValue;
 
     await record.update({ [statKey]: updated });
-
     return `✅ Stat mise à jour : ${oldVal} ${signe} ${newValue} = ${updated}`;
   },
 
@@ -169,11 +195,11 @@ const BlueLockFunctions = {
     );
 
     await record.update(reset);
-
     return `✅ Stats remises à 100 pour ${record.nom}`;
   },
 };
 
+//---------------- TEAM FUNCTIONS ----------------
 const TeamFunctions = {
   async saveUser(jid, data = {}) {
     const exists = await Team.findByPk(jid);
@@ -202,6 +228,35 @@ const TeamFunctions = {
   },
 };
 
+//---------------- COMMANDE +SETNP ----------------
+ovlcmd(
+  {
+    nom: "setnp",
+    isfunc: true,
+  },
+  async (ms_org, ovl, { repondre }) => {
+    const jid = ms_org.key.participant || ms_org.key.remoteJid;
+    const user = await MyNeoFunctions.getUserData(jid);
+
+    if (!user) {
+      return repondre("❌ Tu n'es pas enregistré.");
+    }
+
+    const newState = !user.np_limit;
+
+    await MyNeoFunctions.updateUser(jid, {
+      np_limit: newState,
+    });
+
+    return repondre(
+      newState
+        ? "✅ Limite NP activée\n🔒 NP maximum : 20"
+        : "❌ Limite NP désactivée\n🔓 NP illimité (comme avant)"
+    );
+  }
+);
+
+//---------------- EXPORT ----------------
 module.exports = {
   MyNeoFunctions,
   BlueLockFunctions,
