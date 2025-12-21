@@ -468,3 +468,38 @@ ovlcmd({
         // console.error("Erreur stats_lineup:", e);
     }
 });
+
+//---------------- COMMANDE +SETNP ----------------
+ovlcmd(
+  {
+    nom: "setnp",
+    isfunc: true,
+  },
+  async (ms_org, ovl, { repondre }) => {
+    const jid = ms_org.key.participant || ms_org.key.remoteJid;
+    const user = await MyNeoFunctions.getUserData(jid);
+
+    if (!user) {
+      return repondre("❌ Tu n'es pas enregistré.");
+    }
+
+    const newState = !user.np_limit;
+
+    await MyNeoFunctions.updateUser(jid, {
+      np_limit: newState,
+    });
+
+    return repondre(
+      newState
+        ? "✅ Limite NP activée\n🔒 NP maximum : 20"
+        : "❌ Limite NP désactivée\n🔓 NP illimité (comme avant)"
+    );
+  }
+);
+
+//---------------- EXPORT ----------------
+module.exports = {
+  MyNeoFunctions,
+  BlueLockFunctions,
+  TeamFunctions,
+};
