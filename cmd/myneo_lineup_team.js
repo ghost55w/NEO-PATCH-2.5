@@ -198,7 +198,7 @@ ovlcmd({
     return repondre(msg || "✅ Joueur enregistré avec succès !");
   } catch (e) {
     console.error("❌ Erreur save/get :", e);
-    return repondre("⚠️ Une erreur est survenue lors de l'enregistrement.");
+   return repondre("⚠️ Une erreur est survenue lors de l'enregistrement.");
   }
 });
 
@@ -238,7 +238,7 @@ ovlcmd({
     const data = await getNeo(userId);
     if (!data) return repondre("⚠️ Aucune donnée trouvée pour cet utilisateur.");
 
-    // Affichage
+    // Affichage si pas de modification
     if (arg.length <= 1) {
       const myn = `╭───〔 *🪀COMPTE NEO🔷* 〕
 👤User: ${data.users}
@@ -261,19 +261,25 @@ ovlcmd({
 
     // Modification
     if (!prenium_id) return repondre("⚠️ Seuls les membres Premium peuvent actualiser un joueur.");
+
     const modifiables = ["users","tel","ns","nc","np","coupons","gift_box","all_stars","blue_lock","elysium"];
-    const updates = {};
+    let updates = {};
 
     for (let i = 1; i < arg.length;) {
       const field = arg[i]?.toLowerCase();
       const op = arg[i + 1];
       if (!modifiables.includes(field) || !["=","+","-"].includes(op)) { i++; continue; }
+
       const isNumeric = ["ns","nc","np","coupons","gift_box"].includes(field);
       let value;
+
       if (op === "=" && !isNumeric) {
-        let valParts=[], j=i+2; while(j<arg.length && !modifiables.includes(arg[j]?.toLowerCase())) valParts.push(arg[j++]);
+        let valParts=[], j=i+2; 
+        while(j<arg.length && !modifiables.includes(arg[j]?.toLowerCase())) valParts.push(arg[j++]);
         value = valParts.join(" "); i=j;
-      } else { value = arg[i+2]; i+=3; }
+      } else {
+        value = arg[i+2]; i+=3;
+      }
 
       if (value !== undefined) {
         if (isNumeric) {
@@ -287,7 +293,11 @@ ovlcmd({
       }
     }
 
+    // --- Limite NP à 20 max ---
+    if('np' in updates) updates.np = Math.min(updates.np, 20);
+
     if(Object.keys(updates).length===0) return repondre("⚠️ Format incorrect. Exemple : +myNeo @user nc + 200");
+
     const message = await updateMyNeo(userId, updates);
     return repondre(message);
 
