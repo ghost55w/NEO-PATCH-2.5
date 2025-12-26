@@ -115,7 +115,6 @@ ovlcmd({
   try {
     console.log("[HUD] Commande déclenchée. Args:", arg);
 
-    // --- Nouveau système de récupération du JID ---
     let jid;
     if (arg.length) jid = arg[0].replace(/[^\d]/g, "");
     if (!jid) jid = ms_org.sender;
@@ -156,19 +155,6 @@ ovlcmd({
     return repondre("❌ Erreur lors de l'affichage du HUD.");
   }
 });
-async function initPlayersAuto() {
-  try {
-    const allPlayers = await PlayerFunctions.getAllPlayers(); // méthode à créer dans ton DB
-    allPlayers.forEach(player => registeredPlayers.add(player.jid));
-    console.log("[ELYME] Initialisation terminée : joueurs chargés :", allPlayers.length);
-  } catch (err) {
-    console.error("[ELYME] Erreur initPlayersAuto :", err);
-  }
-}
-
-// Appel
-initPlayersAuto();
-
 
 // --- Commande +add💠 ---
 ovlcmd({
@@ -264,7 +250,6 @@ ovlcmd({
   if (arg.length < 3) return repondre("❌ Syntaxe : +oc💠 @tag = [lien fichier Catbox]");
 
   try {
-    // Récupération du JID à partir du tag
     const jid = arg[0].replace(/[^\d]/g, "");
     if (!jid) return repondre("❌ Impossible de récupérer le JID.");
 
@@ -277,11 +262,9 @@ ovlcmd({
     const newValue = arg.slice(3).join(" ").trim();
     if (!newValue) return repondre("❌ Fournis un lien valide pour l'image/GIF Catbox.");
 
-    // Vérification que le joueur existe
     const data = await PlayerFunctions.getPlayer(jid);
     if (!data) return repondre("❌ Joueur introuvable.");
 
-    // Mise à jour du oc_url
     await PlayerFunctions.updatePlayer(jid, { oc_url: newValue });
 
     return repondre(`✅ Image/GIF du joueur ${data.pseudo} mise à jour avec succès !`);
