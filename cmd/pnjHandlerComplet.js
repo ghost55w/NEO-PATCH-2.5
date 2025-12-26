@@ -2,11 +2,12 @@
 // PNJ HANDLER COMPLET – FALLEN ANGELES
 // ================================
 
-const OpenAI = require("openai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { fallenAngeles } = require("./fallenAngelesDB");
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.5-flash"
 });
 
 // ================================
@@ -79,8 +80,7 @@ function parsePlayerMessage(text) {
 
   const topicMatch = text.match(/je parle de\s*:\s*(.+)/i);
   if (topicMatch) {
-    const topic = topicMatch[1].trim();
-    return { type: "talk", topic };
+    return { type: "talk", topic: topicMatch[1].trim() };
   }
 
   return null;
@@ -125,13 +125,12 @@ async function handlePNJMessage(player, text, location = "") {
       updateRelation(pnj, playerId, -2);
       replyText = "Ça ne m’intéresse pas. Change de sujet.";
     } else {
-      const success = Math.random() < 0.6;
-      if (success) {
+      if (Math.random() < 0.6) {
         updateRelation(pnj, playerId, +2);
         replyText = `Hmm… ${topic}, voilà un sujet intéressant.`;
       } else {
         updateRelation(pnj, playerId, -1);
-        replyText = `Bof… même si j’aime ${topic}, je n’ai pas envie d’en parler maintenant.`;
+        replyText = `Bof… même si j’aime ${topic}, pas maintenant.`;
       }
     }
   }
@@ -145,10 +144,10 @@ async function handlePNJMessage(player, text, location = "") {
       const chance = pnj.habits.flirt_acceptance || 50;
       if (Math.random() * 100 < chance) {
         updateRelation(pnj, playerId, +3);
-        replyText = "Hmm… continue, tu sais flatter.";
+        replyText = "Hmm… continue.";
       } else {
         updateRelation(pnj, playerId, -2);
-        replyText = "N’insiste pas, tu me mets mal à l’aise.";
+        replyText = "N’insiste pas.";
       }
     }
   }
@@ -158,7 +157,7 @@ async function handlePNJMessage(player, text, location = "") {
     if (!orientationCompatible(pnj, player)) {
       replyText = "Oublie ça.";
     } else if (mem.relation < 50) {
-      replyText = "On n’en est clairement pas là.";
+      replyText = "On n’en est pas là.";
     } else if (Math.random() * 100 < (pnj.habits.sexual_acceptance || 0)) {
       replyText = "Très bien… suis-moi.";
     } else {
@@ -166,31 +165,21 @@ async function handlePNJMessage(player, text, location = "") {
     }
   }
 
-  // ================= MEMOIRE =================
-  mem.events.push({
-    text,
-    date: new Date().toISOString()
-  });
+  mem.events.push({ text, date: new Date().toISOString() });
 
-  // ================= OPENAI RP =================
+  // ================= GEMINI RP =================
   const prompt = `
-Tu es ${pnjName}, PNJ de Fallen Angeles.
+Tu es ${pnjName}, un PNJ du monde Fallen Angeles.
 Caractère: ${pnj.caractere}
 Relation avec le joueur: ${mem.status}
 
-Répond de manière RP courte et immersive.
+Répond de manière RP courte, naturelle et immersive.
 Message de base:
 "${replyText}"
 `;
 
-  const ai = await openai.chat.completions.create({
-    model: "gpt-4",
-    messages: [{ role: "user", content: prompt }],
-    max_tokens: 200,
-    temperature: 0.7
-  });
-
-  const finalText = ai.choices[0].message.content;
+  const result = await model.generateContent(prompt);
+  const finalText = result.response.text();
 
   // ================= CAPTION =================
   const caption = `*${pnjName}:* | *Relation:* ${mem.status} - ${mem.relation}%
