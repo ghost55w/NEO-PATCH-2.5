@@ -12,7 +12,7 @@ function normalizeText(text) {
     .trim();
 }
 
-// --- Ajout de la commande principale ElysiumME💠 ---
+// --- Commande principale ElysiumME💠 (fiche complète) ---
 function addPlayerFiche(jid) {
   if (registeredPlayers.has(jid)) return;
   registeredPlayers.add(jid);
@@ -23,17 +23,20 @@ function addPlayerFiche(jid) {
     react: "💠"
   }, async (ms_org, ovl, cmd_options) => {
     const { repondre, ms, arg } = cmd_options;
-
     try {
       const data = await PlayerFunctions.getPlayer(jid);
       if (!data) return repondre("❌ Aucune fiche trouvée.");
 
-      // --- Affichage de la fiche ---
-      if (!arg.length) {
-        const cyberwaresCount = data.cyberwares
-          ? data.cyberwares.split("\n").filter(c => c.trim() !== "").length
-          : 0;
+      // Valeurs par défaut si vide
+      data.cyberwares = data.cyberwares || "";
+      data.oc_url = data.oc_url || ""; // GIF / image
 
+      // Comptage des cyberwares
+      const cyberwaresCount = data.cyberwares
+        ? data.cyberwares.split("\n").filter(c => c.trim() !== "").length
+        : 0;
+
+      if (!arg.length) {
         const fiche = `➤ ──⦿ P L A Y E R | ⦿──
 ▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░░
 *🫆Pseudo:*  ➤ ${data.pseudo}
@@ -51,8 +54,8 @@ function addPlayerFiche(jid) {
 *🫱🏼‍🫲🏽Réputation:* ➤ ${data.reputation} 🫱🏼‍🫲🏽
 __________________________
 
-*+Me💠*        ➤ ( 𝗂𝗇𝗍𝖾𝗋𝖿𝖺𝖼𝖾 𝖽𝖾 𝗃𝗈𝗎𝖾𝗎𝗋 )
-*`Inventaire`💠* ➤ ( Propriétés )
+*+HUD💠*        ➤ ( 𝗂𝗇𝗍𝖾𝗋𝖿𝖺𝖼𝖾 𝖽𝖾 𝗃𝗈𝗎𝖾𝗎𝗋 )
+*`+Inventaire`💠* ➤ ( Propriétés )
 
 ░▒▒▒▒░ \`C Y B E R W A R E S\` 💠
 *🩻Cyberwares :* (Total) ➤ ${cyberwaresCount}
@@ -73,13 +76,108 @@ __________________________
 ░▒░▒░ \`A C H I E V M E N T S\` 💠
 *🏆Trophies:* ${data.trophies} 🏆`;
 
-        return ovl.sendMessage(ms_org, { caption: fiche, image: { url: data.oc_url } }, { quoted: ms });
+        return ovl.sendMessage(ms_org, { image: { url: data.oc_url }, caption: fiche }, { quoted: ms });
       }
+
+      // --- Traitement des mises à jour + / - / =
+      const updates = await processUpdates(arg, jid);
+      for (const u of updates) await PlayerFunctions.updatePlayer(jid, { [u.colonne]: u.newValue });
+
+      const message = updates.map(u => `🛠️ *${u.colonne}* modifié : \`${u.oldValue}\` ➤ \`${u.newValue}\``).join("\n");
+      return repondre("✅ Fiche mise à jour avec succès !\n\n" + message);
+
     } catch (err) {
       console.error(err);
-      return repondre("❌ Une erreur est survenue. Vérifie les paramètres.");
+      return repondre("❌ Une erreur est survenue.");
     }
   });
+}
+
+// --- Commande +HUD💠 ---
+ovlcmd({
+  nom_cmd: "hud💠",
+  classe: "Elysium",
+  react: "💠"
+}, async (ms_org, ovl, { repondre, arg }) => {
+  try {
+    let jid = arg.length ? arg[0].replace(/[^\d]/g, "") : null;
+    if (!jid) jid = ms_org.sender; // si pas d'@tag, prend le joueur qui tape
+
+    const data = await PlayerFunctions.getPlayer(jid);
+    if (!data) return repondre("❌ Aucune fiche trouvée.");
+
+    // HUD avec toutes les stats indépendantes
+    const hud = `➤ ──⦿ \`P L A Y E R\` | ⦿──
+▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒
+💬
+
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
+💠
+
+░▒▒▒░░▒░░▒░ \`V I T A L S\` 
+> 🍗: ${data.besoins || 100}%    ❤️: ${data.pv || 100}%   💠: ${data.energie || 100}%
+> 💪🏼: ${data.forme || 100}%    🫁: ${data.stamina || 100}%   🙂: ${data.plaisir || 100}%  
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔
+🧠Intelligence: ${data.intelligence || 1}     👊🏽Force: ${data.force || 1}
+🔍Gathering: ${data.gathering || 0}     ⚡Vitesse: ${data.vitesse || 1}
+🛞Driving: ${data.driving || 0}        👁️Reflexes: ${data.reflexes || 1}
+👾Hacking: ${data.hacking || 0}      🛡️Résistance: ${data.resistance || 1}
+
+➤ \`+Package\`🎒 ➤ \`+Phone\`📱  
+▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░
+                              💠▯▯▯▯▯▯⎢⎢⎢⎢⎢`;
+
+    return ovl.sendMessage(ms_org, { image: { url: data.oc_url }, caption: hud }, { quoted: ms_org });
+  } catch (err) {
+    console.error(err);
+    return repondre("❌ Erreur lors de l'affichage du HUD.");
+  }
+});
+
+// --- Traitement des mises à jour stats ---
+async function processUpdates(args, jid) {
+  const updates = [];
+  const data = await PlayerFunctions.getPlayer(jid);
+  const columns = [
+    "pseudo","user","besoins","pv","energie","forme","stamina","plaisir",
+    "intelligence","force","vitesse","reflexes","resistance",
+    "gathering","driving","hacking",
+    "cyberwares","exp","niveau","rang","ecash","lifestyle",
+    "charisme","reputation","missions","gameover","pvp",
+    "points_combat","points_chasse","points_recoltes",
+    "points_hacking","points_conduite","points_exploration","trophies"
+  ];
+
+  let i = 0;
+  while (i < args.length) {
+    const object = args[i++];
+    const signe = args[i++];
+    let texte = [];
+
+    while (i < args.length && !['+', '-', '=', 'add', 'supp'].includes(args[i]) && !columns.includes(args[i])) {
+      texte.push(args[i++]);
+    }
+
+    if (!columns.includes(object)) throw new Error(`❌ Colonne '${object}' non reconnue.`);
+    const oldValue = data[object];
+    let newValue;
+
+    if (signe === "+" || signe === "-") {
+      newValue = Number(oldValue || 0) + (signe === "+" ? Number(texte.join(" ")) : -Number(texte.join(" ")));
+    } else if (signe === "=") {
+      newValue = texte.join(" ");
+    } else if (signe === "add") {
+      newValue = (oldValue + " " + texte.join(" ")).trim();
+    } else if (signe === "supp") {
+      newValue = normalizeText(oldValue).replace(new RegExp(`\\b${normalizeText(texte.join(" "))}\\b`, "gi"), "").trim();
+    } else {
+      throw new Error(`❌ Signe non reconnu : ${signe}`);
+    }
+
+    updates.push({ colonne: object, oldValue, newValue });
+  }
+
+  return updates;
 }
 
 // --- Initialisation auto des fiches existantes ---
@@ -97,9 +195,9 @@ async function initPlayersAuto() {
 
 initPlayersAuto();
 
-// --- Commande pour ajouter un joueur ---
+// --- Commande +add💠 ---
 ovlcmd({
-  nom_cmd: "+add💠",
+  nom_cmd: "add💠",
   classe: "Elysium",
   react: "➕"
 }, async (ms_org, ovl, { repondre, arg }) => {
@@ -115,6 +213,21 @@ ovlcmd({
     await PlayerFunctions.savePlayer(jid, {
       pseudo: "Nouveau Joueur",
       user: arg[0],
+      besoins: 100,
+      pv: 100,
+      energie: 100,
+      forme: 100,
+      stamina: 100,
+      plaisir: 100,
+      intelligence: 1,
+      force: 1,
+      vitesse: 1,
+      reflexes: 1,
+      resistance: 1,
+      gathering: 0,
+      driving: 0,
+      hacking: 0,
+      cyberwares: "",
       exp: 0,
       niveau: 1,
       rang: "Novice🥉",
@@ -122,7 +235,6 @@ ovlcmd({
       lifestyle: 0,
       charisme: 0,
       reputation: 0,
-      cyberwares: "",
       missions: 0,
       gameover: 0,
       pvp: 0,
@@ -144,9 +256,9 @@ ovlcmd({
   }
 });
 
-// --- Commande pour supprimer un joueur ---
+// --- Commande +del💠 ---
 ovlcmd({
-  nom_cmd: "+del💠",
+  nom_cmd: "del💠",
   classe: "Elysium",
   react: "🗑️"
 }, async (ms_org, ovl, { repondre, arg }) => {
@@ -165,5 +277,42 @@ ovlcmd({
   } catch (err) {
     console.error(err);
     return repondre("❌ Erreur lors de la suppression de la fiche.");
+  }
+});
+
+// --- Commande pour modifier le oc_url d'un joueur ---
+ovlcmd({
+  nom_cmd: "+oc💠",
+  classe: "Elysium",
+  react: "🖼️"
+}, async (ms_org, ovl, { repondre, arg }) => {
+  if (arg.length < 3) return repondre("❌ Syntaxe : +oc💠 @tag = [lien fichier Catbox]");
+
+  try {
+    // Récupération du JID à partir du tag
+    const jid = arg[0].replace(/[^\d]/g, "");
+    if (!jid) return repondre("❌ Impossible de récupérer le JID.");
+
+    const colonne = arg[1]; // doit être oc_url
+    const signe = arg[2];   // doit être "="
+
+    if (colonne !== "oc_url" || signe !== "=") 
+      return repondre("❌ Syntaxe invalide. Utilise : oc_url = [lien]");
+
+    const newValue = arg.slice(3).join(" ").trim();
+    if (!newValue) return repondre("❌ Fournis un lien valide pour l'image/GIF Catbox.");
+
+    // Vérification que le joueur existe
+    const data = await PlayerFunctions.getPlayer(jid);
+    if (!data) return repondre("❌ Joueur introuvable.");
+
+    // Mise à jour du oc_url
+    await PlayerFunctions.updatePlayer(jid, { oc_url: newValue });
+
+    return repondre(`✅ Image/GIF du joueur ${data.pseudo} mise à jour avec succès !`);
+    
+  } catch (err) {
+    console.error(err);
+    return repondre("❌ Erreur lors de la mise à jour du oc_url.");
   }
 });
