@@ -54,7 +54,7 @@ function canHaveSex(pnj, player, location) {
 // ----------------------------
 // SUJETS D’INTÉRÊT
 // ----------------------------
-const topics = ["Art", "Sport", "Aventures", "Monde", "Actualité", "Musique", "Science", "Hi-tech", "Société", "Fashion", "Showbiz", "Criminalité", "Loisirs", "Animaux", "Delerium", "Études", "Fêtes", "Politique", "Gaming"];
+const topics = ["Art", "Sport", "Aventures", "Monde", "Actualité", "Musique", "Science", "Hi-tech", "Société", "Fashion", "Showbiz", "Criminalité", "Loisirs", "Animaux", "Delerium", "Études", "Fêtes", "Politique","Cinéma", "Gaming"];
 
 function extractSubject(text) {
   const lowerText = text.toLowerCase();
