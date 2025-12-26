@@ -7,67 +7,57 @@ function formatNameFromKey(key) {
 }
 
 // ================================
-// FALLEN ANGELES – PNJ AVEC MÉMOIRE
+// FALLEN ANGELES – PNJ 🌴
 // ================================
-const fallenAngels = {
+const fallenAngeles = {
 
   "dexter mikey": {
     sexe: "Homme",
+    orientation: "bisexual", // homme/femme/bisexual/gay
     classe: "Resident",
     social: "Neolitain",
     home: "Fallen Angeles",
-    lifestyle: "Modeste",
+    lifestyle: 200,
     niveau: 5,
     cash: 1200,
-    statut: "Libre",
+    statut: "Stagiaire",
     caractere: "amical",
     charisme: 20,
-
     likes: ["Musique", "Discussions"],
     dislikes: ["Autorité"],
     friends: ["@Damian", "mazikeen"],
     lovers: [],
-
     image: "",
     image_home: "",
     image_extra: "",
-
     habits: {
       sexual_acceptance: 35, // %
-      flirt_acceptance: 60,
-      conditions: [
-        "Relation de confiance",
-        "Discussion préalable"
-      ],
-      refuse: [
-        "Violence",
-        "Manipulation"
-      ],
+      flirt_acceptance: 50, // base, modifié par comparaison joueur/pnj
+      conditions: ["Relation de confiance", "Discussion préalable"],
+      refuse: ["Violence", "Manipulation"],
       comportement: "Répond calmement et cherche le dialogue"
     }
   },
 
   "azrael": {
     sexe: "Femme",
+    orientation: "femme",
     classe: "Ange de la Mort",
     social: "Solitaire",
     home: "Cathédrale abandonnée",
-    lifestyle: "Austère",
+    lifestyle: 50,
     niveau: 40,
     cash: 0,
     statut: "Éternelle",
     caractere: "froid",
     charisme: 85,
-
     likes: ["Silence", "Équilibre"],
     dislikes: ["Chaos"],
     friends: [],
     lovers: [],
-
     image: "",
     image_home: "",
     image_extra: "",
-
     habits: {
       sexual_acceptance: 0,
       flirt_acceptance: 5,
@@ -79,32 +69,27 @@ const fallenAngels = {
 
   "lilith": {
     sexe: "Femme",
+    orientation: "bisexual",
     classe: "Démone Originelle",
     social: "Élite",
     home: "Palais nocturne",
-    lifestyle: "Luxueux",
+    lifestyle: 900,
     niveau: 90,
     cash: 999999,
     statut: "Dominante",
     caractere: "grossier",
     charisme: 96,
-
     likes: ["Pouvoir", "Séduction"],
     dislikes: ["Soumission"],
     friends: ["lucifer morningstar", "@Damian"],
     lovers: ["lucifer morningstar"],
-
     image: "",
     image_home: "",
     image_extra: "",
-
     habits: {
       sexual_acceptance: 85,
-      flirt_acceptance: 95,
-      conditions: [
-        "Soumission claire",
-        "Jeu de pouvoir"
-      ],
+      flirt_acceptance: 50,
+      conditions: ["Soumission claire", "Jeu de pouvoir"],
       refuse: ["Manque de respect"],
       comportement: "Provocante, dominante, langage cru"
     }
@@ -112,10 +97,11 @@ const fallenAngels = {
 
   "belial": {
     sexe: "Homme",
+    orientation: "homme",
     classe: "Prince Démon",
     social: "Noble",
     home: "Citadelle rouge",
-    lifestyle: "Opulent",
+    lifestyle: 800,
     niveau: 70,
     cash: 300000,
     statut: "Stratège",
@@ -133,7 +119,7 @@ const fallenAngels = {
 
     habits: {
       sexual_acceptance: 40,
-      flirt_acceptance: 30,
+      flirt_acceptance: 50,
       conditions: ["Intérêt politique"],
       refuse: ["Émotions inutiles"],
       comportement: "Calculateur et distant"
@@ -142,10 +128,11 @@ const fallenAngels = {
 
   "hela": {
     sexe: "Femme",
+    orientation: "bisexual",
     classe: "Reine des Morts",
     social: "Élite",
     home: "Helheim",
-    lifestyle: "Sombre",
+    lifestyle: 1000,
     niveau: 95,
     cash: 666666,
     statut: "Souveraine",
@@ -163,7 +150,7 @@ const fallenAngels = {
 
     habits: {
       sexual_acceptance: 50,
-      flirt_acceptance: 40,
+      flirt_acceptance: 50,
       conditions: ["Lien émotionnel fort"],
       refuse: ["Jeux frivoles"],
       comportement: "Parle lentement, autoritaire"
