@@ -23,22 +23,25 @@ function addPlayerFiche(jid) {
     react: "💠"
   }, async (ms_org, ovl, cmd_options) => {
     const { repondre, ms, arg } = cmd_options;
+
     try {
+      // --- Nouveau système de récupération du JID ---
+      if (arg.length) jid = arg[0].replace(/[^\d]/g, "");
+      if (!jid) jid = ms_org.sender;
       console.log("[ELYME] Commande déclenchée pour JID:", jid, "arg:", arg);
 
       const data = await PlayerFunctions.getPlayer(jid);
       console.log("[ELYME] Fiche récupérée:", data);
-
       if (!data) return repondre("❌ Aucune fiche trouvée.");
 
       data.cyberwares = data.cyberwares || "";  
-      data.oc_url = data.oc_url || ""; // GIF / image  
+      data.oc_url = data.oc_url || "";
 
-      const cyberwaresCount = data.cyberwares  
-        ? data.cyberwares.split("\n").filter(c => c.trim() !== "").length  
-        : 0;  
+      const cyberwaresCount = data.cyberwares
+        ? data.cyberwares.split("\n").filter(c => c.trim() !== "").length
+        : 0;
 
-      if (!arg.length) {  
+      if (!arg.length) {
         const fiche = `➤ ──⦿ P L A Y E R | ⦿──
 
 ▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░░
@@ -81,23 +84,24 @@ function addPlayerFiche(jid) {
 🏆Trophies: ${data.trophies} 🏆`;
 
         console.log("[ELYME] Envoi de la fiche au joueur");
-        return ovl.sendMessage(ms_org, { image: { url: data.oc_url }, caption: fiche }, { quoted: ms || ms_org });  
-      }  
+        const imagePayload = data.oc_url ? { image: { url: data.oc_url } } : {};
+        return ovl.sendMessage(ms_org, { ...imagePayload, caption: fiche }, { quoted: ms || ms_org });
+      }
 
-      const updates = await processUpdates(arg, jid);  
+      const updates = await processUpdates(arg, jid);
       console.log("[ELYME] Updates à appliquer:", updates);
 
       for (const u of updates) {
         console.log(`[ELYME] Mise à jour colonne ${u.colonne}: ${u.oldValue} -> ${u.newValue}`);
-        await PlayerFunctions.updatePlayer(jid, { [u.colonne]: u.newValue });  
+        await PlayerFunctions.updatePlayer(jid, { [u.colonne]: u.newValue });
       }
 
-      const message = updates.map(u => `🛠️ *${u.colonne}* modifié : \`${u.oldValue}\` ➤ \`${u.newValue}\``).join("\n");  
-      return repondre("✅ Fiche mise à jour avec succès !\n\n" + message);  
+      const message = updates.map(u => `🛠️ *${u.colonne}* modifié : \`${u.oldValue}\` ➤ \`${u.newValue}\``).join("\n");
+      return repondre("✅ Fiche mise à jour avec succès !\n\n" + message);
 
-    } catch (err) {  
-      console.error("[ELYME] Erreur dans +ElysiumMe💠:", err);  
-      return repondre("❌ Une erreur est survenue.");  
+    } catch (err) {
+      console.error("[ELYME] Erreur dans +ElysiumMe💠:", err);
+      return repondre("❌ Une erreur est survenue.");
     }
   });
 }
@@ -110,13 +114,16 @@ ovlcmd({
 }, async (ms_org, ovl, { repondre, arg }) => {
   try {
     console.log("[HUD] Commande déclenchée. Args:", arg);
-    let jid = arg.length ? arg[0].replace(/[^\d]/g, "") : ms_org.sender; 
+
+    // --- Nouveau système de récupération du JID ---
+    let jid;
+    if (arg.length) jid = arg[0].replace(/[^\d]/g, "");
+    if (!jid) jid = ms_org.sender;
     console.log("[HUD] JID utilisé:", jid);
 
-    const data = await PlayerFunctions.getPlayer(jid);  
+    const data = await PlayerFunctions.getPlayer(jid);
     console.log("[HUD] Fiche récupérée:", data);
-
-    if (!data) return repondre("❌ Aucune fiche trouvée.");  
+    if (!data) return repondre("❌ Aucune fiche trouvée.");
 
     const hud = `➤ ──⦿ \`P L A Y E R\` | ⦿──
 
@@ -141,82 +148,15 @@ ovlcmd({
 💠▯▯▯▯▯▯⎢⎢⎢⎢⎢`;
 
     console.log("[HUD] Envoi HUD au joueur");
-    return ovl.sendMessage(ms_org, { image: { url: data.oc_url }, caption: hud }, { quoted: ms_org });
+    const imagePayload = data.oc_url ? { image: { url: data.oc_url } } : {};
+    return ovl.sendMessage(ms_org, { ...imagePayload, caption: hud }, { quoted: ms_org });
 
   } catch (err) {
     console.error("[HUD] Erreur lors de l'affichage du HUD:", err);
     return repondre("❌ Erreur lors de l'affichage du HUD.");
   }
 });
-
-// --- Traitement des mises à jour stats ---
-async function processUpdates(args, jid) {
-  const updates = [];
-  try {
-    const data = await PlayerFunctions.getPlayer(jid);
-    console.log("[UPDATE] processUpdates - Fiche récupérée:", data);
-
-    const columns = [
-      "pseudo","user","besoins","pv","energie","forme","stamina","plaisir",
-      "intelligence","force","vitesse","reflexes","resistance",
-      "gathering","driving","hacking",
-      "cyberwares","exp","niveau","rang","ecash","lifestyle",
-      "charisme","reputation","missions","gameover","pvp",
-      "points_combat","points_chasse","points_recoltes",
-      "points_hacking","points_conduite","points_exploration","trophies"
-    ];
-
-    let i = 0;
-    while (i < args.length) {
-      const object = args[i++];
-      const signe = args[i++];
-      let texte = [];
-
-      while (i < args.length && !['+', '-', '=', 'add', 'supp'].includes(args[i]) && !columns.includes(args[i])) {  
-        texte.push(args[i++]);  
-      }  
-
-      if (!columns.includes(object)) throw new Error(`❌ Colonne '${object}' non reconnue.`);  
-      const oldValue = data[object];  
-      let newValue;  
-
-      if (signe === "+" || signe === "-") {  
-        newValue = Number(oldValue || 0) + (signe === "+" ? Number(texte.join(" ")) : -Number(texte.join(" ")));  
-      } else if (signe === "=") {  
-        newValue = texte.join(" ");  
-      } else if (signe === "add") {  
-        newValue = (oldValue + " " + texte.join(" ")).trim();  
-      } else if (signe === "supp") {  
-        newValue = normalizeText(oldValue).replace(new RegExp(`\\b${normalizeText(texte.join(" "))}\\b`, "gi"), "").trim();  
-      } else {  
-        throw new Error(`❌ Signe non reconnu : ${signe}`);  
-      }  
-
-      console.log(`[UPDATE] Colonne ${object}: ${oldValue} -> ${newValue}`);
-      updates.push({ colonne: object, oldValue, newValue });
-    }
-  } catch (err) {
-    console.error("[UPDATE] Erreur dans processUpdates:", err);
-    throw err;
-  }
-
-  return updates;
-}
-
-// --- Initialisation auto des fiches existantes ---
-async function initPlayersAuto() {
-  try {
-    const all = await PlayerFunctions.getAllPlayers();
-    console.log("[INIT] Joueurs récupérés:", all.map(p => p.id));
-    for (const player of all) {
-      if (!player.id) continue;
-      addPlayerFiche(player.id);
-    }
-  } catch (e) {
-    console.error("[INIT] Erreur d'initPlayersAuto:", e);
-  }
-}
-
+  
 initPlayersAuto();
 
 
