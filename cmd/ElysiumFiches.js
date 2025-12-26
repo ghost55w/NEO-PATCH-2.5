@@ -18,7 +18,7 @@ function addPlayerFiche(jid) {
   registeredPlayers.add(jid);
 
   ovlcmd({
-    nom_cmd: "elysiumME💠",
+    nom_cmd: "elysiumme💠",
     classe: "Elysium",
     react: "💠"
   }, async (ms_org, ovl, cmd_options) => {
