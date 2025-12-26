@@ -13,10 +13,10 @@ const fallenAngeles = {
 
   "dexter mikey": {
     sexe: "Homme",
-    orientation: "bisexual", // homme/femme/bisexual/gay
+    orientation: "bisexual",
     classe: "Resident",
     social: "Neolitain",
-    home: "Fallen Angeles",
+    lieux: "Fallen Angeles",
     lifestyle: 200,
     niveau: 5,
     cash: 1200,
@@ -31,12 +31,13 @@ const fallenAngeles = {
     image_home: "",
     image_extra: "",
     habits: {
-      sexual_acceptance: 35, // %
-      flirt_acceptance: 50, // base, modifié par comparaison joueur/pnj
+      sexual_acceptance: 35,
+      flirt_acceptance: 50,
       conditions: ["Relation de confiance", "Discussion préalable"],
       refuse: ["Violence", "Manipulation"],
       comportement: "Répond calmement et cherche le dialogue"
-    }
+    },
+    memory: {}
   },
 
   "azrael": {
@@ -44,7 +45,7 @@ const fallenAngeles = {
     orientation: "femme",
     classe: "Ange de la Mort",
     social: "Solitaire",
-    home: "Cathédrale abandonnée",
+    lieux: "Cathédrale abandonnée",
     lifestyle: 50,
     niveau: 40,
     cash: 0,
@@ -64,7 +65,8 @@ const fallenAngeles = {
       conditions: ["Lien spirituel fort"],
       refuse: ["Contacts physiques", "Séduction directe"],
       comportement: "Réponses courtes, neutres, détachées"
-    }
+    },
+    memory: {}
   },
 
   "lilith": {
@@ -72,7 +74,7 @@ const fallenAngeles = {
     orientation: "bisexual",
     classe: "Démone Originelle",
     social: "Élite",
-    home: "Palais nocturne",
+    lieux: "Palais nocturne",
     lifestyle: 900,
     niveau: 90,
     cash: 999999,
@@ -92,7 +94,8 @@ const fallenAngeles = {
       conditions: ["Soumission claire", "Jeu de pouvoir"],
       refuse: ["Manque de respect"],
       comportement: "Provocante, dominante, langage cru"
-    }
+    },
+    memory: {}
   },
 
   "belial": {
@@ -100,30 +103,28 @@ const fallenAngeles = {
     orientation: "homme",
     classe: "Prince Démon",
     social: "Noble",
-    home: "Citadelle rouge",
+    lieux: "Citadelle rouge",
     lifestyle: 800,
     niveau: 70,
     cash: 300000,
     statut: "Stratège",
     caractere: "froid",
     charisme: 92,
-
     likes: ["Stratégie"],
     dislikes: ["Improvisation"],
     friends: [],
     lovers: [],
-
     image: "",
     image_home: "",
     image_extra: "",
-
     habits: {
       sexual_acceptance: 40,
       flirt_acceptance: 50,
       conditions: ["Intérêt politique"],
       refuse: ["Émotions inutiles"],
       comportement: "Calculateur et distant"
-    }
+    },
+    memory: {}
   },
 
   "hela": {
@@ -131,33 +132,31 @@ const fallenAngeles = {
     orientation: "bisexual",
     classe: "Reine des Morts",
     social: "Élite",
-    home: "Helheim",
+    lieux: "Helheim",
     lifestyle: 1000,
     niveau: 95,
     cash: 666666,
     statut: "Souveraine",
     caractere: "froid",
     charisme: 97,
-
     likes: ["Âmes"],
     dislikes: ["Vie"],
     friends: [],
     lovers: ["@Damian"],
-
     image: "",
     image_home: "",
     image_extra: "",
-
     habits: {
       sexual_acceptance: 50,
       flirt_acceptance: 50,
       conditions: ["Lien émotionnel fort"],
       refuse: ["Jeux frivoles"],
       comportement: "Parle lentement, autoritaire"
-    }
+    },
+    memory: {}
   }
 
-  // 👉 Tu peux continuer jusqu’à 20+ PNJ sur ce modèle
+  // 👉 Ajouter d’autres PNJ sur le même modèle
 };
 
 // ================================
@@ -196,7 +195,7 @@ function createFallenAngelFromBase(key, data) {
 // ================================
 // GROUPER PAR PLACEMENT
 // ================================
-function groupFallenAngelsByPlacement(array) {
+function groupFallenAngelesByPlacement(array) {
   const grouped = {};
   for (const angel of array) {
     if (!grouped[angel.placement]) grouped[angel.placement] = [];
@@ -208,21 +207,30 @@ function groupFallenAngelsByPlacement(array) {
 // ================================
 // GÉNÉRATION GLOBALE
 // ================================
-function generateFallenAngelsFromBase(object) {
+function generateFallenAngelesFromBase(object) {
   const all = [];
   for (const [key, value] of Object.entries(object)) {
     all.push(createFallenAngelFromBase(key, value));
   }
-  return groupFallenAngelsByPlacement(all);
+  return groupFallenAngelesByPlacement(all);
+}
+
+// ================================
+// RÉCUPÉRER PNJ PAR NOM (insensible à la casse)
+// ================================
+function getPNJByName(name) {
+  const key = name.toLowerCase();
+  return fallenAngeles[key] || null;
 }
 
 // ================================
 // EXPORT
 // ================================
-const groupedFallenAngels = generateFallenAngelsFromBase(fallenAngels);
+const groupedFallenAngeles = generateFallenAngelesFromBase(fallenAngeles);
 
 module.exports = {
-  fallenAngels,
-  groupedFallenAngels,
-  generateFallenAngelsFromBase
+  fallenAngeles,
+  groupedFallenAngeles,
+  generateFallenAngelesFromBase,
+  getPNJByName
 };
