@@ -19,6 +19,11 @@ const {
   recup_msg
 } = require('./Ovl_events');
 
+// ----------------------------
+// IMPORT PNJ HANDLER
+// ----------------------------
+const { handlePNJMessage, fallenAngeles } = require("./pnjHandlerComplet");
+
 async function main() {
   try {
     const instanceId = "principale";
@@ -38,14 +43,62 @@ async function main() {
       markOnlineOnConnect: false,
       generateHighQualityLinkPreview: true
     });
+
+    // ----------------------------
+    // LISTENERS EXISTANTS
+    // ----------------------------
     ovl.ev.on("messages.upsert", async (m) => message_upsert(m, ovl));
     ovl.ev.on("group-participants.update", async (data) => group_participants_update(data, ovl));
     ovl.ev.on("connection.update", (update) => connection_update(update, ovl, main));
     ovl.ev.on("creds.update", saveCreds);
+
     ovl.dl_save_media_ms = (msg, filename = '', attachExt = true, dir = './downloads') =>
       dl_save_media_ms(ovl, msg, filename, attachExt, dir);
     ovl.recup_msg = (params = {}) => recup_msg({ ovl, ...params });
+
     console.log("✅ Session principale démarrée");
+
+    // ----------------------------
+    // LISTENER PNJ AUTOMATIQUE
+    // ----------------------------
+    ovl.ev.on("messages.upsert", async (m) => {
+      try {
+        const msg = m.messages[0];
+        if (!msg.message || msg.key.fromMe) return; // Ignorer messages sortants ou vides
+
+        const text = msg.message.conversation || msg.message.extendedTextMessage?.text;
+        if (!text) return;
+
+        // Vérifier si le joueur parle à un PNJ ou veut flirter/proposer sexe
+        if (/j'aborde/i.test(text) || /^je flirt:/i.test(text) || /^je propose de coucher ensemble/i.test(text)) {
+          const from = msg.key.remoteJid;
+
+          // Récupérer les infos du joueur depuis OVL si elles existent
+          const playerData = ovl.recup_msg ? await ovl.recup_msg({ user: from }) : {};
+          const player = {
+            tag: from,
+            sexe: playerData.sexe || "H",
+            charisme: playerData.charisme || 50,
+            niveau: playerData.niveau || 10,
+            lifestyle: playerData.lifestyle || 100
+          };
+
+          const location = playerData.lieu || "";
+
+          // Appeler le handler PNJ
+          const { caption, image } = await handlePNJMessage(player, text, location);
+
+          // Envoyer la réponse via WhatsApp
+          await ovl.sendMessage(from, {
+            image: { url: image || "https://via.placeholder.com/512" },
+            caption: caption
+          });
+        }
+      } catch (err) {
+        console.error("Erreur PNJ:", err.message || err);
+      }
+    });
+
   } catch (err) {
     console.error("❌ Erreur au lancement :", err.message || err);
   }
