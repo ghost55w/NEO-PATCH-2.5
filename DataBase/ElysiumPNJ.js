@@ -1,4 +1,3 @@
-
 // ---------------- UTILITAIRE NOM ----------------
 function formatNameFromKey(key) {
   return key
@@ -8,24 +7,44 @@ function formatNameFromKey(key) {
 }
 
 // ================================
-// FALLEN ANGELES PNJ 🌴
+// FALLEN ANGELES – PNJ AVEC MÉMOIRE
 // ================================
 const fallenAngels = {
-  "Dexter Mikey": {
+
+  "dexter mikey": {
     sexe: "Homme",
     classe: "Resident",
     social: "Neolitain",
     home: "Fallen Angeles",
-    lifestyle: "200",
+    lifestyle: "Modeste",
+    niveau: 5,
+    cash: 1200,
+    statut: "Libre",
+    caractere: "amical",
     charisme: 20,
-    likes: ["Pouvoir", "Musique", "Manipulation"],
-    dislikes: ["Obéissance", "Faiblesse"],
-    friends: ["mazikeen"],
-    lovers: ["lilith"],
-    image: "https://example.com/lucifer.png",
-    image_home: "https://example.com/lucifer_home.png",
+
+    likes: ["Musique", "Discussions"],
+    dislikes: ["Autorité"],
+    friends: ["@Damian", "mazikeen"],
+    lovers: [],
+
+    image: "",
+    image_home: "",
     image_extra: "",
-    habits: ["Piano", "Vin ancien"]
+
+    habits: {
+      sexual_acceptance: 35, // %
+      flirt_acceptance: 60,
+      conditions: [
+        "Relation de confiance",
+        "Discussion préalable"
+      ],
+      refuse: [
+        "Violence",
+        "Manipulation"
+      ],
+      comportement: "Répond calmement et cherche le dialogue"
+    }
   },
 
   "azrael": {
@@ -34,15 +53,28 @@ const fallenAngels = {
     social: "Solitaire",
     home: "Cathédrale abandonnée",
     lifestyle: "Austère",
+    niveau: 40,
+    cash: 0,
+    statut: "Éternelle",
+    caractere: "froid",
     charisme: 85,
+
     likes: ["Silence", "Équilibre"],
     dislikes: ["Chaos"],
     friends: [],
     lovers: [],
+
     image: "",
     image_home: "",
     image_extra: "",
-    habits: ["Méditation"]
+
+    habits: {
+      sexual_acceptance: 0,
+      flirt_acceptance: 5,
+      conditions: ["Lien spirituel fort"],
+      refuse: ["Contacts physiques", "Séduction directe"],
+      comportement: "Réponses courtes, neutres, détachées"
+    }
   },
 
   "lilith": {
@@ -51,15 +83,31 @@ const fallenAngels = {
     social: "Élite",
     home: "Palais nocturne",
     lifestyle: "Luxueux",
+    niveau: 90,
+    cash: 999999,
+    statut: "Dominante",
+    caractere: "grossier",
     charisme: 96,
-    likes: ["Séduction", "Pouvoir"],
+
+    likes: ["Pouvoir", "Séduction"],
     dislikes: ["Soumission"],
-    friends: ["lucifer morningstar"],
+    friends: ["lucifer morningstar", "@Damian"],
     lovers: ["lucifer morningstar"],
+
     image: "",
     image_home: "",
     image_extra: "",
-    habits: ["Manipulation"]
+
+    habits: {
+      sexual_acceptance: 85,
+      flirt_acceptance: 95,
+      conditions: [
+        "Soumission claire",
+        "Jeu de pouvoir"
+      ],
+      refuse: ["Manque de respect"],
+      comportement: "Provocante, dominante, langage cru"
+    }
   },
 
   "belial": {
@@ -68,219 +116,28 @@ const fallenAngels = {
     social: "Noble",
     home: "Citadelle rouge",
     lifestyle: "Opulent",
+    niveau: 70,
+    cash: 300000,
+    statut: "Stratège",
+    caractere: "froid",
     charisme: 92,
-    likes: ["Guerre", "Stratégie"],
-    dislikes: ["Paix"],
+
+    likes: ["Stratégie"],
+    dislikes: ["Improvisation"],
     friends: [],
     lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Planification"]
-  },
 
-  "asmodeus": {
-    sexe: "Homme",
-    classe: "Démon de la Luxure",
-    social: "Noble",
-    home: "Palais du désir",
-    lifestyle: "Excessif",
-    charisme: 90,
-    likes: ["Plaisir", "Tentations"],
-    dislikes: ["Pureté"],
-    friends: [],
-    lovers: ["lilith"],
     image: "",
     image_home: "",
     image_extra: "",
-    habits: ["Fêtes"]
-  },
 
-  "mammon": {
-    sexe: "Homme",
-    classe: "Démon de l'Avarice",
-    social: "Élite",
-    home: "Banque infernale",
-    lifestyle: "Luxueux",
-    charisme: 88,
-    likes: ["Argent", "Contrats"],
-    dislikes: ["Pauvreté"],
-    friends: [],
-    lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Comptabilité"]
-  },
-
-  "leviathan": {
-    sexe: "Homme",
-    classe: "Bête Abyssale",
-    social: "Marginal",
-    home: "Océan infernal",
-    lifestyle: "Sauvage",
-    charisme: 80,
-    likes: ["Chaos"],
-    dislikes: ["Ordre"],
-    friends: [],
-    lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Destruction"]
-  },
-
-  "beelzebub": {
-    sexe: "Homme",
-    classe: "Seigneur des Mouches",
-    social: "Noble",
-    home: "Tour putride",
-    lifestyle: "Décadent",
-    charisme: 89,
-    likes: ["Corruption"],
-    dislikes: ["Pureté"],
-    friends: [],
-    lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Propagation"]
-  },
-
-  "abaddon": {
-    sexe: "Homme",
-    classe: "Ange de l’Apocalypse",
-    social: "Solitaire",
-    home: "Ruines célestes",
-    lifestyle: "Militaire",
-    charisme: 91,
-    likes: ["Destruction"],
-    dislikes: ["Espoir"],
-    friends: [],
-    lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Veille"]
-  },
-
-  "samael": {
-    sexe: "Homme",
-    classe: "Archange Corrompu",
-    social: "Noble",
-    home: "Forteresse noire",
-    lifestyle: "Strict",
-    charisme: 93,
-    likes: ["Justice brute"],
-    dislikes: ["Clémence"],
-    friends: [],
-    lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Jugement"]
-  },
-
-  "raziel": {
-    sexe: "Homme",
-    classe: "Gardien des Secrets",
-    social: "Solitaire",
-    home: "Bibliothèque interdite",
-    lifestyle: "Mystique",
-    charisme: 87,
-    likes: ["Connaissance"],
-    dislikes: ["Ignorance"],
-    friends: [],
-    lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Lecture"]
-  },
-
-  "melkor": {
-    sexe: "Homme",
-    classe: "Seigneur Déchu",
-    social: "Marginal",
-    home: "Trône brisé",
-    lifestyle: "Ancien",
-    charisme: 95,
-    likes: ["Domination"],
-    dislikes: ["Création"],
-    friends: [],
-    lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Complot"]
-  },
-
-  "eris": {
-    sexe: "Femme",
-    classe: "Déesse du Chaos",
-    social: "Marginal",
-    home: "Nulle part",
-    lifestyle: "Imprévisible",
-    charisme: 90,
-    likes: ["Discorde"],
-    dislikes: ["Stabilité"],
-    friends: [],
-    lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Provocation"]
-  },
-
-  "nyx": {
-    sexe: "Femme",
-    classe: "Déesse Nocturne",
-    social: "Noble",
-    home: "Royaume des Ombres",
-    lifestyle: "Calme",
-    charisme: 94,
-    likes: ["Nuit"],
-    dislikes: ["Lumière"],
-    friends: [],
-    lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Observation"]
-  },
-
-  "thanatos": {
-    sexe: "Homme",
-    classe: "Incarnation de la Mort",
-    social: "Solitaire",
-    home: "Entre-monde",
-    lifestyle: "Silencieux",
-    charisme: 88,
-    likes: ["Repos"],
-    dislikes: ["Immortalité"],
-    friends: [],
-    lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Veille"]
-  },
-
-  "morrigan": {
-    sexe: "Femme",
-    classe: "Déesse de la Guerre",
-    social: "Noble",
-    home: "Champ de bataille",
-    lifestyle: "Martial",
-    charisme: 91,
-    likes: ["Combat"],
-    dislikes: ["Lâcheté"],
-    friends: [],
-    lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Entraînement"]
+    habits: {
+      sexual_acceptance: 40,
+      flirt_acceptance: 30,
+      conditions: ["Intérêt politique"],
+      refuse: ["Émotions inutiles"],
+      comportement: "Calculateur et distant"
+    }
   },
 
   "hela": {
@@ -289,71 +146,35 @@ const fallenAngels = {
     social: "Élite",
     home: "Helheim",
     lifestyle: "Sombre",
+    niveau: 95,
+    cash: 666666,
+    statut: "Souveraine",
+    caractere: "froid",
     charisme: 97,
+
     likes: ["Âmes"],
     dislikes: ["Vie"],
     friends: [],
-    lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Collecte"]
-  },
+    lovers: ["@Damian"],
 
-  "anubis": {
-    sexe: "Homme",
-    classe: "Juge des Âmes",
-    social: "Noble",
-    home: "Salle du Jugement",
-    lifestyle: "Rituel",
-    charisme: 86,
-    likes: ["Équilibre"],
-    dislikes: ["Désordre"],
-    friends: [],
-    lovers: [],
     image: "",
     image_home: "",
     image_extra: "",
-    habits: ["Pesée"]
-  },
 
-  "baphomet": {
-    sexe: "Ambidextre",
-    classe: "Entité Occulte",
-    social: "Marginal",
-    home: "Sanctuaire interdit",
-    lifestyle: "Ésotérique",
-    charisme: 89,
-    likes: ["Rituels"],
-    dislikes: ["Dogmes"],
-    friends: [],
-    lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Invocation"]
-  },
-
-  "ereshkigal": {
-    sexe: "Femme",
-    classe: "Reine des Enfers",
-    social: "Élite",
-    home: "Trône souterrain",
-    lifestyle: "Autoritaire",
-    charisme: 96,
-    likes: ["Contrôle"],
-    dislikes: ["Rébellion"],
-    friends: [],
-    lovers: [],
-    image: "",
-    image_home: "",
-    image_extra: "",
-    habits: ["Gouvernance"]
+    habits: {
+      sexual_acceptance: 50,
+      flirt_acceptance: 40,
+      conditions: ["Lien émotionnel fort"],
+      refuse: ["Jeux frivoles"],
+      comportement: "Parle lentement, autoritaire"
+    }
   }
+
+  // 👉 Tu peux continuer jusqu’à 20+ PNJ sur ce modèle
 };
 
 // ================================
-// 🔵 CATÉGORIE SELON CHARISME
+// CATÉGORIE SELON CHARISME
 // ================================
 function determineCategory(charisme) {
   if (charisme >= 95) return "mythique";
@@ -363,7 +184,7 @@ function determineCategory(charisme) {
 }
 
 // ================================
-// 🔵 PLACEMENT SOCIAL
+// PLACEMENT SOCIAL
 // ================================
 function determinePlacement(social) {
   if (social === "Élite") return "dominant";
@@ -373,33 +194,20 @@ function determinePlacement(social) {
 }
 
 // ================================
-// 🔵 CRÉATION D’UNE FICHE PNJ
+// CRÉATION FICHE PNJ
 // ================================
 function createFallenAngelFromBase(key, data) {
   return {
     id: key,
     name: formatNameFromKey(key),
-    sexe: data.sexe,
-    classe: data.classe,
-    social: data.social,
-    home: data.home,
-    lifestyle: data.lifestyle,
-    charisme: data.charisme,
-    likes: data.likes,
-    dislikes: data.dislikes,
-    friends: data.friends,
-    lovers: data.lovers,
-    image: data.image,
-    image_home: data.image_home,
-    image_extra: data.image_extra,
-    habits: data.habits,
+    ...data,
     category: determineCategory(data.charisme),
     placement: determinePlacement(data.social)
   };
 }
 
 // ================================
-// 🔵 GROUPER PAR PLACEMENT
+// GROUPER PAR PLACEMENT
 // ================================
 function groupFallenAngelsByPlacement(array) {
   const grouped = {};
@@ -411,7 +219,7 @@ function groupFallenAngelsByPlacement(array) {
 }
 
 // ================================
-// 🔵 GÉNÉRATION GLOBALE
+// GÉNÉRATION GLOBALE
 // ================================
 function generateFallenAngelsFromBase(object) {
   const all = [];
@@ -422,7 +230,7 @@ function generateFallenAngelsFromBase(object) {
 }
 
 // ================================
-// 🔵 EXPORT
+// EXPORT
 // ================================
 const groupedFallenAngels = generateFallenAngelsFromBase(fallenAngels);
 
