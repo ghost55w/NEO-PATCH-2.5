@@ -1,6 +1,6 @@
-
+const { ovlcmd } = require("../lib/ovlcmd");
+const { PlayerFunctions } = require('../DataBase/ElysiumFichesDB');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const { fallenAngeles } = require("./fallenAngelesDB");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
