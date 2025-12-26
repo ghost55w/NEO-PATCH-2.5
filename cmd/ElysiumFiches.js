@@ -156,7 +156,17 @@ ovlcmd({
     return repondre("❌ Erreur lors de l'affichage du HUD.");
   }
 });
-  
+async function initPlayersAuto() {
+  try {
+    const allPlayers = await PlayerFunctions.getAllPlayers(); // méthode à créer dans ton DB
+    allPlayers.forEach(player => registeredPlayers.add(player.jid));
+    console.log("[ELYME] Initialisation terminée : joueurs chargés :", allPlayers.length);
+  } catch (err) {
+    console.error("[ELYME] Erreur initPlayersAuto :", err);
+  }
+}
+
+// Appel
 initPlayersAuto();
 
 
