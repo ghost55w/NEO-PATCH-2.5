@@ -1,6 +1,3 @@
-// ================================
-// PNJ HANDLER COMPLET – FALLEN ANGELES
-// ================================
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { fallenAngeles } = require("./fallenAngelesDB");
