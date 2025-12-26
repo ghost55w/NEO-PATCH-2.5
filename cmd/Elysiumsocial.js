@@ -1,5 +1,5 @@
 const OpenAI = require("openai");
-const { fallenAngeles } = require("./fallenAngelesDB"); 
+const { fallenAngeles } = require("./fallenAngelesDB"); // Nouvelle base PNJ
 const { ovlcmd } = require("../lib/ovlcmd"); 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -43,8 +43,8 @@ function calcFlirtAcceptance(pnj, player) {
 }
 
 function canHaveSex(pnj, player, location) {
-  const memory = pnj.memory[player.tag]?.events || [];
-  const successfulFlirts = memory.filter(m => m.type === "flirt" && m.success).length;
+  const memory = pnj.memory[player.tag] || [];
+  const successfulFlirts = memory.events ? memory.events.filter(m => m.type === "flirt" && m.success).length : 0;
   if (successfulFlirts >= 3 && location.toLowerCase().includes("club")) {
     return Math.random() * 100 < (pnj.habits.sexual_acceptance || 50);
   }
@@ -52,109 +52,103 @@ function canHaveSex(pnj, player, location) {
 }
 
 // ----------------
-// DÉTECTION SUJETS AIMÉS
+// HANDLE MESSAGE
 // ----------------
-function isTopicLiked(pnj, topic) {
-  return pnj.likes.includes(topic);
-}
+async function handlePNJMessage(player, text, location = "") {
+  // Vérifier trigger PNJ
+  const match = text.match(/j'aborde (\w+)\s*💬\s*(.*)/i);
+  if (!match) throw new Error("Message mal formaté ou pas de PNJ détecté.");
 
-// ----------------
-// RÉPONSE RP
-// ----------------
-async function getPNJResponse(pnjKey, player, message, topic, location = "") {
-  const pnj = fallenAngeles[pnjKey.toLowerCase()];
-  if (!pnj) throw new Error("PNJ introuvable");
+  const pnjKey = match[1].toLowerCase();
+  const actionText = match[2].trim();
+  const pnj = fallenAngeles[pnjKey];
+  if (!pnj) throw new Error("PNJ introuvable.");
 
-  // Init mémoire joueur
+  // Vérifier orientation
+  if (
+    (pnj.orientation === "homme" && player.sexe !== "H") ||
+    (pnj.orientation === "femme" && player.sexe !== "F") ||
+    (pnj.orientation === "gay" && player.sexe !== "H") ||
+    (pnj.orientation === "lesbienne" && player.sexe !== "F")
+  ) {
+    return {
+      caption: `${pnj.name} ne s'intéresse pas à toi 😶`,
+      image: pnj.image
+    };
+  }
+
+  // Init mémoire
   pnj.memory = pnj.memory || {};
   pnj.memory[player.tag] = pnj.memory[player.tag] || { relation: 5, status: "Inconnu😶", events: [] };
 
-  const msgLower = message.toLowerCase();
+  // Détecter le type d'action
+  let actionType = "talk";
+  if (/^je flirt:/i.test(actionText)) actionType = "flirt";
+  if (/^je propose de coucher ensemble/i.test(actionText)) actionType = "sexual";
 
-  // ----------------
-  // Commandes spéciales Flirt / Sex
-  // ----------------
-  let isFlirt = msgLower.startsWith("je flirt:");
-  let isSex = msgLower === "je propose de coucher ensemble";
-  let replyText = "";
+  // Vérifier sujet pour discussion
+  const topicMatch = actionText.match(/je parle de:\s*(.*)/i);
+  const topic = topicMatch ? topicMatch[1].trim() : "";
 
-  if (isFlirt) {
-    const flirtChance = calcFlirtAcceptance(pnj, player);
-    const flirtSuccess = Math.random() * 100 < flirtChance;
+  let likesSubject = pnj.likes.includes(topic);
+  let successTalk = false;
 
-    if (flirtSuccess) {
-      pnj.memory[player.tag].events.push({ type: "flirt", success: true, date: new Date().toISOString() });
-      replyText = "😉 J'apprécie ton compliment...";
-      updateRelation(pnj, player.tag, +2);
+  if (actionType === "talk") {
+    if (likesSubject) {
+      successTalk = Math.random() * 100 < 60; // 60% chance si topic aimé
+      updateRelation(pnj, player.tag, successTalk ? +2 : 0);
     } else {
-      pnj.memory[player.tag].events.push({ type: "flirt", success: false, date: new Date().toISOString() });
-      replyText = "🙄 Je ne suis pas intéressé(e)...";
+      // Sujet non aimé
       updateRelation(pnj, player.tag, -2);
+      return {
+        caption: `*${pnj.name}:*   |   *Relation avec ${player.tag}:* ${pnj.memory[player.tag].status}
+▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░
+💬 Désolé, ce sujet ne m'intéresse pas.
+
+▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░
+                              💠▯▯▯▯▯▯⎢⎢⎢⎢⎢`,
+        image: pnj.image
+      };
     }
-
-    return { caption: buildCaption(pnj, player.tag, replyText), image: pnj.image };
   }
 
-  if (isSex) {
-    const sexSuccess = canHaveSex(pnj, player, location);
-    if (sexSuccess) {
-      pnj.memory[player.tag].events.push({
-        type: "sexual",
-        success: true,
-        date: new Date().toISOString(),
-        location
-      });
-      replyText = "🔥 Très bien, nous pouvons continuer...";
-      updateRelation(pnj, player.tag, +5);
-    } else {
-      replyText = "❌ Je ne suis pas intéressé(e) pour le moment.";
-      updateRelation(pnj, player.tag, -2);
-    }
-
-    return { caption: buildCaption(pnj, player.tag, replyText), image: pnj.image };
+  // Calcul flirt
+  let flirtSuccess = false;
+  if (actionType === "flirt") {
+    const chance = calcFlirtAcceptance(pnj, player);
+    flirtSuccess = Math.random() * 100 < chance;
+    if (flirtSuccess) updateRelation(pnj, player.tag, +2);
+    else updateRelation(pnj, player.tag, -2);
   }
 
-  // ----------------
-  // Conversation normale
-  // ----------------
-  const likesTopic = isTopicLiked(pnj, topic);
-  if (!likesTopic) {
-    replyText = "🙄 Ce sujet ne m'intéresse pas.";
-    updateRelation(pnj, player.tag, -2);
-    return { caption: buildCaption(pnj, player.tag, replyText), image: pnj.image };
-  }
-
-  // 60% de chance de réussite si sujet aimé
-  const conversationSuccess = Math.random() * 100 < 60;
-  if (conversationSuccess) updateRelation(pnj, player.tag, +2);
-  else updateRelation(pnj, player.tag, -1);
+  // Calcul sexe
+  let sexSuccess = false;
+  if (actionType === "sexual") sexSuccess = canHaveSex(pnj, player, location);
 
   // Historique mémoire
-  pnj.memory[player.tag].events.push({ type: "event", detail: `Discussion sur ${topic}`, date: new Date().toISOString() });
+  pnj.memory[player.tag].events.push({
+    type: actionType,
+    success: actionType !== "talk" ? flirtSuccess || sexSuccess : successTalk,
+    date: new Date().toISOString(),
+    topic: topic
+  });
 
   // Prompt OpenAI
-  const memorySummary = pnj.memory[player.tag].events.map(e => {
-    if (e.type === "flirt") return `Flirt: ${e.success ? "réussi" : "échoué"} le ${e.date}`;
-    if (e.type === "sexual") return `Sexual: ${e.success ? "accepté" : "refusé"} le ${e.date} à ${e.location || ""}`;
-    if (e.type === "event") return `Événement: ${e.detail} le ${e.date}`;
-    return "";
-  }).join("\n") || "Aucune interaction passée.";
-
   const prompt = `
 Tu es ${pnj.name}, PNJ du jeu Fallen Angeles.
 Caractère: ${pnj.caractere}, social: ${pnj.social}, placement: ${pnj.placement}.
 Mémoire avec ${player.tag}:
-${memorySummary}
+${pnj.memory[player.tag].events.map(e => `${e.type}: ${e.success ? "réussi" : "échoué"} ${e.topic || ""} le ${e.date}`).join("\n")}
 
-Le joueur dit: "${message}"
+Le joueur dit: "${actionText}"
 Sujet: "${topic}"
 Lieu: ${location}
+ActionType: ${actionType}
 
-Répond RP selon ton caractère :
+Répond RP selon ton caractère:
 - Refuse poliment ou sèchement les sujets non appréciés.
-- Intègre mémoire et événements passés si pertinents.
-- Mentionne subtilement flirt si applicable.
-- Mentionne opportunité sexuelle si possible.
+- Mentionne subtilement flirt si accepté (${flirtSuccess ? "oui" : "non"}).
+- Mentionne opportunité sexuelle si possible (${sexSuccess ? "oui" : "non"}).
 - Utilise tutoiement.
 `;
 
@@ -165,21 +159,17 @@ Répond RP selon ton caractère :
     max_tokens: 500
   });
 
-  replyText = response.choices[0].message.content;
+  const replyText = response.choices[0].message.content;
 
-  return { caption: buildCaption(pnj, player.tag, replyText), image: pnj.image };
-}
-
-// ----------------
-// BUILD CAPTION
-// ----------------
-function buildCaption(pnj, playerTag, replyText) {
-  return `*${pnj.name}:*   |   *Relation avec ${playerTag}:* ${pnj.memory[playerTag].status}
+  // Construire caption
+  const caption = `*${pnj.name}:*   |   *Relation avec ${player.tag}:* ${pnj.memory[player.tag].status}
 ▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░
 💬 ${replyText}
 
 ▔▔▔▔▔▔▔▔▔▔▔▔░▒▒▒▒░░
                               💠▯▯▯▯▯▯⎢⎢⎢⎢⎢`;
+
+  return { caption, image: pnj.image };
 }
 
 // ----------------
@@ -187,5 +177,5 @@ function buildCaption(pnj, playerTag, replyText) {
 // ----------------
 module.exports = {
   fallenAngeles,
-  getPNJResponse
+  handlePNJMessage
 };
